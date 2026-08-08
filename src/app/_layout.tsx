@@ -1,9 +1,10 @@
 import {
-  Roboto_400Regular,
-  Roboto_500Medium,
-  Roboto_700Bold,
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
   useFonts,
-} from "@expo-google-fonts/roboto";
+} from "@expo-google-fonts/inter";
 
 import { Stack } from "expo-router";
 
@@ -12,17 +13,20 @@ import {
   View,
 } from "react-native";
 
+import AppShell from "../components/AppShell";
+
 export default function RootLayout() {
-  const [fontsLoaded, fontError] = useFonts({
-    "Roboto-Regular": Roboto_400Regular,
-    "Roboto-Medium": Roboto_500Medium,
-    "Roboto-Bold": Roboto_700Bold,
+  const [fontsLoaded] = useFonts({
+    "Inter-Regular": Inter_400Regular,
+
+    "Inter-Medium": Inter_500Medium,
+
+    "Inter-SemiBold": Inter_600SemiBold,
+
+    "Inter-Bold": Inter_700Bold,
   });
 
-  // If fonts are still loading, show loader.
-  // But if the browser cannot load the font in production,
-  // don't keep the entire application stuck forever.
-  if (!fontsLoaded && !fontError) {
+  if (!fontsLoaded) {
     return (
       <View
         style={{
@@ -41,10 +45,12 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-      }}
-    />
+    <AppShell>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+        }}
+      />
+    </AppShell>
   );
 }

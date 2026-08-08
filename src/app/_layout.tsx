@@ -1,18 +1,56 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
+import {
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+  useFonts,
+} from "@expo-google-fonts/inter";
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+import { Stack } from "expo-router";
 
-SplashScreen.preventAutoHideAsync();
+import {
+  ActivityIndicator,
+  View,
+} from "react-native";
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+import AppShell from "../components/AppShell";
+
+export default function RootLayout() {
+  const [fontsLoaded] = useFonts({
+    "Inter-Regular": Inter_400Regular,
+
+    "Inter-Medium": Inter_500Medium,
+
+    "Inter-SemiBold": Inter_600SemiBold,
+
+    "Inter-Bold": Inter_700Bold,
+  });
+
+  if (!fontsLoaded) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#F7F9FC",
+        }}
+      >
+        <ActivityIndicator
+          size="large"
+          color="#123F91"
+        />
+      </View>
+    );
+  }
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
+    <AppShell>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+        }}
+      />
+    </AppShell>
   );
 }

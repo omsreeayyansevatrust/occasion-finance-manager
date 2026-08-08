@@ -1,10 +1,9 @@
 import {
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
+  Roboto_400Regular,
+  Roboto_500Medium,
+  Roboto_700Bold,
   useFonts,
-} from "@expo-google-fonts/inter";
+} from "@expo-google-fonts/roboto";
 
 import { Stack } from "expo-router";
 
@@ -16,24 +15,25 @@ import {
 import AppShell from "../components/AppShell";
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
-    "Inter-Regular": Inter_400Regular,
-
-    "Inter-Medium": Inter_500Medium,
-
-    "Inter-SemiBold": Inter_600SemiBold,
-
-    "Inter-Bold": Inter_700Bold,
+  const [fontsLoaded, fontError] = useFonts({
+    "Roboto-Regular": Roboto_400Regular,
+    "Roboto-Medium": Roboto_500Medium,
+    "Roboto-Bold": Roboto_700Bold,
   });
 
-  if (!fontsLoaded) {
+  /*
+   * Show loading screen only while fonts are loading.
+   * If the production browser cannot load the font,
+   * allow the application to continue.
+   */
+  if (!fontsLoaded && !fontError) {
     return (
       <View
         style={{
           flex: 1,
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#F7F9FC",
+          backgroundColor: "#F8FAFC",
         }}
       >
         <ActivityIndicator

@@ -1,66 +1,55 @@
+// src/components/AppShell.js
+
 import { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    StyleSheet,
-    View,
+  ActivityIndicator,
+  StyleSheet,
+  View,
 } from "react-native";
 
 import { usePathname } from "expo-router";
 
-import {
-    onAuthStateChanged,
-} from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 
 import { COLORS } from "../constants/theme";
 import { auth } from "../services/firebase";
 
 import AppMenu from "./AppMenu";
 
-export default function AppShell({
-  children,
-}) {
+export default function AppShell({ children }) {
   const pathname = usePathname();
 
-  const [user, setUser] =
-    useState(auth.currentUser);
-
-  const [checkingAuth, setCheckingAuth] =
-    useState(true);
+  const [user, setUser] = useState(auth.currentUser);
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
-    const unsubscribe =
-      onAuthStateChanged(
-        auth,
-        (currentUser) => {
-          setUser(currentUser);
-          setCheckingAuth(false);
-        }
-      );
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      (currentUser) => {
+        setUser(currentUser);
+        setCheckingAuth(false);
+      }
+    );
 
     return unsubscribe;
   }, []);
 
   /*
-   * Login screen should NOT have the sidebar.
-   *
-   * Our login route is "/"
+   * Login screen should NOT show the sidebar.
    */
   const isLoginScreen =
     pathname === "/" ||
     pathname === "/login";
 
+  /*
+   * Authentication check
+   */
   if (checkingAuth) {
     return (
-      <View
-        style={
-          styles.loading
-        }
-      >
+      <View style={styles.loading}>
         <ActivityIndicator
           size="large"
-          color={
-            COLORS.primary
-          }
+          color={COLORS.primary}
         />
       </View>
     );
@@ -69,16 +58,9 @@ export default function AppShell({
   /*
    * Login screen
    */
-  if (
-    isLoginScreen ||
-    !user
-  ) {
+  if (isLoginScreen || !user) {
     return (
-      <View
-        style={
-          styles.fullScreen
-        }
-      >
+      <View style={styles.fullScreen}>
         {children}
       </View>
     );
@@ -86,29 +68,21 @@ export default function AppShell({
 
   /*
    * Authenticated application
-   * with standard left sidebar.
+   * Standard left sidebar on every screen.
    */
   return (
-    <View
-      style={
-        styles.appContainer
-      }
-    >
-      <View
-        style={
-          styles.sidebar
-        }
-      >
+    <View style={styles.appContainer}>
+
+      {/* LEFT SIDEBAR */}
+      <View style={styles.sidebar}>
         <AppMenu />
       </View>
 
-      <View
-        style={
-          styles.content
-        }
-      >
+      {/* MAIN CONTENT */}
+      <View style={styles.content}>
         {children}
       </View>
+
     </View>
   );
 }
@@ -117,8 +91,9 @@ const styles = StyleSheet.create({
   appContainer: {
     flex: 1,
     flexDirection: "row",
-    backgroundColor:
-      COLORS.background,
+    backgroundColor: COLORS.background,
+
+    // Web
     height: "100vh",
     minHeight: "100vh",
   },
@@ -140,17 +115,15 @@ const styles = StyleSheet.create({
     flex: 1,
     width: "100%",
     height: "100%",
+    backgroundColor: COLORS.background,
   },
 
   loading: {
     flex: 1,
     width: "100%",
     height: "100vh",
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
-    backgroundColor:
-      COLORS.background,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: COLORS.background,
   },
 });

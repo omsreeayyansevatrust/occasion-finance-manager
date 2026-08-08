@@ -5,7 +5,7 @@
 | OCCASION FINANCE MANAGER
 | Global Design System
 |--------------------------------------------------------------------------
-| Font       : Inter
+| Font       : Roboto
 | Primary    : Navy Blue
 | Background : Light Blue/Gray
 | Cards      : White
@@ -79,16 +79,15 @@ export const COLORS = {
 |--------------------------------------------------------------------------
 | FONT FAMILY
 |--------------------------------------------------------------------------
-|
-| These names correspond to the fonts loaded in _layout.js
-|
+| These names MUST match the fonts loaded in src/app/_layout.tsx
+|--------------------------------------------------------------------------
 */
 
 export const FONTS = {
-  regular: "Inter_400Regular",
-  medium: "Inter_500Medium",
-  semibold: "Inter_600SemiBold",
-  bold: "Inter_700Bold",
+  regular: "Roboto-Regular",
+  medium: "Roboto-Medium",
+  semibold: "Roboto-Medium",
+  bold: "Roboto-Bold",
 };
 
 /*
@@ -98,44 +97,61 @@ export const FONTS = {
 */
 
 export const FONT_SIZES = {
-  // Page
-  pageTitle: 32,
-  pageSubtitle: 15,
+  // ---------------------------------------------------------
+  // PAGE HEADER
+  // ---------------------------------------------------------
+  pageTitle: 54,
+  pageSubtitle: 16,
 
-  // Sections
-  sectionTitle: 19,
-  sectionSubtitle: 13,
+  // ---------------------------------------------------------
+  // SECTIONS
+  // ---------------------------------------------------------
+  sectionTitle: 20,
+  sectionSubtitle: 14,
 
-  // Cards
-  cardTitle: 15,
-  cardLabel: 11,
+  // ---------------------------------------------------------
+  // CARDS
+  // ---------------------------------------------------------
+  cardTitle: 16,
+  cardLabel: 12,
 
-  // Body
-  body: 14,
-  bodySmall: 13,
-  caption: 12,
-  label: 11,
+  // ---------------------------------------------------------
+  // BODY
+  // ---------------------------------------------------------
+  body: 18,
+  bodySmall: 16,
+  caption: 14,
+  label: 14,
 
-  // Navigation
-  sidebar: 14,
-  navigation: 14,
+  // ---------------------------------------------------------
+  // NAVIGATION / SIDEBAR
+  // ---------------------------------------------------------
+  sidebar: 25,
+  navigation: 50,
 
-  // Buttons
-  button: 13,
+  // ---------------------------------------------------------
+  // BUTTONS
+  // ---------------------------------------------------------
+  button: 54,
 
-  // Tables
-  tableHeader: 11,
-  tableBody: 13,
-  tableSecondary: 12,
+  // ---------------------------------------------------------
+  // TABLES
+  // ---------------------------------------------------------
+  tableHeader: 12,
+  tableBody: 14,
+  tableSecondary: 13,
 
-  // Financial
-  amount: 30,
-  amountSmall: 24,
+  // ---------------------------------------------------------
+  // FINANCIAL AMOUNTS
+  // ---------------------------------------------------------
+  amount: 32,
+  amountSmall: 26,
 
-  // Small
-  tiny: 10,
+  // ---------------------------------------------------------
+  // SMALL TEXT
+  // ---------------------------------------------------------
+  tiny: 11,
 };
-
 /*
 |--------------------------------------------------------------------------
 | GLOBAL SPACING
@@ -170,9 +186,6 @@ export const RADIUS = {
 |--------------------------------------------------------------------------
 | COMMON SHADOW
 |--------------------------------------------------------------------------
-|
-| Keep this subtle for production UI.
-|
 */
 
 export const SHADOWS = {

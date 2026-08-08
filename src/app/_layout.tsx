@@ -21,11 +21,6 @@ export default function RootLayout() {
     "Roboto-Bold": Roboto_700Bold,
   });
 
-  /*
-   * Show loading screen only while fonts are loading.
-   * If the production browser cannot load the font,
-   * allow the application to continue.
-   */
   if (!fontsLoaded && !fontError) {
     return (
       <View

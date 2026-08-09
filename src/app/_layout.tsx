@@ -1,3 +1,4 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 
@@ -13,6 +14,9 @@ export default function RootLayout() {
     "Roboto-Regular": require("../../assets/fonts/Roboto-Regular.ttf"),
     "Roboto-Medium": require("../../assets/fonts/Roboto-Medium.ttf"),
     "Roboto-Bold": require("../../assets/fonts/Roboto-Bold.ttf"),
+
+    // Preload Expo Vector Icons
+    ...Ionicons.font,
   });
 
   if (!fontsLoaded && !fontError) {

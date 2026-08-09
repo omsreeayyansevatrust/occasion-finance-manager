@@ -52,6 +52,12 @@ const MENU_ITEMS = [
     route: "/financialdetails",
     icon: "analytics-outline",
   },
+
+   {
+    label: "Reports",
+    route: "/reports",
+    icon: "document-text-outline",
+  },
 ];
 
 export default function AppMenu() {

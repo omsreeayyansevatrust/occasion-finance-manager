@@ -1,10 +1,4 @@
-import {
-  Roboto_400Regular,
-  Roboto_500Medium,
-  Roboto_700Bold,
-  useFonts,
-} from "@expo-google-fonts/roboto";
-
+import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 
 import {
@@ -16,9 +10,9 @@ import AppShell from "../components/AppShell";
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
-    "Roboto-Regular": Roboto_400Regular,
-    "Roboto-Medium": Roboto_500Medium,
-    "Roboto-Bold": Roboto_700Bold,
+    "Roboto-Regular": require("../../assets/fonts/Roboto-Regular.ttf"),
+    "Roboto-Medium": require("../../assets/fonts/Roboto-Medium.ttf"),
+    "Roboto-Bold": require("../../assets/fonts/Roboto-Bold.ttf"),
   });
 
   if (!fontsLoaded && !fontError) {

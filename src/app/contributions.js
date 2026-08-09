@@ -11,6 +11,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from "react-native";
 
 import {
@@ -212,6 +213,9 @@ const parseDateInput = (value) => {
 
 
 export default function ContributionsScreen() {
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
+
   const [contributions, setContributions] = useState([]);
   const [people, setPeople] = useState([]);
   const [occasions, setOccasions] = useState([]);
@@ -957,30 +961,34 @@ export default function ContributionsScreen() {
     <View style={styles.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={
-          styles.content
-        }
+        contentContainerStyle={[
+          styles.content,
+          isMobile && styles.contentMobile,
+        ]}
       >
         {/* HEADER */}
 
-        <View style={styles.header}>
+        <View style={[styles.header, isMobile && styles.headerMobile]}>
           <View>
             <Text style={styles.eyebrow}>
               FINANCIAL MANAGEMENT
             </Text>
 
-            <Text style={styles.title}>
+            <Text style={[styles.title, isMobile && styles.titleMobile]}>
               Contributions
             </Text>
 
-            <Text style={styles.subtitle}>
+            <Text style={[styles.subtitle, isMobile && styles.subtitleMobile]}>
               Track contributions received from
               volunteers and trustees
             </Text>
           </View>
 
           <TouchableOpacity
-            style={styles.addButton}
+            style={[
+              styles.addButton,
+              isMobile && styles.addButtonMobile,
+            ]}
             onPress={openAddForm}
           >
             <Ionicons
@@ -997,7 +1005,7 @@ export default function ContributionsScreen() {
 
         {/* FILTER PANEL */}
 
-        <View style={styles.filterPanel}>
+        <View style={[styles.filterPanel, isMobile && styles.filterPanelMobile]}>
           <View style={styles.filterHeader}>
             <Text style={styles.filterTitle}>
               Filters
@@ -1012,7 +1020,7 @@ export default function ContributionsScreen() {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.filterRow}>
+          <View style={[styles.filterRow, isMobile && styles.filterRowMobile]}>
             {/* PERSON */}
 
             <View style={styles.personFilter}>
@@ -1260,8 +1268,9 @@ export default function ContributionsScreen() {
 
         {/* SUMMARY */}
 
-        <View style={styles.summaryRow}>
+        <View style={[styles.summaryRow, isMobile && styles.summaryRowMobile]}>
           <SummaryCard
+            mobile={isMobile}
             label="TOTAL CONTRIBUTIONS"
             value={`₹${formatAmount(
               totalAmount
@@ -1282,6 +1291,7 @@ export default function ContributionsScreen() {
           />
 
           <SummaryCard
+            mobile={isMobile}
             label="PEOPLE"
             value={
               new Set(
@@ -1302,6 +1312,7 @@ export default function ContributionsScreen() {
           />
 
           <SummaryCard
+            mobile={isMobile}
             label="AVERAGE"
             value={`₹${formatAmount(
               filteredContributions.length
@@ -1322,8 +1333,8 @@ export default function ContributionsScreen() {
 
         {/* TABLE */}
 
-        <View style={styles.tableCard}>
-          <View style={styles.tableHeader}>
+        <View style={[styles.tableCard, isMobile && styles.tableCardMobile]}>
+          <View style={[styles.tableHeader, isMobile && styles.tableHeaderMobile]}>
             <View>
               <Text style={styles.tableTitle}>
                 Contribution Register
@@ -1347,7 +1358,7 @@ export default function ContributionsScreen() {
 
           {/* TABLE HEAD */}
 
-          <View style={styles.tableHead}>
+          <View style={[styles.tableHead, isMobile && styles.tableHeadMobile]}>
             <Text style={styles.dateColumn}>
               DATE
             </Text>
@@ -1383,9 +1394,7 @@ export default function ContributionsScreen() {
               <Ionicons
                 name="wallet-outline"
                 size={34}
-                color={
-                  COLORS.textMuted
-                }
+                color={COLORS.textMuted}
               />
 
               <Text style={styles.emptyTitle}>
@@ -1398,170 +1407,196 @@ export default function ContributionsScreen() {
               </Text>
             </View>
           ) : (
-            filteredContributions.map(
-              (item) => {
-                const person =
-                  peopleMap[
-                    item.personId
-                  ];
+            filteredContributions.map((item) => {
+              const person = peopleMap[item.personId];
+              const occasion = occasionsMap[item.occasionId];
 
-                const occasion =
-                  occasionsMap[
-                    item.occasionId
-                  ];
+              const name = person
+                ? getPersonName(person)
+                : item.personName || "Unknown Person";
 
-                const name =
-                  person
-                    ? getPersonName(
-                        person
-                      )
-                    : item.personName ||
-                      "Unknown Person";
+              const mobile = person
+                ? getMobileNumber(person)
+                : "-";
 
-                const mobile =
-                  person
-                    ? getMobileNumber(
-                        person
-                      )
-                    : "-";
-
+              if (isMobile) {
                 return (
                   <View
                     key={item.id}
-                    style={
-                      styles.tableRow
-                    }
+                    style={styles.contributionCard}
                   >
-                    <Text
-                      style={
-                        styles.dateColumn
-                      }
-                    >
-                      {formatDate(
-                        item.date
-                      )}
-                    </Text>
+                    <View style={styles.contributionCardTop}>
+                      <View style={styles.contributionPerson}>
+                        <View style={styles.avatar}>
+                          <Text style={styles.avatarText}>
+                            {name.charAt(0).toUpperCase()}
+                          </Text>
+                        </View>
 
-                    <View
-                      style={
-                        styles.personColumnView
-                      }
-                    >
-                      <View
-                        style={
-                          styles.avatar
-                        }
-                      >
-                        <Text
-                          style={
-                            styles.avatarText
-                          }
-                        >
-                          {name
-                            .charAt(0)
-                            .toUpperCase()}
-                        </Text>
+                        <View style={styles.contributionPersonInfo}>
+                          <Text
+                            style={styles.contributionPersonName}
+                            numberOfLines={1}
+                          >
+                            {name}
+                          </Text>
+
+                          <Text
+                            style={styles.contributionMobile}
+                            numberOfLines={1}
+                          >
+                            {mobile || "Mobile not available"}
+                          </Text>
+                        </View>
                       </View>
 
-                      <Text
-                        style={
-                          styles.personName
-                        }
-                        numberOfLines={1}
-                      >
-                        {name}
+                      <Text style={styles.contributionAmount}>
+                        +₹{formatAmount(item.amount)}
                       </Text>
                     </View>
 
-                    <Text
-                      style={
-                        styles.mobileColumn
-                      }
-                    >
-                      {mobile ||
-                        "-"}
-                    </Text>
+                    <View style={styles.contributionDivider} />
 
-                    <Text
-                      style={
-                        styles.occasionColumn
-                      }
-                      numberOfLines={2}
-                    >
-                      {occasion
-                        ? getOccasionName(
-                            occasion
-                          )
-                        : "General"}
-                    </Text>
+                    <View style={styles.contributionDetails}>
+                      <View style={styles.contributionDetailItem}>
+                        <Text style={styles.contributionDetailLabel}>
+                          DATE
+                        </Text>
+                        <Text style={styles.contributionDetailValue}>
+                          {formatDate(item.date)}
+                        </Text>
+                      </View>
 
-                    <Text
-                      style={
-                        styles.modeColumn
-                      }
-                    >
-                      {item.paymentMode ||
-                        "-"}
-                    </Text>
+                      <View style={styles.contributionDetailItem}>
+                        <Text style={styles.contributionDetailLabel}>
+                          OCCASION
+                        </Text>
+                        <Text
+                          style={styles.contributionDetailValue}
+                          numberOfLines={1}
+                        >
+                          {occasion
+                            ? getOccasionName(occasion)
+                            : "General"}
+                        </Text>
+                      </View>
 
-                    <Text
-                      style={
-                        styles.amountColumn
-                      }
-                    >
-                      +₹
-                      {formatAmount(
-                        item.amount
-                      )}
-                    </Text>
+                      <View style={styles.contributionDetailItem}>
+                        <Text style={styles.contributionDetailLabel}>
+                          PAYMENT
+                        </Text>
+                        <Text style={styles.contributionDetailValue}>
+                          {item.paymentMode || "-"}
+                        </Text>
+                      </View>
+                    </View>
 
-                    <View
-                      style={
-                        styles.actionColumnView
-                      }
-                    >
+                    <View style={styles.contributionActions}>
                       <TouchableOpacity
-                        style={
-                          styles.iconButton
-                        }
-                        onPress={() =>
-                          openEditForm(
-                            item
-                          )
-                        }
+                        style={styles.contributionEditButton}
+                        onPress={() => openEditForm(item)}
+                        activeOpacity={0.8}
                       >
                         <Ionicons
                           name="create-outline"
-                          size={17}
-                          color={
-                            COLORS.primary
-                          }
+                          size={16}
+                          color={COLORS.primary}
                         />
+                        <Text style={styles.contributionEditText}>
+                          Edit
+                        </Text>
                       </TouchableOpacity>
 
                       <TouchableOpacity
-                        style={
-                          styles.iconButtonDanger
-                        }
-                        onPress={() =>
-                          confirmDelete(
-                            item
-                          )
-                        }
+                        style={styles.contributionDeleteButton}
+                        onPress={() => confirmDelete(item)}
+                        activeOpacity={0.8}
                       >
                         <Ionicons
                           name="trash-outline"
-                          size={17}
-                          color={
-                            COLORS.danger
-                          }
+                          size={16}
+                          color={COLORS.danger}
                         />
+                        <Text style={styles.contributionDeleteText}>
+                          Delete
+                        </Text>
                       </TouchableOpacity>
                     </View>
                   </View>
                 );
               }
-            )
+
+              return (
+                <View
+                  key={item.id}
+                  style={styles.tableRow}
+                >
+                  <Text style={styles.dateColumn}>
+                    {formatDate(item.date)}
+                  </Text>
+
+                  <View style={styles.personColumnView}>
+                    <View style={styles.avatar}>
+                      <Text style={styles.avatarText}>
+                        {name.charAt(0).toUpperCase()}
+                      </Text>
+                    </View>
+
+                    <Text
+                      style={styles.personName}
+                      numberOfLines={1}
+                    >
+                      {name}
+                    </Text>
+                  </View>
+
+                  <Text style={styles.mobileColumn}>
+                    {mobile || "-"}
+                  </Text>
+
+                  <Text
+                    style={styles.occasionColumn}
+                    numberOfLines={2}
+                  >
+                    {occasion
+                      ? getOccasionName(occasion)
+                      : "General"}
+                  </Text>
+
+                  <Text style={styles.modeColumn}>
+                    {item.paymentMode || "-"}
+                  </Text>
+
+                  <Text style={styles.amountColumn}>
+                    +₹{formatAmount(item.amount)}
+                  </Text>
+
+                  <View style={styles.actionColumnView}>
+                    <TouchableOpacity
+                      style={styles.iconButton}
+                      onPress={() => openEditForm(item)}
+                    >
+                      <Ionicons
+                        name="create-outline"
+                        size={17}
+                        color={COLORS.primary}
+                      />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.iconButtonDanger}
+                      onPress={() => confirmDelete(item)}
+                    >
+                      <Ionicons
+                        name="trash-outline"
+                        size={17}
+                        color={COLORS.danger}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              );
+            })
           )}
         </View>
       </ScrollView>
@@ -2947,9 +2982,10 @@ function SummaryCard({
   icon,
   color,
   backgroundColor,
+  mobile = false,
 }) {
   return (
-    <View style={styles.summaryCard}>
+    <View style={[styles.summaryCard, mobile && styles.summaryCardMobile]}>
       <View style={styles.summaryTop}>
         <Text
           style={[
@@ -3011,6 +3047,63 @@ const styles = StyleSheet.create({
     paddingBottom: 45,
   },
 
+  contentMobile: {
+    paddingHorizontal: 14,
+    paddingTop: 18,
+    paddingBottom: 30,
+  },
+
+  headerMobile: {
+    flexDirection: "column",
+    alignItems: "stretch",
+    marginBottom: 16,
+  },
+
+  addButtonMobile: {
+    alignSelf: "flex-start",
+    height: 42,
+    paddingHorizontal: 14,
+    marginTop: 14,
+  },
+
+  filterPanelMobile: {
+    padding: 14,
+    borderRadius: 12,
+  },
+
+  filterRowMobile: {
+    flexDirection: "column",
+    alignItems: "stretch",
+    gap: 10,
+  },
+
+  summaryRowMobile: {
+    flexDirection: "column",
+    width: "100%",
+    gap: 10,
+  },
+
+  tableCardMobile: {
+    borderRadius: 12,
+    overflow: "visible",
+    backgroundColor: "transparent",
+    borderWidth: 0,
+  },
+
+  tableHeaderMobile: {
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    marginBottom: 10,
+  },
+
+  tableHeadMobile: {
+    display: "none",
+  },
+
   loading: {
     flex: 1,
     alignItems: "center",
@@ -3063,6 +3156,15 @@ const styles = StyleSheet.create({
     color:
       COLORS.textSecondary,
     marginTop: 5,
+  },
+
+  titleMobile: {
+    fontSize: 28,
+  },
+
+  subtitleMobile: {
+    fontSize: 13,
+    lineHeight: 18,
   },
 
   addButton: {
@@ -3310,6 +3412,19 @@ const styles = StyleSheet.create({
     padding: 20,
   },
 
+  summaryCardMobile: {
+    width: "100%",
+    maxWidth: "100%",
+    minWidth: 0,
+    flex: 0,
+    flexGrow: 0,
+    flexShrink: 1,
+    minHeight: 108,
+    padding: 14,
+    alignSelf: "stretch",
+    overflow: "hidden",
+  },
+
   summaryTop: {
     flexDirection: "row",
     justifyContent:
@@ -3318,6 +3433,8 @@ const styles = StyleSheet.create({
   },
 
   summaryLabel: {
+    flexShrink: 1,
+    maxWidth: "78%",
     fontFamily:
       FONTS.bold,
     fontSize: 11,
@@ -3333,16 +3450,20 @@ const styles = StyleSheet.create({
   },
 
   summaryValue: {
+    maxWidth: "100%",
+    flexShrink: 1,
     fontFamily:
       FONTS.bold,
-    fontSize: 30,
-    marginTop: 15,
+    fontSize: 28,
+    marginTop: 13,
   },
 
   summaryDescription: {
+    maxWidth: "100%",
+    flexShrink: 1,
     fontFamily:
       FONTS.regular,
-    fontSize: 13,
+    fontSize: 12,
     color:
       COLORS.textSecondary,
     marginTop: 4,
@@ -3548,6 +3669,148 @@ const styles = StyleSheet.create({
       COLORS.dangerLight,
     alignItems: "center",
     justifyContent: "center",
+  },
+
+  /* MOBILE CONTRIBUTION CARD */
+
+  contributionCard: {
+    width: "100%",
+    alignSelf: "stretch",
+    boxSizing: "border-box",
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
+    overflow: "hidden",
+  },
+
+  contributionCardTop: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    minWidth: 0,
+  },
+
+  contributionPerson: {
+    flex: 1,
+    minWidth: 0,
+    maxWidth: "72%",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  contributionPersonInfo: {
+    flex: 1,
+    minWidth: 0,
+    maxWidth: "100%",
+  },
+
+  contributionPersonName: {
+    maxWidth: "100%",
+    fontFamily: FONTS.bold,
+    fontSize: 15,
+    color: COLORS.text,
+  },
+
+  contributionMobile: {
+    maxWidth: "100%",
+    fontFamily: FONTS.regular,
+    fontSize: 12,
+    color: COLORS.textMuted,
+    marginTop: 3,
+  },
+
+  contributionAmount: {
+    flexShrink: 0,
+    maxWidth: "28%",
+    fontFamily: FONTS.bold,
+    fontSize: 16,
+    color: COLORS.success,
+    marginLeft: 8,
+    textAlign: "right",
+  },
+
+  contributionDivider: {
+    height: 1,
+    backgroundColor: COLORS.borderLight,
+    marginVertical: 12,
+  },
+
+  contributionDetails: {
+    width: "100%",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+
+  contributionDetailItem: {
+    flex: 1,
+    minWidth: 92,
+    maxWidth: "100%",
+  },
+
+  contributionDetailLabel: {
+    fontFamily: FONTS.bold,
+    fontSize: 9,
+    letterSpacing: 0.5,
+    color: COLORS.textMuted,
+    marginBottom: 3,
+  },
+
+  contributionDetailValue: {
+    maxWidth: "100%",
+    fontFamily: FONTS.medium,
+    fontSize: 12,
+    color: COLORS.text,
+  },
+
+  contributionActions: {
+    width: "100%",
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 13,
+    paddingTop: 11,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.borderLight,
+  },
+
+  contributionEditButton: {
+    flex: 1,
+    minWidth: 0,
+    height: 38,
+    borderRadius: 8,
+    backgroundColor: COLORS.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 6,
+  },
+
+  contributionDeleteButton: {
+    flex: 1,
+    minWidth: 0,
+    height: 38,
+    borderRadius: 8,
+    backgroundColor: COLORS.dangerLight,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 6,
+  },
+
+  contributionEditText: {
+    fontFamily: FONTS.bold,
+    fontSize: 12,
+    color: COLORS.primary,
+  },
+
+  contributionDeleteText: {
+    fontFamily: FONTS.bold,
+    fontSize: 12,
+    color: COLORS.danger,
   },
 
   /* EMPTY */

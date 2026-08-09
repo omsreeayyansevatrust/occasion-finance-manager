@@ -9,6 +9,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from "react-native";
 
 import {
@@ -43,6 +44,9 @@ const BLOOD_GROUPS = [
 ];
 
 export default function PeopleScreen() {
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
+
   const [people, setPeople] = useState([]);
 
   const [loading, setLoading] = useState(true);
@@ -584,14 +588,18 @@ export default function PeopleScreen() {
         showsVerticalScrollIndicator={
           false
         }
-        contentContainerStyle={
-          styles.content
-        }
+        contentContainerStyle={[
+          styles.content,
+          isMobile && styles.contentMobile,
+        ]}
       >
         {/* HEADER */}
 
         <View
-          style={styles.header}
+          style={[
+            styles.header,
+            isMobile && styles.headerMobile,
+          ]}
         >
           <View
             style={
@@ -620,9 +628,10 @@ export default function PeopleScreen() {
           </View>
 
           <TouchableOpacity
-            style={
-              styles.primaryButton
-            }
+            style={[
+              styles.primaryButton,
+              isMobile && styles.primaryButtonMobile,
+            ]}
             onPress={openNew}
           >
             <Text
@@ -646,9 +655,10 @@ export default function PeopleScreen() {
         {/* SUMMARY */}
 
         <View
-          style={
-            styles.summaryGrid
-          }
+          style={[
+            styles.summaryGrid,
+            isMobile && styles.summaryGridMobile,
+          ]}
         >
           <SummaryCard
             label="TOTAL PEOPLE"
@@ -695,13 +705,17 @@ export default function PeopleScreen() {
             }
             icon="T"
             color="#8B5CF6"
+            wide
           />
         </View>
 
         {/* SEARCH */}
 
         <View
-          style={styles.toolbar}
+          style={[
+            styles.toolbar,
+            isMobile && styles.toolbarMobile,
+          ]}
         >
           <View
             style={
@@ -748,9 +762,10 @@ export default function PeopleScreen() {
           </Text>
 
           <View
-            style={
-              styles.filterRow
-            }
+            style={[
+              styles.filterRow,
+              isMobile && styles.filterRowMobile,
+            ]}
           >
             {[
               "All",
@@ -801,9 +816,10 @@ export default function PeopleScreen() {
           </Text>
 
           <View
-            style={
-              styles.filterRow
-            }
+            style={[
+              styles.filterRow,
+              isMobile && styles.filterRowMobile,
+            ]}
           >
             {[
               "All",
@@ -842,9 +858,10 @@ export default function PeopleScreen() {
         {/* RESULTS */}
 
         <View
-          style={
-            styles.resultHeader
-          }
+          style={[
+            styles.resultHeader,
+            isMobile && styles.resultHeaderMobile,
+          ]}
         >
           <Text
             style={
@@ -1013,7 +1030,10 @@ export default function PeopleScreen() {
             keyboardShouldPersistTaps="handled"
           >
             <View
-              style={styles.modal}
+              style={[
+                styles.modal,
+                isMobile && styles.modalMobile,
+              ]}
             >
               {/* HEADER */}
 
@@ -1446,14 +1466,16 @@ export default function PeopleScreen() {
               {/* ACTIONS */}
 
               <View
-                style={
-                  styles.modalActions
-                }
+                style={[
+                  styles.modalActions,
+                  isMobile && styles.modalActionsMobile,
+                ]}
               >
                 <TouchableOpacity
-                  style={
-                    styles.cancelButton
-                  }
+                  style={[
+                    styles.cancelButton,
+                    isMobile && styles.modalActionButtonMobile,
+                  ]}
                   onPress={() => {
                     setModalVisible(
                       false
@@ -1471,9 +1493,10 @@ export default function PeopleScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={
-                    styles.saveButton
-                  }
+                  style={[
+                    styles.saveButton,
+                    isMobile && styles.modalActionButtonMobile,
+                  ]}
                   onPress={
                     savePerson
                   }
@@ -1516,12 +1539,17 @@ function SummaryCard({
   value,
   icon,
   color,
+  wide = false,
 }) {
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
   return (
     <View
-      style={
-        styles.summaryCard
-      }
+      style={[
+        styles.summaryCard,
+        isMobile && styles.summaryCardMobile,
+        isMobile && wide && styles.summaryCardMobileWide,
+      ]}
     >
       <View
         style={
@@ -1559,9 +1587,10 @@ function SummaryCard({
       </View>
 
       <Text
-        style={
-          styles.summaryValue
-        }
+        style={[
+          styles.summaryValue,
+          isMobile && styles.summaryValueMobile,
+        ]}
       >
         {value}
       </Text>
@@ -1578,6 +1607,9 @@ function PersonCard({
   onEdit,
   onDelete,
 }) {
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
+
   const isActive =
     String(
       person.status ||
@@ -1604,16 +1636,18 @@ function PersonCard({
 
   return (
     <View
-      style={
-        styles.personCard
-      }
+      style={[
+        styles.personCard,
+        isMobile && styles.personCardMobile,
+      ]}
     >
       {/* IDENTITY */}
 
       <View
-        style={
-          styles.personIdentity
-        }
+        style={[
+          styles.personIdentity,
+          isMobile && styles.personIdentityMobile,
+        ]}
       >
         <View
           style={[
@@ -1643,14 +1677,16 @@ function PersonCard({
         </View>
 
         <View
-          style={
-            styles.personInfo
-          }
+          style={[
+            styles.personInfo,
+            isMobile && styles.personInfoMobile,
+          ]}
         >
           <View
-            style={
-              styles.personNameRow
-            }
+            style={[
+              styles.personNameRow,
+              isMobile && styles.personNameRowMobile,
+            ]}
           >
             <Text
               style={
@@ -1749,9 +1785,10 @@ function PersonCard({
       {/* STATUS */}
 
       <View
-        style={
-          styles.personStatus
-        }
+        style={[
+          styles.personStatus,
+          isMobile && styles.personStatusMobile,
+        ]}
       >
         <View
           style={[
@@ -1788,14 +1825,16 @@ function PersonCard({
       {/* ACTIONS */}
 
       <View
-        style={
-          styles.cardActions
-        }
+        style={[
+          styles.cardActions,
+          isMobile && styles.cardActionsMobile,
+        ]}
       >
         <TouchableOpacity
-          style={
-            styles.actionButton
-          }
+          style={[
+            styles.actionButton,
+            isMobile && styles.actionButtonMobile,
+          ]}
           onPress={
             onEdit
           }
@@ -1813,6 +1852,7 @@ function PersonCard({
           style={[
             styles.actionButton,
             styles.deleteAction,
+            isMobile && styles.actionButtonMobile,
           ]}
           onPress={
             onDelete
@@ -1844,6 +1884,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+  },
+
+  contentMobile: {
+    paddingHorizontal: 16,
+    paddingTop: 20,
+    paddingBottom: 40,
   },
 
   content: {
@@ -1907,6 +1953,22 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
 
+  headerMobile: {
+    flexDirection: "column",
+    alignItems: "stretch",
+    marginBottom: 20,
+  },
+
+  primaryButtonMobile: {
+    alignSelf: "flex-start",
+    marginLeft: 0,
+    marginTop: 14,
+    minHeight: 46,
+    paddingHorizontal: 16,
+  },
+
+  primaryButtonMobileText: {},
+
   primaryButton: {
     minHeight: 48,
     paddingHorizontal: 19,
@@ -1936,6 +1998,23 @@ const styles = StyleSheet.create({
   // Same proportions as Dashboard KPI cards
   // ==================================================
 
+  summaryGridMobile: {
+    gap: 12,
+    marginBottom: 18,
+  },
+
+  summaryCardMobile: {
+    flex: 0,
+    width: "46%",
+    minWidth: 0,
+    minHeight: 118,
+    padding: 15,
+  },
+
+  summaryCardMobileWide: {
+    width: "100%",
+  },
+
   summaryGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -1958,6 +2037,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+  },
+
+  summaryLabelMobile: {
+    fontSize: 10,
+  },
+
+  summaryValueMobile: {
+    fontSize: 27,
+    lineHeight: 32,
+    marginTop: 12,
   },
 
   summaryLabel: {
@@ -1991,6 +2080,12 @@ const styles = StyleSheet.create({
   // ==================================================
   // SEARCH
   // ==================================================
+
+  toolbarMobile: {
+    padding: 10,
+    borderRadius: 13,
+    marginBottom: 16,
+  },
 
   toolbar: {
     backgroundColor: COLORS.surface,
@@ -2044,6 +2139,10 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
 
+  filterRowMobile: {
+    gap: 7,
+  },
+
   filterRow: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -2081,6 +2180,11 @@ const styles = StyleSheet.create({
   // RESULTS
   // ==================================================
 
+  resultHeaderMobile: {
+    marginTop: 2,
+    marginBottom: 10,
+  },
+
   resultHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -2107,6 +2211,46 @@ const styles = StyleSheet.create({
 
   peopleList: {
     gap: 14,
+  },
+
+  personCardMobile: {
+    minHeight: 0,
+    paddingHorizontal: 15,
+    paddingVertical: 15,
+    flexDirection: "column",
+    alignItems: "stretch",
+  },
+
+  personIdentityMobile: {
+    width: "100%",
+  },
+
+  personInfoMobile: {
+    marginLeft: 12,
+  },
+
+  personNameRowMobile: {
+    flexWrap: "wrap",
+  },
+
+  personStatusMobile: {
+    marginHorizontal: 0,
+    marginTop: 12,
+    alignSelf: "flex-start",
+  },
+
+  cardActionsMobile: {
+    width: "100%",
+    marginTop: 13,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    gap: 9,
+  },
+
+  actionButtonMobile: {
+    flex: 1,
+    minHeight: 42,
   },
 
   personCard: {
@@ -2357,6 +2501,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 24,
+  },
+
+  modalMobile: {
+    maxWidth: 520,
+    borderRadius: 15,
+    padding: 20,
+  },
+
+  modalActionsMobile: {
+    flexDirection: "column-reverse",
+    alignItems: "stretch",
   },
 
   modal: {
@@ -2613,6 +2768,10 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.medium,
     fontSize: 14,
     color: COLORS.textSecondary,
+  },
+
+  modalActionButtonMobile: {
+    width: "100%",
   },
 
   saveButton: {

@@ -12,6 +12,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 
@@ -130,6 +131,9 @@ const formatDate = (value) => {
 ========================================================= */
 
 export default function FinancialDetails() {
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
+
   const [contributions, setContributions] =
     useState([]);
 
@@ -743,16 +747,18 @@ export default function FinancialDetails() {
         showsVerticalScrollIndicator={
           false
         }
-        contentContainerStyle={
-          styles.content
-        }
+        contentContainerStyle={[
+          styles.content,
+          isMobile && styles.contentMobile,
+        ]}
       >
         {/* HEADER */}
 
         <View
-          style={
-            styles.header
-          }
+          style={[
+            styles.header,
+            isMobile && styles.headerMobile,
+          ]}
         >
           <View
             style={
@@ -768,17 +774,19 @@ export default function FinancialDetails() {
             </Text>
 
             <Text
-              style={
-                styles.title
-              }
+              style={[
+                styles.title,
+                isMobile && styles.titleMobile,
+              ]}
             >
               Financial Details
             </Text>
 
             <Text
-              style={
-                styles.subtitle
-              }
+              style={[
+                styles.subtitle,
+                isMobile && styles.subtitleMobile,
+              ]}
             >
               Review income, expenses and
               occasion-wise balances
@@ -786,9 +794,10 @@ export default function FinancialDetails() {
           </View>
 
           <View
-            style={
-              styles.periodBadge
-            }
+            style={[
+              styles.periodBadge,
+              isMobile && styles.periodBadgeMobile,
+            ]}
           >
             <Text
               style={
@@ -823,9 +832,10 @@ export default function FinancialDetails() {
           }
         >
           <View
-            style={
-              styles.filterHeader
-            }
+            style={[
+              styles.filterHeader,
+              isMobile && styles.filterHeaderMobile,
+            ]}
           >
             <Text
               style={
@@ -866,11 +876,13 @@ export default function FinancialDetails() {
           </View>
 
           <View
-            style={
-              styles.filterRow
-            }
+            style={[
+              styles.filterRow,
+              isMobile && styles.filterRowMobile,
+            ]}
           >
             <FilterButton
+              isMobile={isMobile}
               label="MONTH"
               value={
                 selectedMonth ===
@@ -889,6 +901,7 @@ export default function FinancialDetails() {
             />
 
             <FilterButton
+              isMobile={isMobile}
               label="YEAR"
               value={
                 String(
@@ -903,6 +916,7 @@ export default function FinancialDetails() {
             />
 
             <FilterButton
+              isMobile={isMobile}
               label="OCCASION"
               value={
                 selectedOccasion ===
@@ -924,9 +938,10 @@ export default function FinancialDetails() {
             />
 
             <View
-              style={
-                styles.typeFilter
-              }
+              style={[
+                styles.typeFilter,
+                isMobile && styles.typeFilterMobile,
+              ]}
             >
               <Text
                 style={
@@ -937,9 +952,10 @@ export default function FinancialDetails() {
               </Text>
 
               <View
-                style={
-                  styles.typeSelector
-                }
+                style={[
+                  styles.typeSelector,
+                  isMobile && styles.typeSelectorMobile,
+                ]}
               >
                 {[
                   "All",
@@ -996,11 +1012,13 @@ export default function FinancialDetails() {
         {/* SUMMARY */}
 
         <View
-          style={
-            styles.summaryGrid
-          }
+          style={[
+            styles.summaryGrid,
+            isMobile && styles.summaryGridMobile,
+          ]}
         >
           <SummaryCard
+            isMobile={isMobile}
             label="TOTAL INCOME"
             value={`₹${formatAmount(
               totalIncome
@@ -1021,6 +1039,7 @@ export default function FinancialDetails() {
           />
 
           <SummaryCard
+            isMobile={isMobile}
             label="TOTAL EXPENSES"
             value={`₹${formatAmount(
               totalExpenses
@@ -1041,6 +1060,7 @@ export default function FinancialDetails() {
           />
 
           <SummaryCard
+            isMobile={isMobile}
             label="NET BALANCE"
             value={`₹${formatAmount(
               netBalance
@@ -1072,6 +1092,7 @@ export default function FinancialDetails() {
           />
 
           <SummaryCard
+            isMobile={isMobile}
             label="TOTAL TRANSACTIONS"
             value={
               totalTransactions
@@ -1090,9 +1111,10 @@ export default function FinancialDetails() {
         {/* TWO COLUMN REPORT */}
 
         <View
-          style={
-            styles.reportColumns
-          }
+          style={[
+            styles.reportColumns,
+            isMobile && styles.reportColumnsMobile,
+          ]}
         >
           {/* OCCASION SUMMARY */}
 
@@ -1100,12 +1122,14 @@ export default function FinancialDetails() {
             style={[
               styles.panel,
               styles.occasionPanel,
+              isMobile && styles.panelMobile,
             ]}
           >
             <View
-              style={
-                styles.panelHeader
-              }
+              style={[
+                styles.panelHeader,
+                isMobile && styles.panelHeaderMobile,
+              ]}
             >
               <View>
                 <Text
@@ -1133,9 +1157,10 @@ export default function FinancialDetails() {
               }
             >
               <View
-                style={
-                  styles.occasionHeader
-                }
+                style={[
+                  styles.occasionHeader,
+                  isMobile && styles.occasionHeaderMobile,
+                ]}
               >
                 <Text
                   style={
@@ -1181,6 +1206,67 @@ export default function FinancialDetails() {
               {occasionReport.length ===
               0 ? (
                 <EmptyState />
+              ) : isMobile ? (
+                occasionReport.map(
+                  (item) => (
+                    <View
+                      key={item.id}
+                      style={styles.occasionMobileCard}
+                    >
+                      <Text
+                        style={styles.occasionMobileName}
+                        numberOfLines={2}
+                      >
+                        {item.name}
+                      </Text>
+
+                      <View style={styles.occasionMobileMetrics}>
+                        <View style={styles.occasionMobileMetric}>
+                          <Text style={styles.occasionMobileLabel}>
+                            INCOME
+                          </Text>
+                          <Text style={styles.incomeValueMobile}>
+                            ₹{formatAmount(item.income)}
+                          </Text>
+                        </View>
+
+                        <View style={styles.occasionMobileMetric}>
+                          <Text style={styles.occasionMobileLabel}>
+                            EXPENSE
+                          </Text>
+                          <Text style={styles.expenseValueMobile}>
+                            ₹{formatAmount(item.expense)}
+                          </Text>
+                        </View>
+
+                        <View style={styles.occasionMobileMetric}>
+                          <Text style={styles.occasionMobileLabel}>
+                            BALANCE
+                          </Text>
+                          <Text
+                            style={[
+                              styles.balanceValueMobile,
+                              {
+                                color:
+                                  item.balance >= 0
+                                    ? COLORS.success
+                                    : COLORS.danger,
+                              },
+                            ]}
+                          >
+                            ₹{formatAmount(item.balance)}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.occasionMobileFooter}>
+                        <Text style={styles.occasionMobileEntries}>
+                          {item.entries} {item.entries === 1 ? "entry" : "entries"}
+                        </Text>
+                      </View>
+                    </View>
+                  )
+                )
               ) : (
                 occasionReport.map(
                   (item) => (
@@ -1257,69 +1343,112 @@ export default function FinancialDetails() {
                 )
               )}
 
-              <View
-                style={
-                  styles.totalRow
-                }
-              >
-                <Text
-                  style={
-                    styles.totalLabel
-                  }
-                >
-                  TOTAL
-                </Text>
+              {isMobile ? (
+                <View style={styles.totalRowMobile}>
+                  <Text style={styles.totalLabelMobile}>
+                    TOTAL
+                  </Text>
 
-                <Text
-                  style={
-                    styles.incomeValue
-                  }
-                >
-                  ₹
-                  {formatAmount(
-                    totalIncome
-                  )}
-                </Text>
+                  <View style={styles.totalMobileMetrics}>
+                    <View style={styles.totalMobileMetric}>
+                      <Text style={styles.occasionMobileLabel}>
+                        INCOME
+                      </Text>
+                      <Text style={styles.incomeValueMobile}>
+                        ₹{formatAmount(totalIncome)}
+                      </Text>
+                    </View>
 
-                <Text
-                  style={
-                    styles.expenseValue
-                  }
-                >
-                  ₹
-                  {formatAmount(
-                    totalExpenses
-                  )}
-                </Text>
+                    <View style={styles.totalMobileMetric}>
+                      <Text style={styles.occasionMobileLabel}>
+                        EXPENSE
+                      </Text>
+                      <Text style={styles.expenseValueMobile}>
+                        ₹{formatAmount(totalExpenses)}
+                      </Text>
+                    </View>
 
-                <Text
-                  style={[
-                    styles.balanceValue,
-                    {
-                      color:
-                        netBalance >=
-                        0
-                          ? COLORS.success
-                          : COLORS.danger,
-                    },
-                  ]}
-                >
-                  ₹
-                  {formatAmount(
-                    netBalance
-                  )}
-                </Text>
+                    <View style={styles.totalMobileMetric}>
+                      <Text style={styles.occasionMobileLabel}>
+                        BALANCE
+                      </Text>
+                      <Text
+                        style={[
+                          styles.balanceValueMobile,
+                          {
+                            color:
+                              netBalance >= 0
+                                ? COLORS.success
+                                : COLORS.danger,
+                          },
+                        ]}
+                      >
+                        ₹{formatAmount(netBalance)}
+                      </Text>
+                    </View>
 
-                <Text
-                  style={
-                    styles.entriesValue
-                  }
+                    <View style={styles.totalMobileMetric}>
+                      <Text style={styles.occasionMobileLabel}>
+                        ENTRIES
+                      </Text>
+                      <Text style={styles.entriesValueMobile}>
+                        {totalTransactions}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              ) : (
+                <View
+                  style={styles.totalRow}
                 >
-                  {
-                    totalTransactions
-                  }
-                </Text>
-              </View>
+                  <Text
+                    style={styles.totalLabel}
+                  >
+                    TOTAL
+                  </Text>
+
+                  <Text
+                    style={styles.incomeValue}
+                  >
+                    ₹
+                    {formatAmount(
+                      totalIncome
+                    )}
+                  </Text>
+
+                  <Text
+                    style={styles.expenseValue}
+                  >
+                    ₹
+                    {formatAmount(
+                      totalExpenses
+                    )}
+                  </Text>
+
+                  <Text
+                    style={[
+                      styles.balanceValue,
+                      {
+                        color:
+                          netBalance >= 0
+                            ? COLORS.success
+                            : COLORS.danger,
+                      },
+                    ]}
+                  >
+                    ₹
+                    {formatAmount(
+                      netBalance
+                    )}
+                  </Text>
+
+                  <Text
+                    style={styles.entriesValue}
+                  >
+                    {totalTransactions}
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
 
@@ -1329,12 +1458,14 @@ export default function FinancialDetails() {
             style={[
               styles.panel,
               styles.transactionPanel,
+              isMobile && styles.panelMobile,
             ]}
           >
             <View
-              style={
-                styles.panelHeader
-              }
+              style={[
+                styles.panelHeader,
+                isMobile && styles.panelHeaderMobile,
+              ]}
             >
               <View>
                 <Text
@@ -1376,9 +1507,10 @@ export default function FinancialDetails() {
               }
             >
               <View
-                style={
-                  styles.transactionHeader
-                }
+                style={[
+                  styles.transactionHeader,
+                  isMobile && styles.transactionHeaderMobile,
+                ]}
               >
                 <Text
                   style={
@@ -1432,6 +1564,103 @@ export default function FinancialDetails() {
               {transactions.length ===
               0 ? (
                 <EmptyState />
+              ) : isMobile ? (
+                transactions
+                  .slice(0, 8)
+                  .map((item) => (
+                    <View
+                      key={item.id}
+                      style={styles.transactionMobileCard}
+                    >
+                      <View style={styles.transactionMobileTop}>
+                        <View style={styles.transactionMobileType}>
+                          <View
+                            style={[
+                              styles.transactionIcon,
+                              {
+                                backgroundColor:
+                                  item.type === "Income"
+                                    ? COLORS.successLight
+                                    : COLORS.dangerLight,
+                              },
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.transactionIconText,
+                                {
+                                  color:
+                                    item.type === "Income"
+                                      ? COLORS.success
+                                      : COLORS.danger,
+                                },
+                              ]}
+                            >
+                              {item.type === "Income" ? "↑" : "↓"}
+                            </Text>
+                          </View>
+
+                          <Text style={styles.transactionMobileDate}>
+                            {formatDate(item.date)}
+                          </Text>
+                        </View>
+
+                        <Text
+                          style={[
+                            styles.transactionMobileAmount,
+                            {
+                              color:
+                                item.type === "Income"
+                                  ? COLORS.success
+                                  : COLORS.danger,
+                            },
+                          ]}
+                        >
+                          {item.type === "Income" ? "+" : "-"}₹
+                          {formatAmount(item.amount)}
+                        </Text>
+                      </View>
+
+                      <Text
+                        style={styles.transactionMobilePerson}
+                        numberOfLines={2}
+                      >
+                        {item.person}
+                      </Text>
+
+                      <View style={styles.transactionMobileDetails}>
+                        <View style={styles.transactionMobileDetail}>
+                          <Text style={styles.transactionMobileLabel}>
+                            TYPE
+                          </Text>
+                          <Text style={styles.transactionMobileValue}>
+                            {item.type}
+                          </Text>
+                        </View>
+
+                        <View style={styles.transactionMobileDetail}>
+                          <Text style={styles.transactionMobileLabel}>
+                            OCCASION
+                          </Text>
+                          <Text
+                            style={styles.transactionMobileValue}
+                            numberOfLines={2}
+                          >
+                            {item.occasion}
+                          </Text>
+                        </View>
+
+                        <View style={styles.transactionMobileDetail}>
+                          <Text style={styles.transactionMobileLabel}>
+                            MODE
+                          </Text>
+                          <Text style={styles.transactionMobileValue}>
+                            {item.mode}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  ))
               ) : (
                 transactions
                   .slice(
@@ -1581,9 +1810,10 @@ export default function FinancialDetails() {
         {/* FOOTER */}
 
         <View
-          style={
-            styles.footerCard
-          }
+          style={[
+            styles.footerCard,
+            isMobile && styles.footerCardMobile,
+          ]}
         >
           <View>
             <Text
@@ -1607,9 +1837,10 @@ export default function FinancialDetails() {
           </View>
 
           <View
-            style={
-              styles.footerRight
-            }
+            style={[
+              styles.footerRight,
+              isMobile && styles.footerRightMobile,
+            ]}
           >
             <Text
               style={[
@@ -1787,15 +2018,19 @@ export default function FinancialDetails() {
 ========================================================= */
 
 function FilterButton({
+  isMobile,
   label,
   value,
   onPress,
 }) {
   return (
     <View
-      style={
-        styles.filterItem
-      }
+      style={[
+        styles.filterItem,
+        isMobile && (label === "OCCASION"
+          ? styles.filterItemOccasionMobile
+          : styles.filterItemMobile),
+      ]}
     >
       <Text
         style={
@@ -1806,9 +2041,10 @@ function FilterButton({
       </Text>
 
       <TouchableOpacity
-        style={
-          styles.filterButton
-        }
+        style={[
+          styles.filterButton,
+          isMobile && styles.filterButtonMobile,
+        ]}
         onPress={onPress}
         activeOpacity={0.8}
       >
@@ -1838,6 +2074,7 @@ function FilterButton({
 ========================================================= */
 
 function SummaryCard({
+  isMobile,
   label,
   value,
   description,
@@ -1847,9 +2084,10 @@ function SummaryCard({
 }) {
   return (
     <View
-      style={
-        styles.summaryCard
-      }
+      style={[
+        styles.summaryCard,
+        isMobile && styles.summaryCardMobile,
+      ]}
     >
       <View
         style={
@@ -2070,6 +2308,294 @@ const styles = StyleSheet.create({
     paddingHorizontal: 26,
     paddingTop: 27,
     paddingBottom: 45,
+  },
+
+  /* MOBILE RESPONSIVE */
+
+  contentMobile: {
+    paddingHorizontal: 14,
+    paddingTop: 18,
+    paddingBottom: 28,
+    width: "100%",
+    maxWidth: "100%",
+  },
+
+  headerMobile: {
+    flexDirection: "column",
+    alignItems: "stretch",
+    marginBottom: 16,
+  },
+
+  titleMobile: {
+    fontSize: 28,
+    lineHeight: 34,
+  },
+
+  subtitleMobile: {
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 5,
+  },
+
+  periodBadgeMobile: {
+    width: "100%",
+    minWidth: 0,
+    marginTop: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+
+  filterHeaderMobile: {
+    alignItems: "center",
+    marginBottom: 12,
+  },
+
+  filterRowMobile: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+
+  filterItemMobile: {
+    width: "calc(50% - 5px)",
+    minWidth: 0,
+    flexGrow: 0,
+    flexShrink: 0,
+    flexBasis: "48%",
+  },
+
+  filterItemOccasionMobile: {
+    width: "100%",
+    minWidth: 0,
+    flexGrow: 0,
+    flexShrink: 0,
+    flexBasis: "100%",
+  },
+
+  typeFilterMobile: {
+    width: "100%",
+    minWidth: 0,
+    flexGrow: 0,
+    flexShrink: 0,
+    flexBasis: "100%",
+    marginTop: 0,
+  },
+
+  filterButtonMobile: {
+    height: 48,
+    paddingHorizontal: 12,
+  },
+
+  filterValueMobile: {
+    fontSize: 14,
+  },
+
+  typeSelectorMobile: {
+    height: 48,
+  },
+
+  summaryGridMobile: {
+    flexDirection: "column",
+    gap: 10,
+    marginBottom: 12,
+  },
+
+  summaryCardMobile: {
+    width: "100%",
+    minWidth: 0,
+    minHeight: 126,
+    padding: 16,
+  },
+
+  summaryValueMobile: {
+    fontSize: 26,
+    marginTop: 12,
+  },
+
+  reportColumnsMobile: {
+    flexDirection: "column",
+    gap: 12,
+  },
+
+  panelMobile: {
+    width: "100%",
+    minWidth: 0,
+    padding: 14,
+  },
+
+  panelHeaderMobile: {
+    flexDirection: "column",
+    alignItems: "flex-start",
+  },
+
+  occasionHeaderMobile: {
+    display: "none",
+  },
+
+  occasionMobileCard: {
+    width: "100%",
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 11,
+    backgroundColor: COLORS.surface,
+    padding: 14,
+    marginBottom: 9,
+  },
+
+  occasionMobileName: {
+    fontFamily: FONTS.bold,
+    fontSize: 15,
+    lineHeight: 20,
+    color: COLORS.text,
+    marginBottom: 12,
+  },
+
+  occasionMobileMetrics: {
+    flexDirection: "row",
+    gap: 8,
+    width: "100%",
+  },
+
+  occasionMobileMetric: {
+    flex: 1,
+    minWidth: 0,
+  },
+
+  occasionMobileLabel: {
+    fontFamily: FONTS.bold,
+    fontSize: 9,
+    letterSpacing: 0.5,
+    color: COLORS.textMuted,
+    marginBottom: 4,
+  },
+
+  incomeValueMobile: {
+    fontFamily: FONTS.bold,
+    fontSize: 13,
+    color: COLORS.success,
+  },
+
+  expenseValueMobile: {
+    fontFamily: FONTS.bold,
+    fontSize: 13,
+    color: COLORS.danger,
+  },
+
+  balanceValueMobile: {
+    fontFamily: FONTS.bold,
+    fontSize: 13,
+  },
+
+  occasionMobileFooter: {
+    borderTopWidth: 1,
+    borderTopColor: "#EEF2F7",
+    marginTop: 11,
+    paddingTop: 8,
+  },
+
+  occasionMobileEntries: {
+    fontFamily: FONTS.medium,
+    fontSize: 11,
+    color: COLORS.textSecondary,
+  },
+
+  totalRowMobile: {
+    flexDirection: "column",
+    alignItems: "stretch",
+    minHeight: 0,
+    padding: 12,
+  },
+
+  transactionHeaderMobile: {
+    display: "none",
+  },
+
+  transactionMobileCard: {
+    width: "100%",
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 11,
+    backgroundColor: COLORS.surface,
+    padding: 14,
+    marginBottom: 9,
+  },
+
+  transactionMobileTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  transactionMobileType: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexShrink: 1,
+    minWidth: 0,
+  },
+
+  transactionMobileDate: {
+    fontFamily: FONTS.medium,
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginLeft: 8,
+  },
+
+  transactionMobileAmount: {
+    fontFamily: FONTS.bold,
+    fontSize: 16,
+    marginLeft: 8,
+    flexShrink: 0,
+  },
+
+  transactionMobilePerson: {
+    fontFamily: FONTS.bold,
+    fontSize: 15,
+    lineHeight: 20,
+    color: COLORS.text,
+    marginTop: 12,
+  },
+
+  transactionMobileDetails: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#EEF2F7",
+  },
+
+  transactionMobileDetail: {
+    flex: 1,
+    minWidth: 0,
+  },
+
+  transactionMobileLabel: {
+    fontFamily: FONTS.bold,
+    fontSize: 8,
+    letterSpacing: 0.5,
+    color: COLORS.textMuted,
+    marginBottom: 4,
+  },
+
+  transactionMobileValue: {
+    fontFamily: FONTS.medium,
+    fontSize: 11,
+    lineHeight: 15,
+    color: COLORS.textSecondary,
+  },
+
+  footerCardMobile: {
+    flexDirection: "column",
+    alignItems: "stretch",
+    padding: 16,
+  },
+
+  footerRightMobile: {
+    alignItems: "flex-start",
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#EEF2F7",
   },
 
   loading: {
@@ -2381,6 +2907,30 @@ const styles = StyleSheet.create({
     color:
       COLORS.textSecondary,
     marginTop: 4,
+  },
+
+  totalLabelMobile: {
+    fontFamily: FONTS.bold,
+    fontSize: 12,
+    color: COLORS.primary,
+    marginBottom: 10,
+  },
+
+  totalMobileMetrics: {
+    flexDirection: "row",
+    gap: 8,
+    width: "100%",
+  },
+
+  totalMobileMetric: {
+    flex: 1,
+    minWidth: 0,
+  },
+
+  entriesValueMobile: {
+    fontFamily: FONTS.bold,
+    fontSize: 13,
+    color: COLORS.textSecondary,
   },
 
   /* REPORT COLUMNS */

@@ -1,34 +1,35 @@
 import { useEffect, useMemo, useState } from "react";
 
 import {
-    ActivityIndicator,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
 } from "react-native";
 
 import {
-    useLocalSearchParams,
-    useRouter,
+  useLocalSearchParams,
+  useRouter,
 } from "expo-router";
 
 import {
-    collection,
-    doc,
-    onSnapshot,
-    query,
-    where,
+  collection,
+  doc,
+  onSnapshot,
+  query,
+  where,
 } from "firebase/firestore";
 
 import { Ionicons } from "@expo/vector-icons";
 
 import {
-    COLORS,
-    FONTS,
-    RADIUS,
-    SHADOWS
+  COLORS,
+  FONTS,
+  RADIUS,
+  SHADOWS
 } from "../constants/theme";
 
 import { db } from "../services/firebase";
@@ -109,6 +110,8 @@ const getInitial = (name) => {
 
 export default function OccasionDetailsScreen() {
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
 
   const params = useLocalSearchParams();
 
@@ -406,16 +409,27 @@ export default function OccasionDetailsScreen() {
     <View style={styles.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={
-          styles.content
-        }
+        contentContainerStyle={[
+          styles.content,
+          isMobile && styles.contentMobile,
+        ]}
       >
         {/* =================================================
             HEADER
         ================================================= */}
 
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
+        <View
+          style={[
+            styles.header,
+            isMobile && styles.headerMobile,
+          ]}
+        >
+          <View
+            style={[
+              styles.headerLeft,
+              isMobile && styles.headerLeftMobile,
+            ]}
+          >
             <TouchableOpacity
               style={styles.backIconButton}
               onPress={() =>
@@ -454,6 +468,7 @@ export default function OccasionDetailsScreen() {
           <View
             style={[
               styles.statusBadge,
+              isMobile && styles.statusBadgeMobile,
               String(
                 occasion.status || "Active"
               ).toLowerCase() ===
@@ -492,8 +507,18 @@ export default function OccasionDetailsScreen() {
             OCCASION INFORMATION
         ================================================= */}
 
-        <View style={styles.infoCard}>
-          <View style={styles.infoHeader}>
+        <View
+          style={[
+            styles.infoCard,
+            isMobile && styles.infoCardMobile,
+          ]}
+        >
+          <View
+            style={[
+              styles.infoHeader,
+              isMobile && styles.infoHeaderMobile,
+            ]}
+          >
             <View style={styles.occasionAvatar}>
               <Text
                 style={styles.occasionAvatarText}
@@ -522,8 +547,18 @@ export default function OccasionDetailsScreen() {
 
           <View style={styles.infoDivider} />
 
-          <View style={styles.infoGrid}>
-            <View style={styles.infoItem}>
+          <View
+            style={[
+              styles.infoGrid,
+              isMobile && styles.infoGridMobile,
+            ]}
+          >
+            <View
+              style={[
+                styles.infoItem,
+                isMobile && styles.infoItemMobile,
+              ]}
+            >
               <Text style={styles.infoLabel}>
                 START DATE
               </Text>
@@ -535,7 +570,12 @@ export default function OccasionDetailsScreen() {
               </Text>
             </View>
 
-            <View style={styles.infoItem}>
+            <View
+              style={[
+                styles.infoItem,
+                isMobile && styles.infoItemMobile,
+              ]}
+            >
               <Text style={styles.infoLabel}>
                 END DATE
               </Text>
@@ -547,7 +587,12 @@ export default function OccasionDetailsScreen() {
               </Text>
             </View>
 
-            <View style={styles.infoItem}>
+            <View
+              style={[
+                styles.infoItem,
+                isMobile && styles.infoItemMobile,
+              ]}
+            >
               <Text style={styles.infoLabel}>
                 CONTRIBUTORS
               </Text>
@@ -589,10 +634,20 @@ export default function OccasionDetailsScreen() {
           Financial performance for this occasion
         </Text>
 
-        <View style={styles.summaryGrid}>
+        <View
+          style={[
+            styles.summaryGrid,
+            isMobile && styles.summaryGridMobile,
+          ]}
+        >
           {/* INCOME */}
 
-          <View style={styles.summaryCard}>
+          <View
+            style={[
+              styles.summaryCard,
+              isMobile && styles.summaryCardMobile,
+            ]}
+          >
             <View
               style={[
                 styles.summaryIcon,
@@ -631,7 +686,12 @@ export default function OccasionDetailsScreen() {
 
           {/* EXPENSE */}
 
-          <View style={styles.summaryCard}>
+          <View
+            style={[
+              styles.summaryCard,
+              isMobile && styles.summaryCardMobile,
+            ]}
+          >
             <View
               style={[
                 styles.summaryIcon,
@@ -670,7 +730,12 @@ export default function OccasionDetailsScreen() {
 
           {/* BALANCE */}
 
-          <View style={styles.summaryCard}>
+          <View
+            style={[
+              styles.summaryCard,
+              isMobile && styles.summaryCardMobile,
+            ]}
+          >
             <View
               style={[
                 styles.summaryIcon,
@@ -716,7 +781,12 @@ export default function OccasionDetailsScreen() {
 
           {/* CONTRIBUTORS */}
 
-          <View style={styles.summaryCard}>
+          <View
+            style={[
+              styles.summaryCard,
+              isMobile && styles.summaryCardMobile,
+            ]}
+          >
             <View
               style={[
                 styles.summaryIcon,
@@ -750,7 +820,12 @@ export default function OccasionDetailsScreen() {
             CONTRIBUTIONS
         ================================================= */}
 
-        <View style={styles.sectionHeader}>
+        <View
+          style={[
+            styles.sectionHeader,
+            isMobile && styles.sectionHeaderMobile,
+          ]}
+        >
           <View>
             <Text style={styles.sectionTitle}>
               Contributions
@@ -770,7 +845,12 @@ export default function OccasionDetailsScreen() {
           </View>
         </View>
 
-        <View style={styles.transactionCard}>
+        <View
+          style={[
+            styles.transactionCard,
+            isMobile && styles.transactionCardMobile,
+          ]}
+        >
           {contributions.length === 0 ? (
             <EmptyState
               icon="arrow-up-circle-outline"
@@ -783,6 +863,7 @@ export default function OccasionDetailsScreen() {
                 <ContributionRow
                   key={item.id}
                   item={item}
+                  isMobile={isMobile}
                   isLast={
                     index ===
                     contributions.length - 1
@@ -801,6 +882,7 @@ export default function OccasionDetailsScreen() {
           style={[
             styles.sectionHeader,
             styles.expenseSectionHeader,
+            isMobile && styles.sectionHeaderMobile,
           ]}
         >
           <View>
@@ -832,7 +914,12 @@ export default function OccasionDetailsScreen() {
           </View>
         </View>
 
-        <View style={styles.transactionCard}>
+        <View
+          style={[
+            styles.transactionCard,
+            isMobile && styles.transactionCardMobile,
+          ]}
+        >
           {expenses.length === 0 ? (
             <EmptyState
               icon="arrow-down-circle-outline"
@@ -845,6 +932,7 @@ export default function OccasionDetailsScreen() {
                 <ExpenseRow
                   key={item.id}
                   item={item}
+                  isMobile={isMobile}
                   isLast={
                     index ===
                     expenses.length - 1
@@ -859,7 +947,12 @@ export default function OccasionDetailsScreen() {
             BOTTOM SUMMARY
         ================================================= */}
 
-        <View style={styles.bottomBalanceCard}>
+        <View
+          style={[
+            styles.bottomBalanceCard,
+            isMobile && styles.bottomBalanceCardMobile,
+          ]}
+        >
           <View>
             <Text
               style={styles.bottomBalanceLabel}
@@ -925,12 +1018,14 @@ export default function OccasionDetailsScreen() {
 
 function ContributionRow({
   item,
+  isMobile,
   isLast,
 }) {
   return (
     <View
       style={[
         styles.transactionRow,
+        isMobile && styles.transactionRowMobile,
         !isLast &&
           styles.transactionRowBorder,
       ]}
@@ -1015,12 +1110,14 @@ function ContributionRow({
 
 function ExpenseRow({
   item,
+  isMobile,
   isLast,
 }) {
   return (
     <View
       style={[
         styles.transactionRow,
+        isMobile && styles.transactionRowMobile,
         !isLast &&
           styles.transactionRowBorder,
       ]}
@@ -1682,6 +1779,90 @@ const styles = StyleSheet.create({
   },
 
   /* =======================================================
+     MOBILE RESPONSIVE
+  ======================================================= */
+
+  contentMobile: {
+    paddingHorizontal: 16,
+    paddingTop: 18,
+    paddingBottom: 16,
+    width: "100%",
+    maxWidth: "100%",
+  },
+
+  headerMobile: {
+    flexDirection: "column",
+    alignItems: "stretch",
+    marginBottom: 18,
+  },
+
+  headerLeftMobile: {
+    width: "100%",
+  },
+
+  statusBadgeMobile: {
+    alignSelf: "flex-start",
+    marginLeft: 56,
+    marginTop: 10,
+  },
+
+  infoCardMobile: {
+    padding: 16,
+    marginBottom: 20,
+  },
+
+  infoHeaderMobile: {
+    alignItems: "flex-start",
+  },
+
+  infoGridMobile: {
+    flexDirection: "column",
+  },
+
+  infoItemMobile: {
+    width: "100%",
+    paddingRight: 0,
+    marginBottom: 14,
+  },
+
+  summaryGridMobile: {
+    flexDirection: "column",
+    gap: 10,
+    marginBottom: 22,
+  },
+
+  summaryCardMobile: {
+    flex: 0,
+    width: "100%",
+    minWidth: 0,
+    minHeight: 120,
+    padding: 16,
+  },
+
+  sectionHeaderMobile: {
+    marginBottom: 4,
+  },
+
+  transactionCardMobile: {
+    width: "100%",
+  },
+
+  transactionRowMobile: {
+    minHeight: 0,
+    alignItems: "flex-start",
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+  },
+
+  bottomBalanceCardMobile: {
+    flexDirection: "column",
+    alignItems: "flex-start",
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+
+  /* =======================================================
      LOADING
   ======================================================= */
 
@@ -1756,5 +1937,89 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: COLORS.white,
     marginLeft: 8,
+  },
+
+  /* =======================================================
+     MOBILE RESPONSIVE
+  ======================================================= */
+
+  contentMobile: {
+    paddingHorizontal: 16,
+    paddingTop: 18,
+    paddingBottom: 16,
+    width: "100%",
+    maxWidth: "100%",
+  },
+
+  headerMobile: {
+    flexDirection: "column",
+    alignItems: "stretch",
+    marginBottom: 18,
+  },
+
+  headerLeftMobile: {
+    width: "100%",
+  },
+
+  statusBadgeMobile: {
+    alignSelf: "flex-start",
+    marginLeft: 56,
+    marginTop: 10,
+  },
+
+  infoCardMobile: {
+    padding: 16,
+    marginBottom: 20,
+  },
+
+  infoHeaderMobile: {
+    alignItems: "flex-start",
+  },
+
+  infoGridMobile: {
+    flexDirection: "column",
+  },
+
+  infoItemMobile: {
+    width: "100%",
+    paddingRight: 0,
+    marginBottom: 14,
+  },
+
+  summaryGridMobile: {
+    flexDirection: "column",
+    gap: 10,
+    marginBottom: 22,
+  },
+
+  summaryCardMobile: {
+    flex: 0,
+    width: "100%",
+    minWidth: 0,
+    minHeight: 120,
+    padding: 16,
+  },
+
+  sectionHeaderMobile: {
+    marginBottom: 4,
+  },
+
+  transactionCardMobile: {
+    width: "100%",
+  },
+
+  transactionRowMobile: {
+    minHeight: 0,
+    alignItems: "flex-start",
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+  },
+
+  bottomBalanceCardMobile: {
+    flexDirection: "column",
+    alignItems: "flex-start",
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
   },
 });

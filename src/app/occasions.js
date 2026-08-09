@@ -10,6 +10,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from "react-native";
 
 import {
@@ -26,6 +27,9 @@ import { COLORS, FONTS } from "../constants/theme";
 import { db } from "../services/firebase";
 
 export default function OccasionsScreen() {
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
+
   const [occasions, setOccasions] = useState([]);
   const [contributions, setContributions] = useState([]);
   const [expenses, setExpenses] = useState([]);
@@ -428,11 +432,11 @@ export default function OccasionsScreen() {
     <View style={styles.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, isMobile && styles.contentMobile]}
       >
         {/* HEADER */}
 
-        <View style={styles.header}>
+        <View style={[styles.header, isMobile && styles.headerMobile]}>
           <View>
             <Text style={styles.eyebrow}>
               FINANCIAL MANAGEMENT
@@ -449,7 +453,7 @@ export default function OccasionsScreen() {
           </View>
 
           <TouchableOpacity
-            style={styles.primaryButton}
+            style={[styles.primaryButton, isMobile && styles.primaryButtonMobile]}
             onPress={openNew}
           >
             <Text style={styles.primaryButtonIcon}>
@@ -464,8 +468,9 @@ export default function OccasionsScreen() {
 
         {/* SUMMARY */}
 
-        <View style={styles.summaryGrid}>
+        <View style={[styles.summaryGrid, isMobile && styles.summaryGridMobile]}>
           <SummaryCard
+            mobile={isMobile}
             label="TOTAL OCCASIONS"
             value={occasionData.length}
             icon="#"
@@ -473,6 +478,7 @@ export default function OccasionsScreen() {
           />
 
           <SummaryCard
+            mobile={isMobile}
             label="ACTIVE"
             value={
               occasionData.filter(
@@ -487,6 +493,7 @@ export default function OccasionsScreen() {
           />
 
           <SummaryCard
+            mobile={isMobile}
             label="TOTAL INCOME"
             value={formatCurrency(
               occasionData.reduce(
@@ -500,6 +507,7 @@ export default function OccasionsScreen() {
           />
 
           <SummaryCard
+            mobile={isMobile}
             label="TOTAL EXPENSES"
             value={formatCurrency(
               occasionData.reduce(
@@ -515,8 +523,8 @@ export default function OccasionsScreen() {
 
         {/* SEARCH / FILTER */}
 
-        <View style={styles.toolbar}>
-          <View style={styles.searchBox}>
+        <View style={[styles.toolbar, isMobile && styles.toolbarMobile]}>
+          <View style={[styles.searchBox, isMobile && styles.searchBoxMobile]}>
             <Text style={styles.searchIcon}>
               ⌕
             </Text>
@@ -530,7 +538,7 @@ export default function OccasionsScreen() {
             />
           </View>
 
-          <View style={styles.filters}>
+          <View style={[styles.filters, isMobile && styles.filtersMobile]}>
             {["All", "Active", "Closed"].map(
               (status) => (
                 <TouchableOpacity
@@ -598,6 +606,7 @@ export default function OccasionsScreen() {
                   key={occasion.id}
                   occasion={occasion}
                   formatCurrency={formatCurrency}
+                  isMobile={isMobile}
                   onOpen={() =>
                     router.push({
                       pathname:
@@ -630,8 +639,8 @@ export default function OccasionsScreen() {
           setModalVisible(false)
         }
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modal}>
+        <View style={[styles.modalOverlay, isMobile && styles.modalOverlayMobile]}>
+          <View style={[styles.modal, isMobile && styles.modalMobile]}>
             <View style={styles.modalHeader}>
               <View>
                 <Text style={styles.modalTitle}>
@@ -678,7 +687,7 @@ export default function OccasionsScreen() {
 
             {/* DATES */}
 
-            <View style={styles.formRow}>
+            <View style={[styles.formRow, isMobile && styles.formRowMobile]}>
               <View style={styles.formHalf}>
                 <Text style={styles.fieldLabel}>
                   Start Date
@@ -787,9 +796,9 @@ export default function OccasionsScreen() {
 
             {/* ACTIONS */}
 
-            <View style={styles.modalActions}>
+            <View style={[styles.modalActions, isMobile && styles.modalActionsMobile]}>
               <TouchableOpacity
-                style={styles.cancelButton}
+                style={[styles.cancelButton, isMobile && styles.cancelButtonMobile]}
                 onPress={() => {
                   setModalVisible(false);
                   resetForm();
@@ -803,7 +812,7 @@ export default function OccasionsScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.saveButton}
+                style={[styles.saveButton, isMobile && styles.saveButtonMobile]}
                 onPress={saveOccasion}
                 disabled={saving}
               >
@@ -835,13 +844,14 @@ export default function OccasionsScreen() {
 // ==================================================
 
 function SummaryCard({
+  mobile,
   label,
   value,
   icon,
   color,
 }) {
   return (
-    <View style={styles.summaryCard}>
+    <View style={[styles.summaryCard, mobile && styles.summaryCardMobile]}>
       <View style={styles.summaryTop}>
         <Text style={styles.summaryLabel}>
           {label}
@@ -882,6 +892,7 @@ function SummaryCard({
 function OccasionCard({
   occasion,
   formatCurrency,
+  isMobile,
   onOpen,
   onEdit,
   onDelete,
@@ -892,10 +903,10 @@ function OccasionCard({
     ).toLowerCase() === "active";
 
   return (
-    <View style={styles.occasionCard}>
-      <View style={styles.cardTop}>
+    <View style={[styles.occasionCard, isMobile && styles.occasionCardMobile]}>
+      <View style={[styles.cardTop, isMobile && styles.cardTopMobile]}>
         <TouchableOpacity
-          style={styles.cardIdentity}
+          style={[styles.cardIdentity, isMobile && styles.cardIdentityMobile]}
           onPress={onOpen}
         >
           <View style={styles.occasionAvatar}>
@@ -958,7 +969,7 @@ function OccasionCard({
           </View>
         </TouchableOpacity>
 
-        <View style={styles.cardActions}>
+        <View style={[styles.cardActions, isMobile && styles.cardActionsMobile]}>
           <TouchableOpacity
             style={styles.actionButton}
             onPress={onEdit}
@@ -991,20 +1002,23 @@ function OccasionCard({
         </Text>
       ) : null}
 
-      <View style={styles.financialGrid}>
+      <View style={[styles.financialGrid, isMobile && styles.financialGridMobile]}>
         <FinancialItem
+          mobile={isMobile}
           label="Income"
           value={formatCurrency(occasion.income)}
           valueColor={COLORS.success}
         />
 
         <FinancialItem
+          mobile={isMobile}
           label="Expenses"
           value={formatCurrency(occasion.expense)}
           valueColor={COLORS.danger}
         />
 
         <FinancialItem
+          mobile={isMobile}
           label="Balance"
           value={formatCurrency(occasion.balance)}
           valueColor={
@@ -1015,13 +1029,14 @@ function OccasionCard({
         />
 
         <FinancialItem
+          mobile={isMobile}
           label="Contributors"
           value={occasion.contributorCount}
           valueColor={COLORS.primary}
         />
 
         <TouchableOpacity
-          style={styles.detailsButton}
+          style={[styles.detailsButton, isMobile && styles.detailsButtonMobile]}
           onPress={onOpen}
         >
           <Text style={styles.detailsButtonText}>
@@ -1042,12 +1057,13 @@ function OccasionCard({
 // ==================================================
 
 function FinancialItem({
+  mobile,
   label,
   value,
   valueColor,
 }) {
   return (
-    <View style={styles.financialItem}>
+    <View style={[styles.financialItem, mobile && styles.financialItemMobile]}>
       <Text style={styles.financialLabel}>
         {label}
       </Text>
@@ -1089,6 +1105,12 @@ const styles = StyleSheet.create({
     paddingBottom: 60,
   },
 
+  contentMobile: {
+    paddingHorizontal: 16,
+    paddingTop: 20,
+    paddingBottom: 40,
+  },
+
   // ==================================================
   // LOADING
   // ==================================================
@@ -1116,6 +1138,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "flex-end",
     marginBottom: 26,
+  },
+
+  headerMobile: {
+    flexDirection: "column",
+    alignItems: "flex-start",
+    marginBottom: 20,
   },
 
   eyebrow: {
@@ -1166,6 +1194,14 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
 
+  primaryButtonMobile: {
+    minHeight: 44,
+    paddingHorizontal: 15,
+    marginLeft: 0,
+    marginTop: 14,
+    alignSelf: "flex-start",
+  },
+
   // ==================================================
   // SUMMARY CARDS
   // ==================================================
@@ -1186,6 +1222,17 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
     borderRadius: 15,
     padding: 20,
+  },
+
+  summaryGridMobile: {
+    gap: 10,
+  },
+
+  summaryCardMobile: {
+    flexBasis: "47%",
+    minWidth: 0,
+    minHeight: 118,
+    padding: 14,
   },
 
   summaryTop: {
@@ -1237,6 +1284,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
+  toolbarMobile: {
+    flexDirection: "column",
+    alignItems: "stretch",
+  },
+
   searchBox: {
     flex: 1,
     height: 48,
@@ -1248,6 +1300,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 13,
     maxWidth: 620,
     backgroundColor: COLORS.surface,
+  },
+
+  searchBoxMobile: {
+    width: "100%",
+    maxWidth: "100%",
   },
 
   searchIcon: {
@@ -1271,6 +1328,11 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     marginLeft: 12,
     gap: 8,
+  },
+
+  filtersMobile: {
+    marginLeft: 0,
+    marginTop: 10,
   },
 
   filterButton: {
@@ -1316,10 +1378,19 @@ const styles = StyleSheet.create({
     padding: 20,
   },
 
+  occasionCardMobile: {
+    padding: 15,
+  },
+
   cardTop: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+
+  cardTopMobile: {
+    flexDirection: "column",
+    alignItems: "stretch",
   },
 
   cardIdentity: {
@@ -1327,6 +1398,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     minWidth: 0,
+  },
+
+  cardIdentityMobile: {
+    width: "100%",
+    flex: 0,
   },
 
   occasionAvatar: {
@@ -1424,6 +1500,13 @@ const styles = StyleSheet.create({
     marginLeft: 18,
   },
 
+  cardActionsMobile: {
+    width: "100%",
+    marginLeft: 0,
+    marginTop: 12,
+    justifyContent: "flex-end",
+  },
+
   actionButton: {
     minHeight: 38,
     paddingHorizontal: 13,
@@ -1473,10 +1556,21 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
   },
 
+  financialGridMobile: {
+    alignItems: "flex-start",
+  },
+
   financialItem: {
     minWidth: 140,
     paddingRight: 24,
     marginBottom: 4,
+  },
+
+  financialItemMobile: {
+    width: "50%",
+    minWidth: 0,
+    paddingRight: 8,
+    marginBottom: 12,
   },
 
   financialLabel: {
@@ -1500,6 +1594,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+  },
+
+  detailsButtonMobile: {
+    width: "100%",
+    marginLeft: 0,
+    marginTop: 4,
   },
 
   detailsButtonText: {
@@ -1586,12 +1686,22 @@ const styles = StyleSheet.create({
     padding: 24,
   },
 
+  modalOverlayMobile: {
+    padding: 12,
+  },
+
   modal: {
     width: "100%",
     maxWidth: 720,
     backgroundColor: COLORS.surface,
     borderRadius: 19,
     padding: 28,
+  },
+
+  modalMobile: {
+    maxWidth: "100%",
+    padding: 18,
+    borderRadius: 16,
   },
 
   modalHeader: {
@@ -1657,6 +1767,11 @@ const styles = StyleSheet.create({
     gap: 14,
   },
 
+  formRowMobile: {
+    flexDirection: "column",
+    gap: 0,
+  },
+
   formHalf: {
     flex: 1,
     minWidth: 0,
@@ -1706,6 +1821,11 @@ const styles = StyleSheet.create({
     marginTop: 26,
   },
 
+  modalActionsMobile: {
+    flexDirection: "column-reverse",
+    gap: 10,
+  },
+
   cancelButton: {
     height: 46,
     paddingHorizontal: 20,
@@ -1713,6 +1833,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#F1F5F9",
     alignItems: "center",
     justifyContent: "center",
+  },
+
+  cancelButtonMobile: {
+    width: "100%",
   },
 
   cancelButtonText: {
@@ -1729,6 +1853,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     alignItems: "center",
     justifyContent: "center",
+  },
+
+  saveButtonMobile: {
+    width: "100%",
+    minWidth: 0,
   },
 
   saveButtonText: {

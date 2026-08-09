@@ -6,6 +6,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from "react-native";
 
 import { useRouter } from "expo-router";
@@ -197,6 +198,8 @@ function getInitials(name) {
 
 export default function DashboardScreen() {
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
 
   const [people, setPeople] = useState([]);
   const [occasions, setOccasions] =
@@ -847,21 +850,26 @@ export default function DashboardScreen() {
         showsVerticalScrollIndicator={
           false
         }
-        contentContainerStyle={
-          styles.content
-        }
+        contentContainerStyle={[
+          styles.content,
+          isMobile && styles.contentMobile,
+        ]}
       >
         {/* ==================================================
             HEADER
             ================================================== */}
 
         <View
-          style={styles.header}
+          style={[
+            styles.header,
+            isMobile && styles.headerMobile,
+          ]}
         >
           <View
-            style={
-              styles.headerLeft
-            }
+            style={[
+              styles.headerLeft,
+              isMobile && styles.headerLeftMobile,
+            ]}
           >
             <Text
               style={
@@ -872,15 +880,19 @@ export default function DashboardScreen() {
             </Text>
 
             <Text
-              style={styles.title}
+              style={[
+                styles.title,
+                isMobile && styles.titleMobile,
+              ]}
             >
               Dashboard
             </Text>
 
             <Text
-              style={
-                styles.subtitle
-              }
+              style={[
+                styles.subtitle,
+                isMobile && styles.subtitleMobile,
+              ]}
             >
               Monitor income, expenses
               and occasion finances
@@ -888,14 +900,16 @@ export default function DashboardScreen() {
           </View>
 
           <View
-            style={
-              styles.headerRight
-            }
+            style={[
+              styles.headerRight,
+              isMobile && styles.headerRightMobile,
+            ]}
           >
             <TouchableOpacity
-              style={
-                styles.monthButton
-              }
+              style={[
+                styles.monthButton,
+                isMobile && styles.monthButtonMobile,
+              ]}
               onPress={() =>
                 setShowMonthSelector(
                   !showMonthSelector
@@ -954,9 +968,10 @@ export default function DashboardScreen() {
 
         {showMonthSelector && (
           <View
-            style={
-              styles.monthSelector
-            }
+            style={[
+              styles.monthSelector,
+              isMobile && styles.monthSelectorMobile,
+            ]}
           >
             <View
               style={
@@ -1013,9 +1028,10 @@ export default function DashboardScreen() {
             </View>
 
             <View
-              style={
-                styles.monthGrid
-              }
+              style={[
+                styles.monthGrid,
+                isMobile && styles.monthGridMobile,
+              ]}
             >
               {MONTHS.map(
                 (
@@ -1028,6 +1044,7 @@ export default function DashboardScreen() {
                     }
                     style={[
                       styles.monthOption,
+                      isMobile && styles.monthOptionMobile,
                       selectedMonth ===
                         index &&
                         styles.monthOptionActive,
@@ -1066,9 +1083,10 @@ export default function DashboardScreen() {
             ================================================== */}
 
         <View
-          style={
-            styles.kpiGrid
-          }
+          style={[
+            styles.kpiGrid,
+            isMobile && styles.kpiGridMobile,
+          ]}
         >
           <KpiCard
             label="TOTAL INCOME"
@@ -1083,6 +1101,7 @@ export default function DashboardScreen() {
             }`}
             icon="↑"
             type="income"
+            mobile={isMobile}
           />
 
           <KpiCard
@@ -1098,6 +1117,7 @@ export default function DashboardScreen() {
             }`}
             icon="↓"
             type="expense"
+            mobile={isMobile}
           />
 
           <KpiCard
@@ -1120,6 +1140,7 @@ export default function DashboardScreen() {
                 ? "balance"
                 : "negative"
             }
+            mobile={isMobile}
           />
 
           <KpiCard
@@ -1130,6 +1151,7 @@ export default function DashboardScreen() {
             description="Unique contributors"
             icon="P"
             type="people"
+            mobile={isMobile}
           />
         </View>
 
@@ -1138,9 +1160,10 @@ export default function DashboardScreen() {
             ================================================== */}
 
         <View
-          style={
-            styles.quickActions
-          }
+          style={[
+            styles.quickActions,
+            isMobile && styles.quickActionsMobile,
+          ]}
         >
           <QuickAction
             icon="+"
@@ -1152,6 +1175,7 @@ export default function DashboardScreen() {
               )
             }
             type="income"
+            mobile={isMobile}
           />
 
           <QuickAction
@@ -1164,6 +1188,7 @@ export default function DashboardScreen() {
               )
             }
             type="expense"
+            mobile={isMobile}
           />
 
           <QuickAction
@@ -1176,6 +1201,7 @@ export default function DashboardScreen() {
               )
             }
             type="people"
+            mobile={isMobile}
           />
 
           <QuickAction
@@ -1188,6 +1214,7 @@ export default function DashboardScreen() {
               )
             }
             type="occasion"
+            mobile={isMobile}
           />
         </View>
 
@@ -1201,9 +1228,10 @@ export default function DashboardScreen() {
           }
         >
           <View
-            style={
-              styles.sectionHeader
-            }
+            style={[
+              styles.sectionHeader,
+              isMobile && styles.sectionHeaderMobile,
+            ]}
           >
             <View>
               <Text
@@ -1298,9 +1326,10 @@ export default function DashboardScreen() {
         {occasionFilter ===
         "All" ? (
           <View
-            style={
-              styles.occasionGrid
-            }
+            style={[
+              styles.occasionGrid,
+              isMobile && styles.occasionGridMobile,
+            ]}
           >
             {occasionSummary.length ===
             0 ? (
@@ -1320,6 +1349,7 @@ export default function DashboardScreen() {
                       item={
                         item
                       }
+                      mobile={isMobile}
                     />
                   )
                 )
@@ -1327,9 +1357,10 @@ export default function DashboardScreen() {
           </View>
         ) : (
           <View
-            style={
-              styles.filteredSummaryCard
-            }
+            style={[
+              styles.filteredSummaryCard,
+              isMobile && styles.filteredSummaryCardMobile,
+            ]}
           >
             <Text
               style={
@@ -1389,14 +1420,16 @@ export default function DashboardScreen() {
             ================================================== */}
 
         <View
-          style={
-            styles.chartCard
-          }
+          style={[
+            styles.chartCard,
+            isMobile && styles.chartCardMobile,
+          ]}
         >
           <View
-            style={
-              styles.sectionHeader
-            }
+            style={[
+              styles.sectionHeader,
+              isMobile && styles.sectionHeaderMobile,
+            ]}
           >
             <View>
               <Text
@@ -1435,9 +1468,10 @@ export default function DashboardScreen() {
           </View>
 
           <View
-            style={
-              styles.chart
-            }
+            style={[
+              styles.chart,
+              isMobile && styles.chartMobile,
+            ]}
           >
             {monthlyData.map(
               (
@@ -1530,16 +1564,18 @@ export default function DashboardScreen() {
             ================================================== */}
 
         <View
-          style={
-            styles.twoColumn
-          }
+          style={[
+            styles.twoColumn,
+            isMobile && styles.twoColumnMobile,
+          ]}
         >
           {/* TOP CONTRIBUTORS */}
 
           <View
-            style={
-              styles.panel
-            }
+            style={[
+              styles.panel,
+              isMobile && styles.panelMobile,
+            ]}
           >
             <View
               style={
@@ -1682,9 +1718,10 @@ export default function DashboardScreen() {
           {/* ALL TIME SNAPSHOT */}
 
           <View
-            style={
-              styles.panel
-            }
+            style={[
+              styles.panel,
+              isMobile && styles.panelMobile,
+            ]}
           >
             <View
               style={
@@ -1859,6 +1896,7 @@ export default function DashboardScreen() {
                     transaction={
                       transaction
                     }
+                    mobile={isMobile}
                   />
                 )
               )}
@@ -1871,9 +1909,10 @@ export default function DashboardScreen() {
             ================================================== */}
 
         <View
-          style={
-            styles.footerSummary
-          }
+          style={[
+            styles.footerSummary,
+            isMobile && styles.footerSummaryMobile,
+          ]}
         >
           <View>
             <Text
@@ -1932,6 +1971,7 @@ function KpiCard({
   description,
   icon,
   type,
+  mobile = false,
 }) {
   const config = {
     income: {
@@ -1962,9 +2002,10 @@ function KpiCard({
 
   return (
     <View
-      style={
-        styles.kpiCard
-      }
+      style={[
+        styles.kpiCard,
+        mobile && styles.kpiCardMobile,
+      ]}
     >
       <View
         style={
@@ -2003,9 +2044,10 @@ function KpiCard({
       </View>
 
       <Text
-        style={
-          styles.kpiValue
-        }
+        style={[
+          styles.kpiValue,
+          mobile && styles.kpiValueMobile,
+        ]}
       >
         {value}
       </Text>
@@ -2031,6 +2073,7 @@ function QuickAction({
   subtitle,
   onPress,
   type,
+  mobile = false,
 }) {
   const colors = {
     income: COLORS.success,
@@ -2045,9 +2088,10 @@ function QuickAction({
 
   return (
     <TouchableOpacity
-      style={
-        styles.quickAction
-      }
+      style={[
+        styles.quickAction,
+        mobile && styles.quickActionMobile,
+      ]}
       onPress={onPress}
     >
       <View
@@ -2139,15 +2183,17 @@ function FilterChip({
 
 function OccasionCard({
   item,
+  mobile = false,
 }) {
   const balancePositive =
     item.balance >= 0;
 
   return (
     <View
-      style={
-        styles.occasionCard
-      }
+      style={[
+        styles.occasionCard,
+        mobile && styles.occasionCardMobile,
+      ]}
     >
       <View
         style={
@@ -2412,6 +2458,7 @@ function SnapshotRow({
 
 function TransactionRow({
   transaction,
+  mobile = false,
 }) {
   const income =
     transaction.type ===
@@ -2419,9 +2466,10 @@ function TransactionRow({
 
   return (
     <View
-      style={
-        styles.transactionRow
-      }
+      style={[
+        styles.transactionRow,
+        mobile && styles.transactionRowMobile,
+      ]}
     >
       <View
         style={[
@@ -2476,9 +2524,10 @@ function TransactionRow({
       </View>
 
       <View
-        style={
-          styles.transactionDate
-        }
+        style={[
+          styles.transactionDate,
+          mobile && styles.transactionDateMobile,
+        ]}
       >
         <Text
           style={
@@ -2500,6 +2549,7 @@ function TransactionRow({
       <Text
         style={[
           styles.transactionAmount,
+          mobile && styles.transactionAmountMobile,
           {
             color:
               income
@@ -2621,6 +2671,7 @@ const styles = StyleSheet.create({
   kpiIcon: { width: 38, height: 38, borderRadius: 10, alignItems: "center", justifyContent: "center" },
   kpiIconText: { fontFamily: FONTS.bold, fontSize: 17 },
   kpiValue: { fontFamily: FONTS.bold, fontSize: 30, lineHeight: 38, color: COLORS.text, marginTop: 17 },
+  kpiValueMobile: { fontSize: 22, lineHeight: 28, marginTop: 12 },
   kpiDescription: { fontFamily: FONTS.regular, fontSize: 13, color: COLORS.textMuted, marginTop: 6 },
 
   quickActions: { flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 32 },
@@ -2727,4 +2778,133 @@ const styles = StyleSheet.create({
   footerEyebrow: { fontFamily: FONTS.medium, fontSize: 11, letterSpacing: 0.8, color: COLORS.textMuted },
   footerTitle: { fontFamily: FONTS.medium, fontSize: 15, color: COLORS.text, marginTop: 5 },
   footerBalance: { fontFamily: FONTS.bold, fontSize: 28 },
+
+  // ==================================================
+  // MOBILE RESPONSIVE STYLES
+  // Desktop styles above remain unchanged.
+  // ==================================================
+
+  contentMobile: {
+    paddingHorizontal: 14,
+    paddingTop: 18,
+    paddingBottom: 40,
+    maxWidth: 768,
+  },
+  headerMobile: {
+    flexDirection: "column",
+    alignItems: "stretch",
+    marginBottom: 18,
+  },
+  headerLeftMobile: {
+    width: "100%",
+  },
+  titleMobile: {
+    fontSize: 28,
+    lineHeight: 34,
+  },
+  subtitleMobile: {
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 4,
+  },
+  headerRightMobile: {
+    width: "100%",
+    marginLeft: 0,
+    marginTop: 14,
+  },
+  monthButtonMobile: {
+    width: "100%",
+    minWidth: 0,
+    minHeight: 56,
+  },
+  monthSelectorMobile: {
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  monthGridMobile: {
+    gap: 6,
+  },
+  monthOptionMobile: {
+    width: "31.5%",
+    minWidth: 0,
+    height: 40,
+  },
+  kpiGridMobile: {
+    gap: 10,
+    marginBottom: 16,
+  },
+  kpiCardMobile: {
+    flexBasis: "47%",
+    minWidth: 0,
+    minHeight: 125,
+    padding: 14,
+    borderRadius: 13,
+  },
+  quickActionsMobile: {
+    gap: 10,
+    marginBottom: 24,
+  },
+  quickActionMobile: {
+    flexBasis: "47%",
+    minWidth: 0,
+    minHeight: 70,
+    paddingHorizontal: 11,
+    paddingVertical: 10,
+  },
+  occasionGridMobile: {
+    flexDirection: "column",
+    gap: 10,
+    marginBottom: 20,
+  },
+  occasionCardMobile: {
+    minWidth: 0,
+    width: "100%",
+    padding: 14,
+    borderRadius: 13,
+  },
+  filteredSummaryCardMobile: {
+    padding: 14,
+    marginBottom: 20,
+  },
+  chartCardMobile: {
+    padding: 14,
+    marginBottom: 20,
+  },
+  sectionHeaderMobile: {
+    marginBottom: 12,
+  },
+  chartMobile: {
+    height: 185,
+    paddingTop: 10,
+  },
+  twoColumnMobile: {
+    flexDirection: "column",
+    gap: 0,
+    marginBottom: 8,
+  },
+  panelMobile: {
+    minWidth: 0,
+    width: "100%",
+    padding: 14,
+    borderRadius: 13,
+    marginBottom: 12,
+  },
+  transactionRowMobile: {
+    minHeight: 66,
+  },
+  transactionDateMobile: {
+    width: 72,
+    marginRight: 8,
+  },
+  transactionAmountMobile: {
+    width: 86,
+    fontSize: 13,
+  },
+  footerSummaryMobile: {
+    padding: 16,
+    flexDirection: "column",
+    alignItems: "flex-start",
+    justifyContent: "flex-start",
+  },
 });

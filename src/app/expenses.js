@@ -9,6 +9,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from "react-native";
 
 import {
@@ -70,6 +71,9 @@ function formatAmount(value) {
 }
 
 export default function ExpensesScreen() {
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
+
   const [expenses, setExpenses] = useState([]);
   const [occasions, setOccasions] = useState([]);
 
@@ -704,19 +708,21 @@ export default function ExpensesScreen() {
         showsVerticalScrollIndicator={
           false
         }
-        contentContainerStyle={
-          styles.content
-        }
+        contentContainerStyle={[
+          styles.content,
+          isMobile && styles.contentMobile,
+        ]}
       >
         {/* HEADER */}
 
         <View
-          style={styles.header}
+          style={[styles.header, isMobile && styles.headerMobile]}
         >
           <View
-            style={
-              styles.headerLeft
-            }
+            style={[
+              styles.headerLeft,
+              isMobile && styles.headerLeftMobile,
+            ]}
           >
             <Text
               style={
@@ -727,15 +733,19 @@ export default function ExpensesScreen() {
             </Text>
 
             <Text
-              style={styles.title}
+              style={[
+                styles.title,
+                isMobile && styles.titleMobile,
+              ]}
             >
               Expenses
             </Text>
 
             <Text
-              style={
-                styles.subtitle
-              }
+              style={[
+                styles.subtitle,
+                isMobile && styles.subtitleMobile,
+              ]}
             >
               Track occasion and
               general expenses
@@ -743,9 +753,10 @@ export default function ExpensesScreen() {
           </View>
 
           <TouchableOpacity
-            style={
-              styles.primaryButton
-            }
+            style={[
+              styles.primaryButton,
+              isMobile && styles.primaryButtonMobile,
+            ]}
             onPress={openNew}
           >
             <Text
@@ -769,9 +780,10 @@ export default function ExpensesScreen() {
         {/* SUMMARY */}
 
         <View
-          style={
-            styles.summaryGrid
-          }
+          style={[
+            styles.summaryGrid,
+            isMobile && styles.summaryGridMobile,
+          ]}
         >
           <SummaryCard
             label="FILTERED TOTAL"
@@ -782,6 +794,7 @@ export default function ExpensesScreen() {
             color={
               COLORS.danger
             }
+            isMobile={isMobile}
           />
 
           <SummaryCard
@@ -793,6 +806,7 @@ export default function ExpensesScreen() {
             color={
               COLORS.primary
             }
+            isMobile={isMobile}
           />
 
           <SummaryCard
@@ -802,6 +816,7 @@ export default function ExpensesScreen() {
             )}`}
             icon="O"
             color="#8B5CF6"
+            isMobile={isMobile}
           />
 
           <SummaryCard
@@ -813,6 +828,7 @@ export default function ExpensesScreen() {
             color={
               COLORS.success
             }
+            isMobile={isMobile}
           />
         </View>
 
@@ -1168,6 +1184,7 @@ export default function ExpensesScreen() {
                       expense
                     )
                   }
+                  isMobile={isMobile}
                 />
               )
             )}
@@ -1197,13 +1214,17 @@ export default function ExpensesScreen() {
           }
         >
           <ScrollView
-            contentContainerStyle={
-              styles.modalScroll
-            }
+            contentContainerStyle={[
+              styles.modalScroll,
+              isMobile && styles.modalScrollMobile,
+            ]}
             keyboardShouldPersistTaps="handled"
           >
             <View
-              style={styles.modal}
+              style={[
+                styles.modal,
+                isMobile && styles.modalMobile,
+              ]}
             >
               {/* HEADER */}
 
@@ -1771,14 +1792,16 @@ export default function ExpensesScreen() {
               {/* ACTIONS */}
 
               <View
-                style={
-                  styles.modalActions
-                }
+                style={[
+                  styles.modalActions,
+                  isMobile && styles.modalActionsMobile,
+                ]}
               >
                 <TouchableOpacity
-                  style={
-                    styles.cancelButton
-                  }
+                  style={[
+                    styles.cancelButton,
+                    isMobile && styles.mobileFullButton,
+                  ]}
                   onPress={() => {
                     setModalVisible(
                       false
@@ -1796,9 +1819,10 @@ export default function ExpensesScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={
-                    styles.saveButton
-                  }
+                  style={[
+                    styles.saveButton,
+                    isMobile && styles.mobileFullButton,
+                  ]}
                   onPress={
                     saveExpense
                   }
@@ -1841,12 +1865,14 @@ function SummaryCard({
   value,
   icon,
   color,
+  isMobile = false,
 }) {
   return (
     <View
-      style={
-        styles.summaryCard
-      }
+      style={[
+        styles.summaryCard,
+        isMobile && styles.summaryCardMobile,
+      ]}
     >
       <View
         style={
@@ -1931,6 +1957,7 @@ function ExpenseCard({
   expense,
   onEdit,
   onDelete,
+  isMobile = false,
 }) {
   const categoryColors = {
     Food: "#EA580C",
@@ -1952,14 +1979,16 @@ function ExpenseCard({
 
   return (
     <View
-      style={
-        styles.expenseCard
-      }
+      style={[
+        styles.expenseCard,
+        isMobile && styles.expenseCardMobile,
+      ]}
     >
       <View
-        style={
-          styles.expenseMain
-        }
+        style={[
+          styles.expenseMain,
+          isMobile && styles.expenseMainMobile,
+        ]}
       >
         <View
           style={[
@@ -1981,9 +2010,10 @@ function ExpenseCard({
         </View>
 
         <View
-          style={
-            styles.expenseInfo
-          }
+          style={[
+            styles.expenseInfo,
+            isMobile && styles.expenseInfoMobile,
+          ]}
         >
           <View
             style={
@@ -1991,12 +2021,11 @@ function ExpenseCard({
             }
           >
             <Text
-              style={
-                styles.expenseDescription
-              }
-              numberOfLines={
-                1
-              }
+              style={[
+                styles.expenseDescription,
+                isMobile && styles.expenseDescriptionMobile,
+              ]}
+              numberOfLines={isMobile ? 2 : 1}
             >
               {expense.description ||
                 "Unnamed Expense"}
@@ -2024,9 +2053,11 @@ function ExpenseCard({
           </View>
 
           <Text
-            style={
-              styles.occasionName
-            }
+            style={[
+              styles.occasionName,
+              isMobile && styles.occasionNameMobile,
+            ]}
+            numberOfLines={isMobile ? 2 : undefined}
           >
             {expense.occasionName
               ? expense.occasionName
@@ -2034,9 +2065,10 @@ function ExpenseCard({
           </Text>
 
           <View
-            style={
-              styles.metaRow
-            }
+            style={[
+              styles.metaRow,
+              isMobile && styles.metaRowMobile,
+            ]}
           >
             <Text
               style={
@@ -2070,10 +2102,11 @@ function ExpenseCard({
 
           {expense.notes ? (
             <Text
-              style={
-                styles.notesText
-              }
-              numberOfLines={1}
+              style={[
+                styles.notesText,
+                isMobile && styles.notesTextMobile,
+              ]}
+              numberOfLines={isMobile ? 2 : 1}
             >
               {expense.notes}
             </Text>
@@ -2082,14 +2115,16 @@ function ExpenseCard({
       </View>
 
       <View
-        style={
-          styles.amountSection
-        }
+        style={[
+          styles.amountSection,
+          isMobile && styles.amountSectionMobile,
+        ]}
       >
         <Text
-          style={
-            styles.amountValue
-          }
+          style={[
+            styles.amountValue,
+            isMobile && styles.amountValueMobile,
+          ]}
         >
           ₹{formatAmount(
             expense.amount
@@ -2097,14 +2132,16 @@ function ExpenseCard({
         </Text>
 
         <View
-          style={
-            styles.cardActions
-          }
+          style={[
+            styles.cardActions,
+            isMobile && styles.cardActionsMobile,
+          ]}
         >
           <TouchableOpacity
-            style={
-              styles.actionButton
-            }
+            style={[
+              styles.actionButton,
+              isMobile && styles.actionButtonMobile,
+            ]}
             onPress={
               onEdit
             }
@@ -2122,6 +2159,7 @@ function ExpenseCard({
             style={[
               styles.actionButton,
               styles.deleteAction,
+              isMobile && styles.actionButtonMobile,
             ]}
             onPress={
               onDelete
@@ -2969,5 +3007,143 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.medium,
     fontSize: 14,
     color: "#FFFFFF",
+  },
+
+  // ==================================================
+  // MOBILE RESPONSIVE
+  // ==================================================
+
+  contentMobile: {
+    paddingHorizontal: 16,
+    paddingTop: 18,
+    paddingBottom: 40,
+    width: "100%",
+    maxWidth: "100%",
+  },
+
+  headerMobile: {
+    flexDirection: "column",
+    alignItems: "stretch",
+    marginBottom: 18,
+  },
+
+  headerLeftMobile: {
+    width: "100%",
+  },
+
+  titleMobile: {
+    fontSize: 30,
+    lineHeight: 36,
+  },
+
+  subtitleMobile: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+
+  primaryButtonMobile: {
+    width: "100%",
+    minHeight: 46,
+    marginLeft: 0,
+    marginTop: 14,
+    paddingHorizontal: 14,
+  },
+
+  summaryGridMobile: {
+    flexDirection: "column",
+    flexWrap: "nowrap",
+    gap: 12,
+    width: "100%",
+    marginBottom: 16,
+  },
+
+  summaryCardMobile: {
+    width: "100%",
+    minWidth: 0,
+    flex: 0,
+  },
+
+  expenseCardMobile: {
+    width: "100%",
+    flexDirection: "column",
+    alignItems: "stretch",
+    padding: 16,
+    overflow: "hidden",
+  },
+
+  expenseMainMobile: {
+    width: "100%",
+    flex: 0,
+  },
+
+  expenseInfoMobile: {
+    flex: 1,
+    minWidth: 0,
+  },
+
+  expenseDescriptionMobile: {
+    flexShrink: 1,
+    maxWidth: "100%",
+  },
+
+  occasionNameMobile: {
+    flexShrink: 1,
+  },
+
+  metaRowMobile: {
+    width: "100%",
+  },
+
+  notesTextMobile: {
+    maxWidth: "100%",
+  },
+
+  amountSectionMobile: {
+    width: "100%",
+    minWidth: 0,
+    marginLeft: 0,
+    marginTop: 14,
+    alignItems: "stretch",
+  },
+
+  amountValueMobile: {
+    fontSize: 21,
+    lineHeight: 27,
+    marginBottom: 10,
+    alignSelf: "flex-start",
+  },
+
+  cardActionsMobile: {
+    width: "100%",
+    flexDirection: "row",
+    gap: 8,
+  },
+
+  actionButtonMobile: {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 42,
+    paddingHorizontal: 10,
+  },
+
+  modalScrollMobile: {
+    padding: 12,
+    justifyContent: "flex-start",
+  },
+
+  modalMobile: {
+    maxWidth: "100%",
+    borderRadius: 16,
+    padding: 18,
+  },
+
+  modalActionsMobile: {
+    flexDirection: "column-reverse",
+    gap: 10,
+  },
+
+  mobileFullButton: {
+    width: "100%",
+    minWidth: 0,
   },
 });

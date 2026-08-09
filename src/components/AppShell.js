@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   StyleSheet,
   View,
+  useWindowDimensions,
 } from "react-native";
 
 import { usePathname } from "expo-router";
@@ -14,9 +15,13 @@ import { COLORS } from "../constants/theme";
 import { auth } from "../services/firebase";
 
 import AppMenu from "./AppMenu";
+import MobileBottomNav from "./MobileBottomNav";
 
 export default function AppShell({ children }) {
   const pathname = usePathname();
+  const { width } = useWindowDimensions();
+
+  const isMobile = width < 768;
 
   const [user, setUser] = useState(auth.currentUser);
   const [checkingAuth, setCheckingAuth] = useState(true);
@@ -56,6 +61,27 @@ export default function AppShell({ children }) {
     );
   }
 
+  // ---------------------------------------------------------
+  // MOBILE
+  // ---------------------------------------------------------
+  // Keep the existing screens untouched. Only the shell changes:
+  // sidebar is hidden and the bottom navigation is displayed.
+  if (isMobile) {
+    return (
+      <View style={styles.mobileContainer}>
+        <View style={styles.mobileContent}>
+          {children}
+        </View>
+
+        <MobileBottomNav />
+      </View>
+    );
+  }
+
+  // ---------------------------------------------------------
+  // WEB / DESKTOP
+  // ---------------------------------------------------------
+  // Existing sidebar behavior remains unchanged.
   return (
     <View style={styles.appContainer}>
       <View style={styles.sidebar}>
@@ -74,11 +100,9 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     backgroundColor: COLORS.background,
-
-    // Web
-    height: "100vh",
-    minHeight: "100vh",
     width: "100%",
+    height: "100%",
+    minHeight: "100vh",
   },
 
   sidebar: {
@@ -96,6 +120,23 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
 
+  mobileContainer: {
+    flex: 1,
+    width: "100%",
+    minHeight: "100%",
+    backgroundColor: COLORS.background,
+    position: "relative",
+  },
+
+  mobileContent: {
+    flex: 1,
+    width: "100%",
+    minWidth: 0,
+    minHeight: 0,
+    paddingBottom: 72,
+    backgroundColor: COLORS.background,
+  },
+
   fullScreen: {
     flex: 1,
     width: "100%",
@@ -106,7 +147,7 @@ const styles = StyleSheet.create({
   loading: {
     flex: 1,
     width: "100%",
-    height: "100vh",
+    height: "100%",
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: COLORS.background,

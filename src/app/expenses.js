@@ -2148,44 +2148,41 @@ function ExpenseCard({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor:
-      COLORS.background,
+    backgroundColor: COLORS.background,
   },
 
   content: {
+    width: "100%",
+    maxWidth: 1600,
+    alignSelf: "center",
     paddingHorizontal: 28,
     paddingTop: 28,
-    paddingBottom: 50,
+    paddingBottom: 60,
   },
 
   loading: {
     flex: 1,
-    backgroundColor:
-      COLORS.background,
-    justifyContent:
-      "center",
+    backgroundColor: COLORS.background,
     alignItems: "center",
+    justifyContent: "center",
   },
 
   loadingText: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 13,
-    color:
-      COLORS.textSecondary,
+    fontFamily: FONTS.regular,
+    fontSize: 14,
+    color: COLORS.textSecondary,
     marginTop: 10,
   },
 
+  // ==================================================
   // HEADER
+  // ==================================================
 
   header: {
-    flexDirection:
-      "row",
-    justifyContent:
-      "space-between",
-    alignItems:
-      "flex-end",
-    marginBottom: 24,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+    marginBottom: 26,
   },
 
   headerLeft: {
@@ -2193,968 +2190,784 @@ const styles = StyleSheet.create({
   },
 
   eyebrow: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 10,
+    fontFamily: FONTS.medium,
+    fontSize: 11,
     letterSpacing: 1.1,
-    color:
-      COLORS.danger,
+    color: COLORS.danger,
   },
 
   title: {
-    fontFamily:
-      FONTS.extraBold,
-    fontSize: 30,
-    color:
-      COLORS.text,
+    fontFamily: FONTS.bold,
+    fontSize: 36,
+    lineHeight: 43,
+    color: COLORS.text,
     marginTop: 4,
   },
 
   subtitle: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 13,
-    color:
-      COLORS.textSecondary,
-    marginTop: 4,
+    fontFamily: FONTS.regular,
+    fontSize: 16,
+    lineHeight: 22,
+    color: COLORS.textSecondary,
+    marginTop: 5,
   },
 
   primaryButton: {
-    height: 42,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    backgroundColor:
-      COLORS.primary,
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
+    minHeight: 48,
+    paddingHorizontal: 19,
+    borderRadius: 11,
+    backgroundColor: COLORS.primary,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 20,
   },
 
   primaryButtonIcon: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 18,
+    fontFamily: FONTS.bold,
+    fontSize: 21,
     color: "#FFFFFF",
-    marginRight: 7,
+    marginRight: 8,
   },
 
   primaryButtonText: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 12,
+    fontFamily: FONTS.medium,
+    fontSize: 14,
     color: "#FFFFFF",
   },
 
+  // ==================================================
   // SUMMARY
+  // ==================================================
 
   summaryGrid: {
-    flexDirection:
-      "row",
-    flexWrap:
-      "wrap",
-    gap: 14,
-    marginBottom: 18,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 16,
+    marginBottom: 20,
   },
 
   summaryCard: {
     flex: 1,
     minWidth: 190,
-    backgroundColor:
-      COLORS.surface,
+    minHeight: 142,
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor:
-      COLORS.border,
+    borderColor: COLORS.border,
     borderRadius: 15,
-    padding: 17,
+    padding: 20,
   },
 
   summaryTop: {
-    flexDirection:
-      "row",
-    justifyContent:
-      "space-between",
-    alignItems:
-      "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 
   summaryLabel: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 9,
+    fontFamily: FONTS.medium,
+    fontSize: 11,
     letterSpacing: 0.7,
-    color:
-      COLORS.textMuted,
+    color: COLORS.textMuted,
   },
 
   summaryIcon: {
-    width: 31,
-    height: 31,
-    borderRadius: 9,
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   summaryIconText: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 13,
+    fontFamily: FONTS.bold,
+    fontSize: 17,
   },
 
   summaryValue: {
-    fontFamily:
-      FONTS.extraBold,
-    fontSize: 21,
-    color:
-      COLORS.text,
-    marginTop: 12,
+    fontFamily: FONTS.bold,
+    fontSize: 30,
+    lineHeight: 37,
+    color: COLORS.text,
+    marginTop: 16,
   },
 
-  // SEARCH
+  // ==================================================
+  // SEARCH / FILTERS
+  // ==================================================
 
   toolbar: {
-    backgroundColor:
-      COLORS.surface,
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor:
-      COLORS.border,
+    borderColor: COLORS.border,
     borderRadius: 15,
-    padding: 12,
-    marginBottom: 14,
+    padding: 13,
+    marginBottom: 16,
   },
 
   searchBox: {
-    height: 40,
+    height: 48,
     borderWidth: 1,
-    borderColor:
-      COLORS.border,
-    borderRadius: 9,
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
-    paddingHorizontal: 10,
+    borderColor: COLORS.border,
+    borderRadius: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 13,
+    backgroundColor: COLORS.surface,
   },
 
   searchIcon: {
-    fontSize: 18,
-    color:
-      COLORS.textMuted,
-    marginRight: 7,
+    fontFamily: FONTS.medium,
+    fontSize: 20,
+    color: COLORS.textMuted,
+    marginRight: 9,
   },
 
   searchInput: {
     flex: 1,
-    height: 38,
-    fontFamily:
-      FONTS.regular,
-    fontSize: 12,
-    color:
-      COLORS.text,
-    outlineStyle:
-      "none",
+    height: 46,
+    fontFamily: FONTS.regular,
+    fontSize: 15,
+    color: COLORS.text,
+    outlineStyle: "none",
   },
 
-  // FILTERS
-
   filterSection: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
 
   filterLabel: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 9,
-    letterSpacing: 0.7,
-    color:
-      COLORS.textMuted,
-    marginBottom: 7,
+    fontFamily: FONTS.medium,
+    fontSize: 11,
+    letterSpacing: 0.75,
+    color: COLORS.textMuted,
+    marginBottom: 8,
   },
 
   horizontalFilter: {
-    gap: 7,
+    gap: 8,
     paddingRight: 15,
   },
 
   filterRow: {
-    flexDirection:
-      "row",
-    flexWrap:
-      "wrap",
-    gap: 7,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
   },
 
   filterButton: {
-    paddingHorizontal: 13,
-    height: 34,
-    borderRadius: 8,
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
-    backgroundColor:
-      "#F1F5F9",
+    minHeight: 40,
+    paddingHorizontal: 15,
+    borderRadius: 9,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F1F5F9",
+    borderWidth: 1,
+    borderColor: "#E7EDF5",
   },
 
   filterButtonActive: {
-    backgroundColor:
-      COLORS.primary,
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
 
   filterText: {
-    fontFamily:
-      FONTS.medium,
-    fontSize: 10,
-    color:
-      COLORS.textSecondary,
+    fontFamily: FONTS.medium,
+    fontSize: 14,
+    color: COLORS.textSecondary,
   },
 
   filterTextActive: {
-    fontFamily:
-      FONTS.semiBold,
+    fontFamily: FONTS.bold,
     color: "#FFFFFF",
   },
 
+  // ==================================================
   // RESULTS
+  // ==================================================
 
   resultHeader: {
-    flexDirection:
-      "row",
-    justifyContent:
-      "space-between",
-    alignItems:
-      "center",
-    marginTop: 5,
-    marginBottom: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 4,
+    marginBottom: 12,
   },
 
   resultCount: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 11,
-    color:
-      COLORS.textSecondary,
+    fontFamily: FONTS.medium,
+    fontSize: 14,
+    color: COLORS.textSecondary,
   },
 
   clearText: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 10,
-    color:
-      COLORS.primary,
+    fontFamily: FONTS.medium,
+    fontSize: 14,
+    color: COLORS.primary,
   },
 
   list: {
-    gap: 12,
+    gap: 14,
   },
 
+  // ==================================================
   // EXPENSE CARD
+  // ==================================================
 
   expenseCard: {
-    backgroundColor:
-      COLORS.surface,
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor:
-      COLORS.border,
+    borderColor: COLORS.border,
     borderRadius: 15,
-    padding: 17,
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
+    padding: 20,
+    flexDirection: "row",
+    alignItems: "center",
   },
 
   expenseMain: {
     flex: 1,
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
+    flexDirection: "row",
+    alignItems: "center",
     minWidth: 0,
   },
 
   expenseIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
+    width: 54,
+    height: 54,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   expenseIconText: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 17,
+    fontFamily: FONTS.bold,
+    fontSize: 19,
   },
 
   expenseInfo: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: 14,
     minWidth: 0,
   },
 
   expenseTitleRow: {
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
   },
 
   expenseDescription: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 14,
-    color:
-      COLORS.text,
-    maxWidth: 300,
+    fontFamily: FONTS.bold,
+    fontSize: 16,
+    lineHeight: 21,
+    color: COLORS.text,
+    maxWidth: 500,
   },
 
   categoryBadge: {
-    marginLeft: 9,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    marginLeft: 10,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
     borderRadius: 20,
   },
 
   categoryBadgeText: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 8,
+    fontFamily: FONTS.medium,
+    fontSize: 11,
   },
 
   occasionName: {
-    fontFamily:
-      FONTS.medium,
-    fontSize: 11,
-    color:
-      COLORS.textSecondary,
-    marginTop: 3,
+    fontFamily: FONTS.medium,
+    fontSize: 14,
+    lineHeight: 19,
+    color: COLORS.textSecondary,
+    marginTop: 4,
   },
 
   metaRow: {
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
-    flexWrap:
-      "wrap",
-    gap: 9,
-    marginTop: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: 10,
+    marginTop: 8,
   },
 
   metaText: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 9,
-    color:
-      COLORS.textMuted,
+    fontFamily: FONTS.regular,
+    fontSize: 13,
+    color: COLORS.textMuted,
   },
 
   paymentBadge: {
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: 6,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 7,
   },
 
   paymentBadgeText: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 8,
+    fontFamily: FONTS.medium,
+    fontSize: 11,
   },
 
   notesText: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 9,
-    color:
-      COLORS.textMuted,
-    marginTop: 5,
+    fontFamily: FONTS.regular,
+    fontSize: 13,
+    lineHeight: 18,
+    color: COLORS.textMuted,
+    marginTop: 6,
   },
 
   amountSection: {
-    alignItems:
-      "flex-end",
-    marginLeft: 15,
+    alignItems: "flex-end",
+    marginLeft: 20,
+    minWidth: 150,
   },
 
   amountValue: {
-    fontFamily:
-      FONTS.extraBold,
-    fontSize: 18,
-    color:
-      COLORS.danger,
-    marginBottom: 8,
+    fontFamily: FONTS.bold,
+    fontSize: 22,
+    lineHeight: 28,
+    color: COLORS.danger,
+    marginBottom: 10,
   },
 
   cardActions: {
-    flexDirection:
-      "row",
-    gap: 6,
+    flexDirection: "row",
+    gap: 8,
   },
 
   actionButton: {
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    borderRadius: 7,
-    backgroundColor:
-      "#F1F5F9",
+    minHeight: 38,
+    paddingHorizontal: 13,
+    borderRadius: 8,
+    backgroundColor: "#F1F5F9",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   actionButtonText: {
-    fontFamily:
-      FONTS.medium,
-    fontSize: 10,
-    color:
-      COLORS.textSecondary,
+    fontFamily: FONTS.medium,
+    fontSize: 13,
+    color: COLORS.textSecondary,
   },
 
   deleteAction: {
-    backgroundColor:
-      "#FEF2F2",
+    backgroundColor: COLORS.dangerLight,
   },
 
   deleteActionText: {
-    fontFamily:
-      FONTS.medium,
-    fontSize: 10,
-    color:
-      COLORS.danger,
+    fontFamily: FONTS.medium,
+    fontSize: 13,
+    color: COLORS.danger,
   },
 
+  // ==================================================
   // EMPTY
+  // ==================================================
 
   emptyCard: {
-    backgroundColor:
-      COLORS.surface,
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor:
-      COLORS.border,
-    borderRadius: 16,
-    paddingVertical: 60,
-    alignItems:
-      "center",
+    borderColor: COLORS.border,
+    borderRadius: 15,
+    paddingVertical: 70,
+    alignItems: "center",
   },
 
   emptyIcon: {
-    width: 55,
-    height: 55,
-    borderRadius: 16,
-    backgroundColor:
-      "#FEF2F2",
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
+    width: 60,
+    height: 60,
+    borderRadius: 17,
+    backgroundColor: COLORS.dangerLight,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   emptyIconText: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 22,
-    color:
-      COLORS.danger,
+    fontFamily: FONTS.bold,
+    fontSize: 25,
+    color: COLORS.danger,
   },
 
   emptyTitle: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 16,
-    color:
-      COLORS.text,
-    marginTop: 14,
+    fontFamily: FONTS.bold,
+    fontSize: 18,
+    color: COLORS.text,
+    marginTop: 16,
   },
 
   emptyDescription: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 11,
-    color:
-      COLORS.textMuted,
-    marginTop: 5,
-    textAlign:
-      "center",
-    maxWidth: 400,
+    fontFamily: FONTS.regular,
+    fontSize: 14,
+    lineHeight: 21,
+    color: COLORS.textMuted,
+    marginTop: 6,
+    textAlign: "center",
+    maxWidth: 450,
   },
 
   emptyButton: {
-    marginTop: 16,
-    paddingHorizontal: 15,
-    paddingVertical: 9,
+    marginTop: 18,
+    paddingHorizontal: 18,
+    paddingVertical: 11,
     borderRadius: 9,
-    backgroundColor:
-      COLORS.primary,
+    backgroundColor: COLORS.primary,
   },
 
   emptyButtonText: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 11,
+    fontFamily: FONTS.medium,
+    fontSize: 14,
     color: "#FFFFFF",
   },
 
+  // ==================================================
   // MODAL
+  // ==================================================
 
   modalOverlay: {
     flex: 1,
-    backgroundColor:
-      "rgba(15, 23, 42, 0.45)",
+    backgroundColor: "rgba(15, 23, 42, 0.48)",
   },
 
   modalScroll: {
     flexGrow: 1,
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
-    padding: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
   },
 
   modal: {
     width: "100%",
-    maxWidth: 680,
-    backgroundColor:
-      COLORS.surface,
-    borderRadius: 18,
-    padding: 24,
+    maxWidth: 720,
+    backgroundColor: COLORS.surface,
+    borderRadius: 19,
+    padding: 28,
   },
 
   modalHeader: {
-    flexDirection:
-      "row",
-    justifyContent:
-      "space-between",
-    alignItems:
-      "flex-start",
-    marginBottom: 18,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 20,
   },
 
   modalTitle: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 20,
-    color:
-      COLORS.text,
+    fontFamily: FONTS.bold,
+    fontSize: 24,
+    lineHeight: 29,
+    color: COLORS.text,
   },
 
   modalSubtitle: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 11,
-    color:
-      COLORS.textMuted,
-    marginTop: 4,
+    fontFamily: FONTS.regular,
+    fontSize: 14,
+    lineHeight: 20,
+    color: COLORS.textMuted,
+    marginTop: 5,
   },
 
   closeButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 9,
-    backgroundColor:
-      "#F1F5F9",
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: "#F1F5F9",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   closeText: {
-    fontSize: 20,
-    color:
-      COLORS.textSecondary,
-    lineHeight: 22,
+    fontFamily: FONTS.regular,
+    fontSize: 27,
+    color: COLORS.textSecondary,
+    lineHeight: 30,
   },
 
-  // FORM
-
   fieldLabel: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 10,
-    color:
-      COLORS.textSecondary,
-    marginBottom: 6,
-    marginTop: 11,
+    fontFamily: FONTS.medium,
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    marginBottom: 7,
+    marginTop: 14,
   },
 
   input: {
-    height: 42,
+    height: 48,
     borderWidth: 1,
-    borderColor:
-      COLORS.border,
-    borderRadius: 9,
-    paddingHorizontal: 12,
-    fontFamily:
-      FONTS.regular,
-    fontSize: 12,
-    color:
-      COLORS.text,
-    backgroundColor:
-      "#FFFFFF",
-    outlineStyle:
-      "none",
+    borderColor: COLORS.border,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    fontFamily: FONTS.regular,
+    fontSize: 15,
+    color: COLORS.text,
+    backgroundColor: COLORS.surface,
+    outlineStyle: "none",
   },
 
-  // OCCASION SELECTED
-
   selectedBox: {
-    minHeight: 58,
+    minHeight: 62,
     borderWidth: 1,
-    borderColor:
-      COLORS.primary,
-    borderRadius: 10,
-    padding: 9,
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
-    backgroundColor:
-      "#F8FAFF",
+    borderColor: COLORS.border,
+    borderRadius: 11,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.primaryLight,
   },
 
   occasionIcon: {
-    width: 38,
-    height: 38,
+    width: 40,
+    height: 40,
     borderRadius: 11,
-    backgroundColor:
-      "#ECFDF5",
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
+    backgroundColor: COLORS.surface,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   occasionIconText: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 14,
-    color:
-      COLORS.success,
+    fontFamily: FONTS.bold,
+    fontSize: 15,
+    color: COLORS.primary,
   },
 
   selectedInfo: {
     flex: 1,
-    marginLeft: 10,
+    marginLeft: 11,
+    minWidth: 0,
   },
 
   selectedName: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 12,
-    color:
-      COLORS.text,
+    fontFamily: FONTS.medium,
+    fontSize: 15,
+    color: COLORS.text,
   },
 
   selectedSubtext: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 9,
-    color:
-      COLORS.textMuted,
+    fontFamily: FONTS.regular,
+    fontSize: 12,
+    color: COLORS.textMuted,
     marginTop: 2,
   },
 
   changeText: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 10,
-    color:
-      COLORS.primary,
-    paddingHorizontal: 5,
+    fontFamily: FONTS.medium,
+    fontSize: 13,
+    color: COLORS.primary,
+    paddingHorizontal: 8,
   },
 
-  // DROPDOWN
-
   dropdown: {
-    maxHeight: 260,
+    marginTop: 6,
+    maxHeight: 250,
     borderWidth: 1,
-    borderColor:
-      COLORS.border,
-    borderRadius: 10,
-    backgroundColor:
-      COLORS.surface,
-    marginTop: 5,
+    borderColor: COLORS.border,
+    borderRadius: 11,
+    backgroundColor: COLORS.surface,
     overflow: "hidden",
   },
 
   dropdownItem: {
-    minHeight: 52,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
-    borderBottomWidth: 1,
-    borderBottomColor:
-      "#F1F5F9",
+    minHeight: 58,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    flexDirection: "row",
+    alignItems: "center",
+    borderTopWidth: 1,
+    borderTopColor: COLORS.borderLight,
   },
 
   generalOption: {
-    minHeight: 58,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
-    borderBottomWidth: 1,
-    borderBottomColor:
-      COLORS.border,
-    backgroundColor:
-      "#F8FAFC",
+    minHeight: 62,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.primaryLight,
   },
 
   generalIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 9,
-    backgroundColor:
-      "#F1F5F9",
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
+    width: 40,
+    height: 40,
+    borderRadius: 11,
+    backgroundColor: COLORS.surface,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   generalIconText: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 12,
-    color:
-      COLORS.textSecondary,
+    fontFamily: FONTS.bold,
+    fontSize: 15,
+    color: COLORS.success,
   },
 
   dropdownAvatar: {
-    width: 34,
-    height: 34,
-    borderRadius: 9,
-    backgroundColor:
-      "#EEF2FF",
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
+    width: 40,
+    height: 40,
+    borderRadius: 11,
+    backgroundColor: COLORS.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   dropdownAvatarText: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 12,
-    color:
-      COLORS.primary,
+    fontFamily: FONTS.bold,
+    fontSize: 15,
+    color: COLORS.primary,
   },
 
   dropdownInfo: {
     flex: 1,
-    marginLeft: 9,
+    marginLeft: 11,
+    minWidth: 0,
   },
 
   dropdownName: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 11,
-    color:
-      COLORS.text,
+    fontFamily: FONTS.medium,
+    fontSize: 14,
+    color: COLORS.text,
   },
 
   dropdownMeta: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 9,
-    color:
-      COLORS.textMuted,
+    fontFamily: FONTS.regular,
+    fontSize: 12,
+    color: COLORS.textMuted,
     marginTop: 2,
   },
 
-  // CATEGORY
-
   categoryGrid: {
-    flexDirection:
-      "row",
-    flexWrap:
-      "wrap",
-    gap: 7,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
   },
 
   categoryOption: {
-    paddingHorizontal: 11,
-    height: 35,
+    minHeight: 40,
+    paddingHorizontal: 13,
     borderWidth: 1,
-    borderColor:
-      COLORS.border,
-    borderRadius: 8,
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
+    borderColor: COLORS.border,
+    borderRadius: 9,
+    backgroundColor: COLORS.surface,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   categoryOptionActive: {
-    backgroundColor:
-      "#EEF2FF",
-    borderColor:
-      COLORS.primary,
+    backgroundColor: COLORS.primaryLight,
+    borderColor: COLORS.primary,
   },
 
   categoryOptionText: {
-    fontFamily:
-      FONTS.medium,
-    fontSize: 10,
-    color:
-      COLORS.textSecondary,
+    fontFamily: FONTS.medium,
+    fontSize: 13,
+    color: COLORS.textSecondary,
   },
 
   categoryOptionTextActive: {
-    fontFamily:
-      FONTS.semiBold,
-    color:
-      COLORS.primary,
+    fontFamily: FONTS.bold,
+    color: COLORS.primary,
   },
 
-  // AMOUNT
-
   amountBox: {
-    height: 48,
+    height: 52,
     borderWidth: 1,
-    borderColor:
-      COLORS.border,
-    borderRadius: 9,
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
-    backgroundColor:
-      "#FFFFFF",
+    borderColor: COLORS.border,
+    borderRadius: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 14,
+    backgroundColor: COLORS.surface,
   },
 
   currencySymbol: {
-    fontFamily:
-      FONTS.bold,
+    fontFamily: FONTS.bold,
     fontSize: 18,
-    color:
-      COLORS.danger,
-    paddingLeft: 13,
-    paddingRight: 7,
+    color: COLORS.danger,
+    marginRight: 9,
   },
 
   amountInput: {
     flex: 1,
-    height: 46,
-    fontFamily:
-      FONTS.bold,
-    fontSize: 18,
-    color:
-      COLORS.text,
-    outlineStyle:
-      "none",
+    height: 48,
+    fontFamily: FONTS.bold,
+    fontSize: 19,
+    color: COLORS.text,
+    outlineStyle: "none",
   },
 
-  // PAYMENT
-
   paymentGrid: {
-    flexDirection:
-      "row",
-    flexWrap:
-      "wrap",
-    gap: 7,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
   },
 
   paymentOption: {
-    paddingHorizontal: 13,
-    height: 38,
+    minHeight: 42,
+    paddingHorizontal: 14,
     borderWidth: 1,
-    borderColor:
-      COLORS.border,
+    borderColor: COLORS.border,
     borderRadius: 9,
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
+    backgroundColor: COLORS.surface,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   paymentOptionActive: {
-    backgroundColor:
-      "#EEF2FF",
-    borderColor:
-      COLORS.primary,
+    backgroundColor: COLORS.primaryLight,
+    borderColor: COLORS.primary,
   },
 
   paymentOptionText: {
-    fontFamily:
-      FONTS.medium,
-    fontSize: 10,
-    color:
-      COLORS.textSecondary,
+    fontFamily: FONTS.medium,
+    fontSize: 13,
+    color: COLORS.textSecondary,
   },
 
   paymentOptionTextActive: {
-    fontFamily:
-      FONTS.semiBold,
-    color:
-      COLORS.primary,
+    fontFamily: FONTS.bold,
+    color: COLORS.primary,
   },
 
   notesInput: {
-    height: 70,
-    paddingTop: 10,
-    textAlignVertical:
-      "top",
+    height: 90,
+    paddingTop: 12,
+    textAlignVertical: "top",
   },
 
-  // ACTIONS
-
   modalActions: {
-    flexDirection:
-      "row",
-    justifyContent:
-      "flex-end",
-    gap: 9,
-    marginTop: 22,
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 10,
+    marginTop: 26,
   },
 
   cancelButton: {
-    height: 40,
-    paddingHorizontal: 17,
-    borderRadius: 9,
-    backgroundColor:
-      "#F1F5F9",
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
+    height: 46,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    backgroundColor: "#F1F5F9",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   cancelButtonText: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 11,
-    color:
-      COLORS.textSecondary,
+    fontFamily: FONTS.medium,
+    fontSize: 14,
+    color: COLORS.textSecondary,
   },
 
   saveButton: {
-    height: 40,
-    minWidth: 120,
-    paddingHorizontal: 17,
-    borderRadius: 9,
-    backgroundColor:
-      COLORS.primary,
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
+    height: 46,
+    minWidth: 140,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    backgroundColor: COLORS.primary,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   saveButtonText: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 11,
+    fontFamily: FONTS.medium,
+    fontSize: 14,
     color: "#FFFFFF",
   },
 });

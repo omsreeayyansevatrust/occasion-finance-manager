@@ -8,7 +8,6 @@ import {
 } from "react-native";
 
 import { usePathname } from "expo-router";
-
 import { onAuthStateChanged } from "firebase/auth";
 
 import { COLORS } from "../constants/theme";
@@ -34,16 +33,10 @@ export default function AppShell({ children }) {
     return unsubscribe;
   }, []);
 
-  /*
-   * Login screen should NOT show the sidebar.
-   */
   const isLoginScreen =
     pathname === "/" ||
     pathname === "/login";
 
-  /*
-   * Authentication check
-   */
   if (checkingAuth) {
     return (
       <View style={styles.loading}>
@@ -55,9 +48,6 @@ export default function AppShell({ children }) {
     );
   }
 
-  /*
-   * Login screen
-   */
   if (isLoginScreen || !user) {
     return (
       <View style={styles.fullScreen}>
@@ -66,23 +56,15 @@ export default function AppShell({ children }) {
     );
   }
 
-  /*
-   * Authenticated application
-   * Standard left sidebar on every screen.
-   */
   return (
     <View style={styles.appContainer}>
-
-      {/* LEFT SIDEBAR */}
       <View style={styles.sidebar}>
         <AppMenu />
       </View>
 
-      {/* MAIN CONTENT */}
       <View style={styles.content}>
         {children}
       </View>
-
     </View>
   );
 }
@@ -96,6 +78,7 @@ const styles = StyleSheet.create({
     // Web
     height: "100vh",
     minHeight: "100vh",
+    width: "100%",
   },
 
   sidebar: {
@@ -107,8 +90,10 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     minWidth: 0,
+    width: "auto",
     height: "100%",
     overflow: "hidden",
+    backgroundColor: COLORS.background,
   },
 
   fullScreen: {

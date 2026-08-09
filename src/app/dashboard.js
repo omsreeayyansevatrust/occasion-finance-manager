@@ -66,29 +66,71 @@ function getCurrentYear() {
   return new Date().getFullYear();
 }
 
+/*
+ * CENTRAL DATE HANDLER
+ *
+ * The app accepts:
+ * - Firestore Timestamp
+ * - JavaScript Date
+ * - YYYY-MM-DD
+ * - DD/MM/YYYY
+ * - DD-MM-YYYY
+ *
+ * Date-only values are always created locally so the browser timezone
+ * cannot move an August date into September.
+ */
 function getDateObject(dateValue) {
-  if (!dateValue) {
-    return null;
-  }
+  if (!dateValue) return null;
 
   if (
     typeof dateValue === "object" &&
-    dateValue.toDate
+    typeof dateValue.toDate === "function"
   ) {
-    return dateValue.toDate();
+    const date = dateValue.toDate();
+    return Number.isNaN(date.getTime()) ? null : date;
   }
 
-  const value = String(dateValue);
+  if (dateValue instanceof Date) {
+    return Number.isNaN(dateValue.getTime())
+      ? null
+      : dateValue;
+  }
 
-  // YYYY-MM-DD
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    const [year, month, day] =
-      value.split("-").map(Number);
+  const value = String(dateValue).trim();
 
+  let match = value.match(
+    /^(\d{4})-(\d{2})-(\d{2})$/
+  );
+
+  if (match) {
     return new Date(
-      year,
-      month - 1,
-      day
+      Number(match[1]),
+      Number(match[2]) - 1,
+      Number(match[3])
+    );
+  }
+
+  match = value.match(
+    /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/
+  );
+
+  if (match) {
+    return new Date(
+      Number(match[3]),
+      Number(match[2]) - 1,
+      Number(match[1])
+    );
+  }
+
+  match = value.match(
+    /^(\d{1,2})-(\d{1,2})-(\d{4})$/
+  );
+
+  if (match) {
+    return new Date(
+      Number(match[3]),
+      Number(match[2]) - 1,
+      Number(match[1])
     );
   }
 
@@ -104,17 +146,30 @@ function isSameMonth(
   month,
   year
 ) {
-  const date =
-    getDateObject(dateValue);
+  const date = getDateObject(dateValue);
 
   if (!date) {
     return false;
   }
 
   return (
-    date.getMonth() === month &&
-    date.getFullYear() === year
+    date.getMonth() === Number(month) &&
+    date.getFullYear() === Number(year)
   );
+}
+
+function formatTransactionDate(value) {
+  const date = getDateObject(value);
+
+  if (!date) {
+    return "-";
+  }
+
+  return `${String(
+    date.getDate()
+  ).padStart(2, "0")} ${MONTH_SHORT[
+    date.getMonth()
+  ]} ${date.getFullYear()}`;
 }
 
 function getInitials(name) {
@@ -289,7 +344,7 @@ export default function DashboardScreen() {
       return contributions.filter(
         (item) =>
           isSameMonth(
-            item.date,
+            item.dateKey || item.date,
             selectedMonth,
             selectedYear
           )
@@ -2430,7 +2485,7 @@ function TransactionRow({
             styles.transactionDateText
           }
         >
-          {transaction.date}
+          {formatTransactionDate(transaction.dateKey || transaction.date)}
         </Text>
 
         <Text
@@ -2531,1104 +2586,145 @@ function EmptyMini({
 // ==================================================
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor:
-      COLORS.background,
-  },
-
-  content: {
-    paddingHorizontal: 28,
-    paddingTop: 28,
-    paddingBottom: 60,
-  },
-
-  loading: {
-    flex: 1,
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
-    backgroundColor:
-      COLORS.background,
-  },
-
-  loadingText: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 13,
-    color:
-      COLORS.textSecondary,
-    marginTop: 10,
-  },
-
-  // HEADER
-
-  header: {
-    flexDirection:
-      "row",
-    justifyContent:
-      "space-between",
-    alignItems:
-      "flex-end",
-    marginBottom: 22,
-  },
-
-  headerLeft: {
-    flex: 1,
-  },
-
-  eyebrow: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 10,
-    letterSpacing: 1.1,
-    color:
-      COLORS.primary,
-  },
-
-  title: {
-    fontFamily:
-      FONTS.extraBold,
-    fontSize: 30,
-    color:
-      COLORS.text,
-    marginTop: 4,
-  },
-
-  subtitle: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 13,
-    color:
-      COLORS.textSecondary,
-    marginTop: 4,
-  },
-
-  headerRight: {
-    marginLeft: 20,
-  },
-
-  monthButton: {
-    minWidth: 190,
-    minHeight: 52,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 11,
-    borderWidth: 1,
-    borderColor:
-      COLORS.border,
-    backgroundColor:
-      COLORS.surface,
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
-  },
-
-  monthIcon: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 18,
-    color:
-      COLORS.primary,
-    marginRight: 9,
-  },
-
-  monthButtonLabel: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 8,
-    letterSpacing: 0.7,
-    color:
-      COLORS.textMuted,
-  },
-
-  monthButtonValue: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 12,
-    color:
-      COLORS.text,
-    marginTop: 2,
-  },
-
-  chevron: {
-    marginLeft: "auto",
-    fontSize: 9,
-    color:
-      COLORS.textMuted,
-  },
-
-  // MONTH SELECTOR
-
-  monthSelector: {
-    backgroundColor:
-      COLORS.surface,
-    borderWidth: 1,
-    borderColor:
-      COLORS.border,
-    borderRadius: 14,
-    padding: 15,
-    marginBottom: 18,
-  },
-
-  yearRow: {
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
-    marginBottom: 12,
-  },
-
-  yearButton: {
-    width: 32,
-    height: 30,
-    borderRadius: 8,
-    backgroundColor:
-      "#F1F5F9",
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
-  },
-
-  yearArrow: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 20,
-    color:
-      COLORS.textSecondary,
-  },
-
-  yearText: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 15,
-    color:
-      COLORS.text,
-    marginHorizontal: 20,
-  },
-
-  monthGrid: {
-    flexDirection:
-      "row",
-    flexWrap:
-      "wrap",
-    gap: 7,
-  },
-
-  monthOption: {
-    width: "15.4%",
-    minWidth: 90,
-    height: 35,
-    borderRadius: 8,
-    backgroundColor:
-      "#F8FAFC",
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
-  },
-
-  monthOptionActive: {
-    backgroundColor:
-      COLORS.primary,
-  },
-
-  monthOptionText: {
-    fontFamily:
-      FONTS.medium,
-    fontSize: 10,
-    color:
-      COLORS.textSecondary,
-  },
-
-  monthOptionTextActive: {
-    fontFamily:
-      FONTS.semiBold,
-    color: "#FFFFFF",
-  },
-
-  // KPI
-
-  kpiGrid: {
-    flexDirection:
-      "row",
-    flexWrap:
-      "wrap",
-    gap: 14,
-    marginBottom: 14,
-  },
-
-  kpiCard: {
-    flex: 1,
-    minWidth: 205,
-    backgroundColor:
-      COLORS.surface,
-    borderWidth: 1,
-    borderColor:
-      COLORS.border,
-    borderRadius: 15,
-    padding: 17,
-  },
-
-  kpiTop: {
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
-    justifyContent:
-      "space-between",
-  },
-
-  kpiLabel: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 9,
-    letterSpacing: 0.7,
-    color:
-      COLORS.textMuted,
-  },
-
-  kpiIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 9,
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
-  },
-
-  kpiIconText: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 14,
-  },
-
-  kpiValue: {
-    fontFamily:
-      FONTS.extraBold,
-    fontSize: 22,
-    color:
-      COLORS.text,
-    marginTop: 13,
-  },
-
-  kpiDescription: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 9,
-    color:
-      COLORS.textMuted,
-    marginTop: 4,
-  },
-
-  // QUICK ACTIONS
-
-  quickActions: {
-    flexDirection:
-      "row",
-    flexWrap:
-      "wrap",
-    gap: 10,
-    marginBottom: 25,
-  },
-
-  quickAction: {
-    flex: 1,
-    minWidth: 190,
-    minHeight: 62,
-    backgroundColor:
-      COLORS.surface,
-    borderWidth: 1,
-    borderColor:
-      COLORS.border,
-    borderRadius: 12,
-    padding: 11,
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
-  },
-
-  quickActionIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
-  },
-
-  quickActionIconText: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 19,
-  },
-
-  quickActionInfo: {
-    flex: 1,
-    marginLeft: 9,
-  },
-
-  quickActionTitle: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 11,
-    color:
-      COLORS.text,
-  },
-
-  quickActionSubtitle: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 9,
-    color:
-      COLORS.textMuted,
-    marginTop: 2,
-  },
-
-  quickActionArrow: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 18,
-    color:
-      COLORS.textMuted,
-  },
-
-  // SECTIONS
-
-  section: {
-    marginBottom: 12,
-  },
-
-  sectionHeader: {
-    flexDirection:
-      "row",
-    justifyContent:
-      "space-between",
-    alignItems:
-      "center",
-    marginBottom: 13,
-  },
-
-  sectionTitle: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 15,
-    color:
-      COLORS.text,
-  },
-
-  sectionSubtitle: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 10,
-    color:
-      COLORS.textMuted,
-    marginTop: 3,
-  },
-
-  filterScroll: {
-    gap: 7,
-    paddingBottom: 2,
-  },
-
-  filterChip: {
-    height: 33,
-    paddingHorizontal: 13,
-    borderRadius: 8,
-    backgroundColor:
-      "#F1F5F9",
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
-  },
-
-  filterChipActive: {
-    backgroundColor:
-      COLORS.primary,
-  },
-
-  filterChipText: {
-    fontFamily:
-      FONTS.medium,
-    fontSize: 10,
-    color:
-      COLORS.textSecondary,
-  },
-
-  filterChipTextActive: {
-    fontFamily:
-      FONTS.semiBold,
-    color: "#FFFFFF",
-  },
-
-  // OCCASIONS
-
-  occasionGrid: {
-    flexDirection:
-      "row",
-    flexWrap:
-      "wrap",
-    gap: 12,
-    marginBottom: 22,
-  },
-
-  occasionCard: {
-    flex: 1,
-    minWidth: 260,
-    backgroundColor:
-      COLORS.surface,
-    borderWidth: 1,
-    borderColor:
-      COLORS.border,
-    borderRadius: 15,
-    padding: 16,
-  },
-
-  occasionCardHeader: {
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
-  },
-
-  occasionBadge: {
-    width: 39,
-    height: 39,
-    borderRadius: 11,
-    backgroundColor:
-      "#EEF2FF",
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
-  },
-
-  occasionBadgeText: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 14,
-    color:
-      COLORS.primary,
-  },
-
-  occasionCardTitleArea: {
-    flex: 1,
-    marginLeft: 10,
-  },
-
-  occasionCardTitle: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 12,
-    color:
-      COLORS.text,
-  },
-
-  occasionCardMeta: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 9,
-    color:
-      COLORS.textMuted,
-    marginTop: 3,
-  },
-
-  occasionNumbers: {
-    flexDirection:
-      "row",
-    justifyContent:
-      "space-between",
-    marginTop: 18,
-  },
-
-  occasionNumberLabel: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 8,
-    letterSpacing: 0.6,
-    color:
-      COLORS.textMuted,
-  },
-
-  occasionIncome: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 13,
-    color:
-      COLORS.success,
-    marginTop: 3,
-  },
-
-  occasionExpense: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 13,
-    color:
-      COLORS.danger,
-    marginTop: 3,
-  },
-
-  occasionBalanceRow: {
-    marginTop: 15,
-    paddingTop: 11,
-    borderTopWidth: 1,
-    borderTopColor:
-      COLORS.border,
-    flexDirection:
-      "row",
-    justifyContent:
-      "space-between",
-    alignItems:
-      "center",
-  },
-
-  occasionBalanceLabel: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 8,
-    letterSpacing: 0.6,
-    color:
-      COLORS.textMuted,
-  },
-
-  occasionBalance: {
-    fontFamily:
-      FONTS.extraBold,
-    fontSize: 15,
-  },
-
-  // FILTERED SUMMARY
-
-  filteredSummaryCard: {
-    backgroundColor:
-      COLORS.surface,
-    borderWidth: 1,
-    borderColor:
-      COLORS.border,
-    borderRadius: 15,
-    padding: 18,
-    marginBottom: 22,
-  },
-
-  filteredSummaryTitle: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 14,
-    color:
-      COLORS.text,
-    marginBottom: 15,
-  },
-
-  filteredSummaryValues: {
-    flexDirection:
-      "row",
-    gap: 10,
-  },
-
-  summaryValueBox: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 10,
-    backgroundColor:
-      "#F8FAFC",
-  },
-
-  summaryValueLabel: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 8,
-    color:
-      COLORS.textMuted,
-  },
-
-  summaryValueAmount: {
-    fontFamily:
-      FONTS.extraBold,
-    fontSize: 16,
-    marginTop: 5,
-  },
-
-  // CHART
-
-  chartCard: {
-    backgroundColor:
-      COLORS.surface,
-    borderWidth: 1,
-    borderColor:
-      COLORS.border,
-    borderRadius: 15,
-    padding: 18,
-    marginBottom: 22,
-  },
-
-  legend: {
-    flexDirection:
-      "row",
-    gap: 12,
-  },
-
-  legendItem: {
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
-  },
-
-  legendDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    marginRight: 4,
-  },
-
-  legendText: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 9,
-    color:
-      COLORS.textSecondary,
-  },
-
-  chart: {
-    height: 190,
-    flexDirection:
-      "row",
-    alignItems:
-      "flex-end",
-    justifyContent:
-      "space-around",
-    borderBottomWidth: 1,
-    borderBottomColor:
-      COLORS.border,
-    paddingTop: 15,
-  },
-
-  chartColumn: {
-    flex: 1,
-    height: 180,
-    alignItems:
-      "center",
-    justifyContent:
-      "flex-end",
-    borderRadius: 7,
-    paddingHorizontal: 3,
-  },
-
-  chartColumnSelected: {
-    backgroundColor:
-      "#F8FAFC",
-  },
-
-  bars: {
-    height: 155,
-    flexDirection:
-      "row",
-    alignItems:
-      "flex-end",
-    gap: 3,
-  },
-
-  bar: {
-    width: 7,
-    borderRadius: 4,
-    minHeight: 4,
-  },
-
-  incomeBar: {
-    backgroundColor:
-      COLORS.success,
-  },
-
-  expenseBar: {
-    backgroundColor:
-      COLORS.danger,
-  },
-
-  chartLabel: {
-    fontFamily:
-      FONTS.medium,
-    fontSize: 8,
-    color:
-      COLORS.textMuted,
-    marginTop: 7,
-  },
-
-  chartLabelSelected: {
-    fontFamily:
-      FONTS.bold,
-    color:
-      COLORS.primary,
-  },
-
-  // TWO COLUMN
-
-  twoColumn: {
-    flexDirection:
-      "row",
-    flexWrap:
-      "wrap",
-    gap: 14,
-    marginBottom: 14,
-  },
-
-  panel: {
-    flex: 1,
-    minWidth: 360,
-    backgroundColor:
-      COLORS.surface,
-    borderWidth: 1,
-    borderColor:
-      COLORS.border,
-    borderRadius: 15,
-    padding: 18,
-    marginBottom: 14,
-  },
-
-  panelHeader: {
-    flexDirection:
-      "row",
-    justifyContent:
-      "space-between",
-    alignItems:
-      "flex-start",
-    marginBottom: 14,
-  },
-
-  viewAll: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 10,
-    color:
-      COLORS.primary,
-  },
-
-  // CONTRIBUTORS
-
-  contributorList: {
-    gap: 2,
-  },
-
-  contributorRow: {
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
-    minHeight: 54,
-  },
-
-  rank: {
-    width: 20,
-    fontFamily:
-      FONTS.bold,
-    fontSize: 10,
-    color:
-      COLORS.textMuted,
-  },
-
-  contributorAvatar: {
-    width: 35,
-    height: 35,
-    borderRadius: 10,
-    backgroundColor:
-      "#EEF2FF",
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
-  },
-
-  contributorAvatarText: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 10,
-    color:
-      COLORS.primary,
-  },
-
-  contributorInfo: {
-    flex: 1,
-    marginLeft: 9,
-  },
-
-  contributorName: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 11,
-    color:
-      COLORS.text,
-  },
-
-  contributorMeta: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 8,
-    color:
-      COLORS.textMuted,
-    marginTop: 2,
-  },
-
-  contributorAmount: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 11,
-    color:
-      COLORS.success,
-  },
-
-  // SNAPSHOT
-
-  snapshotList: {
-    marginTop: 2,
-  },
-
-  snapshotRow: {
-    minHeight: 48,
-    flexDirection:
-      "row",
-    justifyContent:
-      "space-between",
-    alignItems:
-      "center",
-  },
-
-  snapshotBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor:
-      "#F1F5F9",
-  },
-
-  snapshotLabel: {
-    fontFamily:
-      FONTS.medium,
-    fontSize: 10,
-    color:
-      COLORS.textSecondary,
-  },
-
-  snapshotValue: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 12,
-  },
-
-  snapshotFooter: {
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor:
-      COLORS.border,
-  },
-
-  snapshotFooterText: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 9,
-    color:
-      COLORS.textMuted,
-  },
-
-  // TRANSACTIONS
-
-  transactionLinks: {
-    flexDirection:
-      "row",
-    gap: 12,
-  },
-
-  transactionList: {
-    gap: 1,
-  },
-
-  transactionRow: {
-    minHeight: 58,
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
-    borderBottomWidth: 1,
-    borderBottomColor:
-      "#F1F5F9",
-  },
-
-  transactionIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 9,
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
-  },
-
-  transactionIconText: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 14,
-  },
-
-  transactionInfo: {
-    flex: 1,
-    marginLeft: 10,
-    minWidth: 0,
-  },
-
-  transactionTitle: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 11,
-    color:
-      COLORS.text,
-  },
-
-  transactionSubtitle: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 8,
-    color:
-      COLORS.textMuted,
-    marginTop: 2,
-  },
-
-  transactionDate: {
-    width: 100,
-    alignItems:
-      "flex-end",
-    marginRight: 15,
-  },
-
-  transactionDateText: {
-    fontFamily:
-      FONTS.medium,
-    fontSize: 9,
-    color:
-      COLORS.textSecondary,
-  },
-
-  transactionPayment: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 8,
-    color:
-      COLORS.textMuted,
-    marginTop: 2,
-  },
-
-  transactionAmount: {
-    width: 100,
-    textAlign:
-      "right",
-    fontFamily:
-      FONTS.bold,
-    fontSize: 11,
-  },
-
-  // EMPTY
-
-  emptyState: {
-    flex: 1,
-    minWidth: 260,
-    backgroundColor:
-      COLORS.surface,
-    borderWidth: 1,
-    borderColor:
-      COLORS.border,
-    borderRadius: 15,
-    padding: 30,
-    alignItems:
-      "center",
-  },
-
-  emptyStateIcon: {
-    fontSize: 25,
-    color:
-      COLORS.textMuted,
-  },
-
-  emptyStateTitle: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 12,
-    color:
-      COLORS.text,
-    marginTop: 8,
-  },
-
-  emptyStateDescription: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 9,
-    color:
-      COLORS.textMuted,
-    textAlign:
-      "center",
-    marginTop: 4,
-    maxWidth: 280,
-  },
-
-  emptyMini: {
-    minHeight: 90,
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
-  },
-
-  emptyMiniText: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 10,
-    color:
-      COLORS.textMuted,
-  },
-
-  // FOOTER
-
-  footerSummary: {
-    backgroundColor:
-      COLORS.surface,
-    borderWidth: 1,
-    borderColor:
-      COLORS.border,
-    borderRadius: 15,
-    padding: 20,
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
-    justifyContent:
-      "space-between",
-  },
-
-  footerEyebrow: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 8,
-    letterSpacing: 0.8,
-    color:
-      COLORS.textMuted,
-  },
-
-  footerTitle: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 11,
-    color:
-      COLORS.text,
-    marginTop: 4,
-  },
-
-  footerBalance: {
-    fontFamily:
-      FONTS.extraBold,
-    fontSize: 22,
-  },
+  container: { flex: 1, backgroundColor: COLORS.background },
+  content: { paddingHorizontal: 32, paddingTop: 30, paddingBottom: 64, maxWidth: 1600, width: "100%", alignSelf: "center" },
+  loading: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: COLORS.background },
+  loadingText: { fontFamily: FONTS.regular, fontSize: 15, color: COLORS.textSecondary, marginTop: 12 },
+
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 28 },
+  headerLeft: { flex: 1 },
+  eyebrow: { fontFamily: FONTS.medium, fontSize: 12, letterSpacing: 1.2, color: COLORS.primary },
+  title: { fontFamily: FONTS.bold, fontSize: 36, lineHeight: 43, color: COLORS.text, marginTop: 5 },
+  subtitle: { fontFamily: FONTS.regular, fontSize: 16, lineHeight: 23, color: COLORS.textSecondary, marginTop: 6 },
+  headerRight: { marginLeft: 24 },
+  monthButton: { minWidth: 225, minHeight: 62, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surface, flexDirection: "row", alignItems: "center" },
+  monthIcon: { fontFamily: FONTS.bold, fontSize: 22, color: COLORS.primary, marginRight: 11 },
+  monthButtonLabel: { fontFamily: FONTS.medium, fontSize: 11, letterSpacing: 0.8, color: COLORS.textMuted },
+  monthButtonValue: { fontFamily: FONTS.bold, fontSize: 15, color: COLORS.text, marginTop: 3 },
+  chevron: { marginLeft: "auto", fontFamily: FONTS.bold, fontSize: 12, color: COLORS.textMuted },
+
+  monthSelector: { backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, borderRadius: 14, padding: 18, marginBottom: 22 },
+  yearRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", marginBottom: 16 },
+  yearButton: { width: 38, height: 36, borderRadius: 9, backgroundColor: "#F1F5F9", alignItems: "center", justifyContent: "center" },
+  yearArrow: { fontFamily: FONTS.bold, fontSize: 23, color: COLORS.textSecondary },
+  yearText: { fontFamily: FONTS.bold, fontSize: 17, color: COLORS.text, marginHorizontal: 24 },
+  monthGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  monthOption: { width: "15.4%", minWidth: 95, height: 42, borderRadius: 9, backgroundColor: "#F8FAFC", alignItems: "center", justifyContent: "center" },
+  monthOptionActive: { backgroundColor: COLORS.primary },
+  monthOptionText: { fontFamily: FONTS.medium, fontSize: 13, color: COLORS.textSecondary },
+  monthOptionTextActive: { fontFamily: FONTS.medium, color: "#FFFFFF" },
+
+  kpiGrid: { flexDirection: "row", flexWrap: "wrap", gap: 16, marginBottom: 18 },
+  kpiCard: { flex: 1, minWidth: 230, minHeight: 145, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, borderRadius: 16, padding: 20 },
+  kpiTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  kpiLabel: { fontFamily: FONTS.medium, fontSize: 12, letterSpacing: 0.8, color: COLORS.textMuted },
+  kpiIcon: { width: 38, height: 38, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  kpiIconText: { fontFamily: FONTS.bold, fontSize: 17 },
+  kpiValue: { fontFamily: FONTS.bold, fontSize: 30, lineHeight: 38, color: COLORS.text, marginTop: 17 },
+  kpiDescription: { fontFamily: FONTS.regular, fontSize: 13, color: COLORS.textMuted, marginTop: 6 },
+
+  quickActions: { flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 32 },
+  quickAction: { flex: 1, minWidth: 220, minHeight: 76, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, borderRadius: 13, paddingHorizontal: 15, paddingVertical: 13, flexDirection: "row", alignItems: "center" },
+  quickActionIcon: { width: 44, height: 44, borderRadius: 11, alignItems: "center", justifyContent: "center" },
+  quickActionIconText: { fontFamily: FONTS.bold, fontSize: 23 },
+  quickActionInfo: { flex: 1, marginLeft: 12 },
+  quickActionTitle: { fontFamily: FONTS.medium, fontSize: 15, color: COLORS.text },
+  quickActionSubtitle: { fontFamily: FONTS.regular, fontSize: 13, color: COLORS.textMuted, marginTop: 3 },
+  quickActionArrow: { fontFamily: FONTS.bold, fontSize: 22, color: COLORS.textMuted },
+
+  section: { marginBottom: 18 },
+  sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
+  sectionTitle: { fontFamily: FONTS.bold, fontSize: 20, lineHeight: 25, color: COLORS.text },
+  sectionSubtitle: { fontFamily: FONTS.regular, fontSize: 14, lineHeight: 20, color: COLORS.textMuted, marginTop: 4 },
+  filterScroll: { gap: 8, paddingBottom: 3 },
+  filterChip: { height: 40, paddingHorizontal: 16, borderRadius: 9, backgroundColor: "#F1F5F9", alignItems: "center", justifyContent: "center" },
+  filterChipActive: { backgroundColor: COLORS.primary },
+  filterChipText: { fontFamily: FONTS.medium, fontSize: 13, color: COLORS.textSecondary },
+  filterChipTextActive: { fontFamily: FONTS.medium, color: "#FFFFFF" },
+
+  occasionGrid: { flexDirection: "row", flexWrap: "wrap", gap: 16, marginBottom: 28 },
+  occasionCard: { flex: 1, minWidth: 300, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, borderRadius: 16, padding: 20 },
+  occasionCardHeader: { flexDirection: "row", alignItems: "center" },
+  occasionBadge: { width: 44, height: 44, borderRadius: 12, backgroundColor: "#EEF2FF", alignItems: "center", justifyContent: "center" },
+  occasionBadgeText: { fontFamily: FONTS.bold, fontSize: 16, color: COLORS.primary },
+  occasionCardTitleArea: { flex: 1, marginLeft: 12 },
+  occasionCardTitle: { fontFamily: FONTS.bold, fontSize: 15, color: COLORS.text },
+  occasionCardMeta: { fontFamily: FONTS.regular, fontSize: 12, color: COLORS.textMuted, marginTop: 4 },
+  occasionNumbers: { flexDirection: "row", justifyContent: "space-between", marginTop: 22 },
+  occasionNumberLabel: { fontFamily: FONTS.medium, fontSize: 11, letterSpacing: 0.7, color: COLORS.textMuted },
+  occasionIncome: { fontFamily: FONTS.bold, fontSize: 17, color: COLORS.success, marginTop: 4 },
+  occasionExpense: { fontFamily: FONTS.bold, fontSize: 17, color: COLORS.danger, marginTop: 4 },
+  occasionBalanceRow: { marginTop: 18, paddingTop: 13, borderTopWidth: 1, borderTopColor: COLORS.border, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  occasionBalanceLabel: { fontFamily: FONTS.medium, fontSize: 11, letterSpacing: 0.7, color: COLORS.textMuted },
+  occasionBalance: { fontFamily: FONTS.bold, fontSize: 19 },
+
+  filteredSummaryCard: { backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, borderRadius: 16, padding: 20, marginBottom: 28 },
+  filteredSummaryTitle: { fontFamily: FONTS.bold, fontSize: 17, color: COLORS.text, marginBottom: 17 },
+  filteredSummaryValues: { flexDirection: "row", gap: 12 },
+  summaryValueBox: { flex: 1, padding: 15, borderRadius: 11, backgroundColor: "#F8FAFC" },
+  summaryValueLabel: { fontFamily: FONTS.medium, fontSize: 11, color: COLORS.textMuted },
+  summaryValueAmount: { fontFamily: FONTS.bold, fontSize: 20, marginTop: 6 },
+
+  chartCard: { backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, borderRadius: 16, padding: 20, marginBottom: 28 },
+  legend: { flexDirection: "row", gap: 16 },
+  legendItem: { flexDirection: "row", alignItems: "center" },
+  legendDot: { width: 9, height: 9, borderRadius: 5, marginRight: 6 },
+  legendText: { fontFamily: FONTS.regular, fontSize: 13, color: COLORS.textSecondary },
+  chart: { height: 220, flexDirection: "row", alignItems: "flex-end", justifyContent: "space-around", borderBottomWidth: 1, borderBottomColor: COLORS.border, paddingTop: 18 },
+  chartColumn: { flex: 1, height: 205, alignItems: "center", justifyContent: "flex-end", borderRadius: 8, paddingHorizontal: 4 },
+  chartColumnSelected: { backgroundColor: "#F8FAFC" },
+  bars: { height: 175, flexDirection: "row", alignItems: "flex-end", gap: 4 },
+  bar: { width: 10, borderRadius: 5, minHeight: 4 },
+  incomeBar: { backgroundColor: COLORS.success },
+  expenseBar: { backgroundColor: COLORS.danger },
+  chartLabel: { fontFamily: FONTS.medium, fontSize: 11, color: COLORS.textMuted, marginTop: 8 },
+  chartLabelSelected: { fontFamily: FONTS.bold, color: COLORS.primary },
+
+  twoColumn: { flexDirection: "row", flexWrap: "wrap", gap: 16, marginBottom: 16 },
+  panel: { flex: 1, minWidth: 380, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, borderRadius: 16, padding: 20, marginBottom: 16 },
+  panelHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 },
+  viewAll: { fontFamily: FONTS.medium, fontSize: 13, color: COLORS.primary },
+
+  contributorList: { gap: 3 },
+  contributorRow: { flexDirection: "row", alignItems: "center", minHeight: 62 },
+  rank: { width: 24, fontFamily: FONTS.bold, fontSize: 12, color: COLORS.textMuted },
+  contributorAvatar: { width: 40, height: 40, borderRadius: 11, backgroundColor: "#EEF2FF", alignItems: "center", justifyContent: "center" },
+  contributorAvatarText: { fontFamily: FONTS.bold, fontSize: 12, color: COLORS.primary },
+  contributorInfo: { flex: 1, marginLeft: 11 },
+  contributorName: { fontFamily: FONTS.medium, fontSize: 14, color: COLORS.text },
+  contributorMeta: { fontFamily: FONTS.regular, fontSize: 12, color: COLORS.textMuted, marginTop: 3 },
+  contributorAmount: { fontFamily: FONTS.bold, fontSize: 14, color: COLORS.success },
+
+  snapshotList: { marginTop: 3 },
+  snapshotRow: { minHeight: 56, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  snapshotBorder: { borderBottomWidth: 1, borderBottomColor: "#F1F5F9" },
+  snapshotLabel: { fontFamily: FONTS.medium, fontSize: 14, color: COLORS.textSecondary },
+  snapshotValue: { fontFamily: FONTS.bold, fontSize: 15 },
+  snapshotFooter: { marginTop: 14, paddingTop: 14, borderTopWidth: 1, borderTopColor: COLORS.border },
+  snapshotFooterText: { fontFamily: FONTS.regular, fontSize: 12, color: COLORS.textMuted },
+
+  transactionLinks: { flexDirection: "row", gap: 16 },
+  transactionList: { gap: 1 },
+  transactionRow: { minHeight: 68, flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderBottomColor: "#F1F5F9" },
+  transactionIcon: { width: 40, height: 40, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  transactionIconText: { fontFamily: FONTS.bold, fontSize: 17 },
+  transactionInfo: { flex: 1, marginLeft: 12, minWidth: 0 },
+  transactionTitle: { fontFamily: FONTS.medium, fontSize: 14, color: COLORS.text },
+  transactionSubtitle: { fontFamily: FONTS.regular, fontSize: 12, color: COLORS.textMuted, marginTop: 3 },
+  transactionDate: { width: 110, alignItems: "flex-end", marginRight: 18 },
+  transactionDateText: { fontFamily: FONTS.medium, fontSize: 12, color: COLORS.textSecondary },
+  transactionPayment: { fontFamily: FONTS.regular, fontSize: 11, color: COLORS.textMuted, marginTop: 3 },
+  transactionAmount: { width: 120, textAlign: "right", fontFamily: FONTS.bold, fontSize: 15 },
+
+  emptyState: { flex: 1, minWidth: 300, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, borderRadius: 16, padding: 36, alignItems: "center" },
+  emptyStateIcon: { fontSize: 30, color: COLORS.textMuted },
+  emptyStateTitle: { fontFamily: FONTS.bold, fontSize: 16, color: COLORS.text, marginTop: 10 },
+  emptyStateDescription: { fontFamily: FONTS.regular, fontSize: 13, lineHeight: 19, color: COLORS.textMuted, textAlign: "center", marginTop: 5, maxWidth: 320 },
+  emptyMini: { minHeight: 100, alignItems: "center", justifyContent: "center" },
+  emptyMiniText: { fontFamily: FONTS.regular, fontSize: 13, color: COLORS.textMuted },
+
+  footerSummary: { backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, borderRadius: 16, padding: 22, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  footerEyebrow: { fontFamily: FONTS.medium, fontSize: 11, letterSpacing: 0.8, color: COLORS.textMuted },
+  footerTitle: { fontFamily: FONTS.medium, fontSize: 15, color: COLORS.text, marginTop: 5 },
+  footerBalance: { fontFamily: FONTS.bold, fontSize: 28 },
 });

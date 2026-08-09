@@ -1,14 +1,18 @@
+// src/components/AppMenu.js
+
 import {
   Alert,
   Image,
+  Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 
+import { Ionicons } from "@expo/vector-icons";
 import { usePathname, useRouter } from "expo-router";
-
 import { signOut } from "firebase/auth";
 
 import {
@@ -21,32 +25,32 @@ const MENU_ITEMS = [
   {
     label: "Dashboard",
     route: "/dashboard",
-    icon: "⌂",
+    icon: "grid-outline",
   },
   {
     label: "People",
     route: "/people",
-    icon: "◉",
+    icon: "people-outline",
   },
   {
     label: "Occasions",
     route: "/occasions",
-    icon: "◆",
+    icon: "calendar-outline",
   },
   {
     label: "Contributions",
     route: "/contributions",
-    icon: "↑",
+    icon: "arrow-up-circle-outline",
   },
   {
     label: "Expenses",
     route: "/expenses",
-    icon: "↓",
+    icon: "arrow-down-circle-outline",
   },
   {
     label: "Financial Details",
     route: "/financialdetails",
-    icon: "▣",
+    icon: "analytics-outline",
   },
 ];
 
@@ -57,48 +61,48 @@ export default function AppMenu() {
   const currentUser = auth.currentUser;
 
   const handleNavigation = (route) => {
-    router.push(route);
+    // Do not use push for the current route.
+    // replace gives deterministic navigation for the web app.
+    if (pathname === route) {
+      return;
+    }
+
+    router.replace(route);
+  };
+
+  const performLogout = async () => {
+    try {
+      await signOut(auth);
+      router.replace("/");
+    } catch (error) {
+      console.log("Logout error:", error);
+
+      if (
+        Platform.OS === "web" &&
+        typeof window !== "undefined" &&
+        window.alert
+      ) {
+        window.alert(
+          "Unable to logout. Please try again."
+        );
+      } else {
+        Alert.alert(
+          "Logout Error",
+          "Unable to logout. Please try again."
+        );
+      }
+    }
   };
 
   const handleLogout = async () => {
-    const performLogout = async () => {
-      try {
-        await signOut(auth);
-
-        router.replace("/");
-      } catch (error) {
-        console.log(
-          "Logout error:",
-          error
-        );
-
-        if (
-          typeof window !==
-            "undefined" &&
-          window.alert
-        ) {
-          window.alert(
-            "Unable to logout. Please try again."
-          );
-        } else {
-          Alert.alert(
-            "Logout Error",
-            "Unable to logout. Please try again."
-          );
-        }
-      }
-    };
-
     if (
-      typeof window !==
-        "undefined" &&
-      typeof window.confirm ===
-        "function"
+      Platform.OS === "web" &&
+      typeof window !== "undefined" &&
+      typeof window.confirm === "function"
     ) {
-      const confirmed =
-        window.confirm(
-          "Are you sure you want to logout?"
-        );
+      const confirmed = window.confirm(
+        "Are you sure you want to logout?"
+      );
 
       if (confirmed) {
         await performLogout();
@@ -118,48 +122,31 @@ export default function AppMenu() {
         {
           text: "Logout",
           style: "destructive",
-          onPress:
-            performLogout,
+          onPress: performLogout,
         },
       ]
     );
   };
 
   const isActive = (route) => {
-    if (
-      route === "/dashboard"
-    ) {
+    if (route === "/dashboard") {
       return (
-        pathname ===
-          "/dashboard" ||
+        pathname === "/dashboard" ||
         pathname === "/"
       );
     }
 
     return (
       pathname === route ||
-      pathname.startsWith(
-        `${route}/`
-      )
+      pathname.startsWith(`${route}/`)
     );
   };
 
   return (
-    <View
-      style={styles.container}
-    >
-      {/* ==================================================
-          BRAND
-          ================================================== */}
-
-      <View
-        style={styles.brand}
-      >
-        <View
-          style={
-            styles.logoContainer
-          }
-        >
+    <View style={styles.container}>
+      {/* BRAND */}
+      <View style={styles.brand}>
+        <View style={styles.logoContainer}>
           <Image
             source={require("../../assets/images/logo.png")}
             style={styles.logo}
@@ -167,9 +154,7 @@ export default function AppMenu() {
           />
         </View>
 
-        <View
-          style={styles.brandText}
-        >
+        <View style={styles.brandText}>
           <Text
             style={styles.appName}
             numberOfLines={1}
@@ -177,199 +162,133 @@ export default function AppMenu() {
             Occasion Finance
           </Text>
 
-          <Text
-            style={
-              styles.appSubtitle
-            }
-          >
+          <Text style={styles.appSubtitle}>
             MANAGER
           </Text>
         </View>
       </View>
 
-      {/* ==================================================
-          NAVIGATION
-          ================================================== */}
-
-      <View
+      {/* NAVIGATION */}
+      <ScrollView
         style={styles.navigation}
+        contentContainerStyle={
+          styles.navigationContent
+        }
+        showsVerticalScrollIndicator={false}
       >
-        <Text
-          style={styles.menuLabel}
-        >
+        <Text style={styles.menuLabel}>
           MAIN MENU
         </Text>
 
-        {MENU_ITEMS.map(
-          (item) => {
-            const active =
-              isActive(
-                item.route
-              );
+        {MENU_ITEMS.map((item) => {
+          const active = isActive(item.route);
 
-            return (
-              <TouchableOpacity
-                key={
-                  item.route
-                }
-                style={[
-                  styles.menuItem,
-                  active &&
-                    styles.menuItemActive,
-                ]}
-                onPress={() =>
-                  handleNavigation(
-                    item.route
-                  )
-                }
-                activeOpacity={
-                  0.75
-                }
-              >
+          return (
+            <TouchableOpacity
+              key={item.route}
+              style={[
+                styles.menuItem,
+                active &&
+                  styles.menuItemActive,
+              ]}
+              onPress={() =>
+                handleNavigation(item.route)
+              }
+              activeOpacity={0.8}
+            >
+              {active ? (
                 <View
-                  style={[
-                    styles.menuIcon,
-                    active &&
-                      styles.menuIconActive,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.menuIconText,
-                      active &&
-                        styles.menuIconTextActive,
-                    ]}
-                  >
-                    {
-                      item.icon
-                    }
-                  </Text>
-                </View>
+                  style={styles.activeIndicator}
+                />
+              ) : null}
 
-                <Text
-                  style={[
-                    styles.menuText,
-                    active &&
-                      styles.menuTextActive,
-                  ]}
-                >
-                  {
-                    item.label
+              <View
+                style={[
+                  styles.menuIcon,
+                  active &&
+                    styles.menuIconActive,
+                ]}
+              >
+                <Ionicons
+                  name={item.icon}
+                  size={19}
+                  color={
+                    active
+                      ? COLORS.primary
+                      : COLORS.textMuted
                   }
-                </Text>
-              </TouchableOpacity>
-            );
-          }
-        )}
-      </View>
+                />
+              </View>
 
-      <View
-        style={styles.spacer}
-      />
+              <Text
+                style={[
+                  styles.menuText,
+                  active &&
+                    styles.menuTextActive,
+                ]}
+              >
+                {item.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
 
-      {/* ==================================================
-          USER
-          ================================================== */}
+      {/* USER / LOGOUT */}
+      <View style={styles.bottomArea}>
+        <View style={styles.userSection}>
+          <View style={styles.userAvatar}>
+            <Text style={styles.userAvatarText}>
+              {getInitial(
+                currentUser?.email
+              )}
+            </Text>
+          </View>
 
-      <View
-        style={styles.userSection}
-      >
-        <View
-          style={
-            styles.userAvatar
-          }
-        >
-          <Text
-            style={
-              styles.userAvatarText
-            }
-          >
-            {getInitial(
-              currentUser
-                ?.email
-            )}
-          </Text>
+          <View style={styles.userInfo}>
+            <Text
+              style={styles.userName}
+              numberOfLines={1}
+            >
+              {currentUser?.displayName ||
+                "Administrator"}
+            </Text>
+
+            <Text
+              style={styles.userEmail}
+              numberOfLines={1}
+            >
+              {currentUser?.email ||
+                "Signed in"}
+            </Text>
+          </View>
         </View>
 
-        <View
-          style={styles.userInfo}
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={handleLogout}
+          activeOpacity={0.8}
         >
-          <Text
-            style={
-              styles.userName
-            }
-            numberOfLines={1}
-          >
-            {currentUser
-              ?.displayName ||
-              "Administrator"}
+          <Ionicons
+            name="log-out-outline"
+            size={19}
+            color={COLORS.danger}
+          />
+
+          <Text style={styles.logoutText}>
+            Logout
           </Text>
+        </TouchableOpacity>
 
-          <Text
-            style={
-              styles.userEmail
-            }
-            numberOfLines={1}
-          >
-            {currentUser
-              ?.email ||
-              "Signed in"}
-          </Text>
-        </View>
-      </View>
-
-      {/* ==================================================
-          LOGOUT
-          ================================================== */}
-
-      <TouchableOpacity
-        style={
-          styles.logoutButton
-        }
-        onPress={
-          handleLogout
-        }
-        activeOpacity={0.75}
-      >
-        <View
-          style={
-            styles.logoutIcon
-          }
-        >
-          <Text
-            style={
-              styles.logoutIconText
-            }
-          >
-            ↪
-          </Text>
-        </View>
-
-        <Text
-          style={
-            styles.logoutText
-          }
-        >
-          Logout
+        <Text style={styles.version}>
+          Version 1.0.0
         </Text>
-      </TouchableOpacity>
-
-      {/* ==================================================
-          VERSION
-          ================================================== */}
-
-      <Text
-        style={styles.version}
-      >
-        Version 1.0.0
-      </Text>
+      </View>
     </View>
   );
 }
 
-function getInitial(
-  email
-) {
+function getInitial(email) {
   if (!email) {
     return "A";
   }
@@ -383,259 +302,203 @@ const styles = StyleSheet.create({
   container: {
     width: 245,
     height: "100%",
-    backgroundColor:
-      "#FFFFFF",
+    backgroundColor: COLORS.surface,
     borderRightWidth: 1,
-    borderRightColor:
-      "#E2E8F0",
+    borderRightColor: COLORS.border,
     paddingHorizontal: 14,
     paddingTop: 20,
     paddingBottom: 15,
   },
 
-  // BRAND
-
   brand: {
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 6,
     paddingBottom: 22,
     borderBottomWidth: 1,
-    borderBottomColor:
-      "#F1F5F9",
+    borderBottomColor: COLORS.borderLight,
   },
 
   logoContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 11,
-    backgroundColor:
-      "#F8FAFC",
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
+    width: 46,
+    height: 46,
+    borderRadius: 12,
+    backgroundColor: COLORS.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
     overflow: "hidden",
   },
 
   logo: {
-    width: 38,
-    height: 38,
+    width: 41,
+    height: 41,
   },
 
   brandText: {
     flex: 1,
+    minWidth: 0,
     marginLeft: 10,
   },
 
   appName: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 13,
-    color:
-      COLORS.text,
+    fontFamily: FONTS.bold,
+    fontSize: 15,
+    lineHeight: 20,
+    color: COLORS.text,
   },
 
   appSubtitle: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 8,
-    letterSpacing: 1.1,
-    color:
-      COLORS.primary,
+    fontFamily: FONTS.medium,
+    fontSize: 9,
+    lineHeight: 13,
+    letterSpacing: 1.7,
+    color: COLORS.primary,
     marginTop: 3,
   },
 
-  // NAVIGATION
-
   navigation: {
-    marginTop: 24,
+    flex: 1,
+  },
+
+  navigationContent: {
+    paddingTop: 24,
+    paddingBottom: 12,
   },
 
   menuLabel: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 8,
-    letterSpacing: 0.8,
-    color:
-      COLORS.textMuted,
-    paddingHorizontal: 11,
-    marginBottom: 8,
+    fontFamily: FONTS.medium,
+    fontSize: 10,
+    lineHeight: 14,
+    letterSpacing: 1,
+    color: COLORS.textMuted,
+    paddingHorizontal: 10,
+    marginBottom: 10,
   },
 
   menuItem: {
-    height: 44,
-    borderRadius: 9,
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
+    minHeight: 49,
+    borderRadius: 10,
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 9,
-    marginBottom: 3,
+    marginBottom: 4,
+    position: "relative",
   },
 
   menuItemActive: {
-    backgroundColor:
-      "#EEF2FF",
+    backgroundColor: COLORS.primaryLight,
+  },
+
+  activeIndicator: {
+    position: "absolute",
+    left: 0,
+    top: 8,
+    bottom: 8,
+    width: 3,
+    borderRadius: 2,
+    backgroundColor: COLORS.primary,
   },
 
   menuIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 8,
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
+    width: 34,
+    height: 34,
+    borderRadius: 9,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   menuIconActive: {
-    backgroundColor:
-      COLORS.primary,
-  },
-
-  menuIconText: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 14,
-    color:
-      "#94A3B8",
-  },
-
-  menuIconTextActive: {
-    color: "#FFFFFF",
+    backgroundColor: COLORS.white,
   },
 
   menuText: {
-    fontFamily:
-      FONTS.medium,
-    fontSize: 11,
-    color:
-      COLORS.textSecondary,
+    flex: 1,
+    fontFamily: FONTS.medium,
+    fontSize: 14,
+    lineHeight: 19,
+    color: COLORS.textSecondary,
     marginLeft: 10,
   },
 
   menuTextActive: {
-    fontFamily:
-      FONTS.bold,
-    color:
-      COLORS.primary,
+    fontFamily: FONTS.bold,
+    color: COLORS.primary,
   },
 
-  spacer: {
-    flex: 1,
+  bottomArea: {
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.borderLight,
   },
-
-  // USER
 
   userSection: {
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
+    flexDirection: "row",
+    alignItems: "center",
     padding: 10,
-    backgroundColor:
-      "#F8FAFC",
+    backgroundColor: COLORS.background,
     borderRadius: 11,
-    marginBottom: 8,
+    marginBottom: 7,
   },
 
   userAvatar: {
-    width: 34,
-    height: 34,
+    width: 37,
+    height: 37,
     borderRadius: 10,
-    backgroundColor:
-      COLORS.primary,
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
+    backgroundColor: COLORS.primary,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   userAvatarText: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 12,
-    color: "#FFFFFF",
+    fontFamily: FONTS.bold,
+    fontSize: 14,
+    color: COLORS.white,
   },
 
   userInfo: {
     flex: 1,
+    minWidth: 0,
     marginLeft: 9,
   },
 
   userName: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 10,
-    color:
-      COLORS.text,
+    fontFamily: FONTS.medium,
+    fontSize: 12,
+    lineHeight: 17,
+    color: COLORS.text,
   },
 
   userEmail: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 8,
-    color:
-      COLORS.textMuted,
+    fontFamily: FONTS.regular,
+    fontSize: 10,
+    lineHeight: 14,
+    color: COLORS.textMuted,
     marginTop: 2,
   },
 
-  // LOGOUT
-
   logoutButton: {
-    height: 40,
+    height: 42,
     borderRadius: 9,
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 10,
-    marginBottom: 8,
-  },
-
-  logoutButtonPressed: {
-    backgroundColor:
-      "#FEF2F2",
-  },
-
-  logoutIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 8,
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
-  },
-
-  logoutIconText: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 16,
-    color:
-      COLORS.danger,
+    marginBottom: 4,
   },
 
   logoutText: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 10,
-    color:
-      COLORS.danger,
+    fontFamily: FONTS.medium,
+    fontSize: 13,
+    lineHeight: 18,
+    color: COLORS.danger,
     marginLeft: 10,
   },
 
   version: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 7,
-    color:
-      "#CBD5E1",
-    textAlign:
-      "center",
-    marginTop: 4,
+    fontFamily: FONTS.regular,
+    fontSize: 9,
+    lineHeight: 13,
+    color: COLORS.textMuted,
+    textAlign: "center",
+    marginTop: 3,
   },
 });

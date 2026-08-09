@@ -2110,17 +2110,17 @@ const styles = StyleSheet.create({
   eyebrow: {
     fontFamily:
       FONTS.bold,
-    fontSize: 9,
+    fontSize: 11,
     letterSpacing: 1.1,
     color:
       COLORS.primary,
-    marginBottom: 4,
+    marginBottom: 5,
   },
 
   title: {
     fontFamily:
       FONTS.bold,
-    fontSize: 30,
+    fontSize: 36,
     color:
       COLORS.text,
   },
@@ -2128,10 +2128,10 @@ const styles = StyleSheet.create({
   subtitle: {
     fontFamily:
       FONTS.regular,
-    fontSize: 12,
+    fontSize: 16,
     color:
       COLORS.textSecondary,
-    marginTop: 5,
+    marginTop: 6,
   },
 
   periodBadge: {
@@ -2149,8 +2149,8 @@ const styles = StyleSheet.create({
   periodLabel: {
     fontFamily:
       FONTS.bold,
-    fontSize: 8,
-    letterSpacing: 0.7,
+    fontSize: 10,
+    letterSpacing: 0.8,
     color:
       COLORS.textMuted,
   },
@@ -2158,10 +2158,10 @@ const styles = StyleSheet.create({
   periodValue: {
     fontFamily:
       FONTS.bold,
-    fontSize: 12,
+    fontSize: 14,
     color:
       COLORS.primary,
-    marginTop: 3,
+    marginTop: 4,
   },
 
   /* FILTER */
@@ -2190,7 +2190,7 @@ const styles = StyleSheet.create({
   filterTitle: {
     fontFamily:
       FONTS.bold,
-    fontSize: 13,
+    fontSize: 16,
     color:
       COLORS.text,
   },
@@ -2198,7 +2198,7 @@ const styles = StyleSheet.create({
   resetText: {
     fontFamily:
       FONTS.bold,
-    fontSize: 9,
+    fontSize: 12,
     color:
       COLORS.primary,
   },
@@ -2222,15 +2222,15 @@ const styles = StyleSheet.create({
   filterLabel: {
     fontFamily:
       FONTS.bold,
-    fontSize: 8,
-    letterSpacing: 0.7,
+    fontSize: 10,
+    letterSpacing: 0.8,
     color:
       COLORS.textMuted,
     marginBottom: 6,
   },
 
   filterButton: {
-    height: 41,
+    height: 46,
     borderWidth: 1,
     borderColor:
       COLORS.border,
@@ -2250,7 +2250,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily:
       FONTS.medium,
-    fontSize: 10,
+    fontSize: 18,
     color:
       COLORS.text,
   },
@@ -2258,14 +2258,14 @@ const styles = StyleSheet.create({
   filterChevron: {
     fontFamily:
       FONTS.bold,
-    fontSize: 12,
+    fontSize: 16,
     color:
       COLORS.textMuted,
     marginLeft: 8,
   },
 
   typeSelector: {
-    height: 41,
+    height: 46,
     borderWidth: 1,
     borderColor:
       COLORS.border,
@@ -2302,7 +2302,7 @@ const styles = StyleSheet.create({
   typeText: {
     fontFamily:
       FONTS.medium,
-    fontSize: 9,
+    fontSize: 13,
     color:
       COLORS.textSecondary,
   },
@@ -2325,14 +2325,14 @@ const styles = StyleSheet.create({
 
   summaryCard: {
     flex: 1,
-    minHeight: 132,
+    minHeight: 148,
     backgroundColor:
       COLORS.surface,
     borderWidth: 1,
     borderColor:
       COLORS.border,
     borderRadius: 14,
-    padding: 18,
+    padding: 20,
   },
 
   summaryTop: {
@@ -2347,8 +2347,8 @@ const styles = StyleSheet.create({
   summaryLabel: {
     fontFamily:
       FONTS.bold,
-    fontSize: 8,
-    letterSpacing: 0.7,
+    fontSize: 10,
+    letterSpacing: 0.8,
   },
 
   summaryIcon: {
@@ -2364,20 +2364,20 @@ const styles = StyleSheet.create({
   summaryIconText: {
     fontFamily:
       FONTS.bold,
-    fontSize: 16,
+    fontSize: 18,
   },
 
   summaryValue: {
     fontFamily:
       FONTS.bold,
-    fontSize: 25,
-    marginTop: 14,
+    fontSize: 30,
+    marginTop: 15,
   },
 
   summaryDescription: {
     fontFamily:
       FONTS.regular,
-    fontSize: 9,
+    fontSize: 13,
     color:
       COLORS.textSecondary,
     marginTop: 4,
@@ -2424,7 +2424,7 @@ const styles = StyleSheet.create({
   panelTitle: {
     fontFamily:
       FONTS.bold,
-    fontSize: 14,
+    fontSize: 18,
     color:
       COLORS.text,
   },
@@ -2432,10 +2432,10 @@ const styles = StyleSheet.create({
   panelSubtitle: {
     fontFamily:
       FONTS.regular,
-    fontSize: 9,
+    fontSize: 12,
     color:
       COLORS.textMuted,
-    marginTop: 3,
+    marginTop: 4,
   },
 
   /* OCCASION TABLE */
@@ -2449,7 +2449,7 @@ const styles = StyleSheet.create({
       "row",
     alignItems:
       "center",
-    minHeight: 36,
+    minHeight: 42,
     backgroundColor:
       COLORS.primaryLight,
     borderRadius: 7,
@@ -2460,7 +2460,7 @@ const styles = StyleSheet.create({
     flex: 2.1,
     fontFamily:
       FONTS.bold,
-    fontSize: 8,
+    fontSize: 10,
     color:
       COLORS.primary,
   },
@@ -2471,7 +2471,7 @@ const styles = StyleSheet.create({
       "right",
     fontFamily:
       FONTS.bold,
-    fontSize: 8,
+    fontSize: 10,
     color:
       COLORS.primary,
   },
@@ -2482,7 +2482,7 @@ const styles = StyleSheet.create({
       "right",
     fontFamily:
       FONTS.bold,
-    fontSize: 8,
+    fontSize: 10,
     color:
       COLORS.primary,
   },
@@ -2492,7 +2492,7 @@ const styles = StyleSheet.create({
       "row",
     alignItems:
       "center",
-    minHeight: 57,
+    minHeight: 64,
     borderBottomWidth: 1,
     borderBottomColor:
       "#EEF2F7",
@@ -2503,7 +2503,7 @@ const styles = StyleSheet.create({
     flex: 2.1,
     fontFamily:
       FONTS.medium,
-    fontSize: 10,
+    fontSize: 14,
     color:
       COLORS.text,
   },
@@ -2514,7 +2514,7 @@ const styles = StyleSheet.create({
       "right",
     fontFamily:
       FONTS.bold,
-    fontSize: 10,
+    fontSize: 13,
     color:
       COLORS.success,
   },
@@ -2525,7 +2525,7 @@ const styles = StyleSheet.create({
       "right",
     fontFamily:
       FONTS.bold,
-    fontSize: 10,
+    fontSize: 13,
     color:
       COLORS.danger,
   },
@@ -2536,7 +2536,7 @@ const styles = StyleSheet.create({
       "right",
     fontFamily:
       FONTS.bold,
-    fontSize: 10,
+    fontSize: 13,
   },
 
   entriesValue: {
@@ -2545,7 +2545,7 @@ const styles = StyleSheet.create({
       "right",
     fontFamily:
       FONTS.medium,
-    fontSize: 10,
+    fontSize: 13,
     color:
       COLORS.textSecondary,
   },
@@ -2555,7 +2555,7 @@ const styles = StyleSheet.create({
       "row",
     alignItems:
       "center",
-    minHeight: 48,
+    minHeight: 54,
     backgroundColor:
       COLORS.primaryLight,
     borderRadius: 7,
@@ -2567,7 +2567,7 @@ const styles = StyleSheet.create({
     flex: 2.1,
     fontFamily:
       FONTS.bold,
-    fontSize: 9,
+    fontSize: 12,
     color:
       COLORS.primary,
   },
@@ -2585,8 +2585,8 @@ const styles = StyleSheet.create({
   readOnlyText: {
     fontFamily:
       FONTS.bold,
-    fontSize: 7,
-    letterSpacing: 0.5,
+    fontSize: 9,
+    letterSpacing: 0.7,
     color:
       COLORS.primary,
   },
@@ -2596,7 +2596,7 @@ const styles = StyleSheet.create({
       "row",
     alignItems:
       "center",
-    minHeight: 36,
+    minHeight: 42,
     backgroundColor:
       COLORS.primaryLight,
     borderRadius: 7,
@@ -2608,7 +2608,7 @@ const styles = StyleSheet.create({
       "row",
     alignItems:
       "center",
-    minHeight: 59,
+    minHeight: 66,
     borderBottomWidth: 1,
     borderBottomColor:
       "#EEF2F7",
@@ -2619,7 +2619,7 @@ const styles = StyleSheet.create({
     width: 78,
     fontFamily:
       FONTS.medium,
-    fontSize: 8,
+    fontSize: 14,
     color:
       COLORS.textSecondary,
   },
@@ -2630,7 +2630,7 @@ const styles = StyleSheet.create({
       "center",
     fontFamily:
       FONTS.bold,
-    fontSize: 8,
+    fontSize: 10,
     color:
       COLORS.textMuted,
   },
@@ -2640,7 +2640,7 @@ const styles = StyleSheet.create({
     minWidth: 100,
     fontFamily:
       FONTS.bold,
-    fontSize: 8,
+    fontSize: 10,
     color:
       COLORS.textMuted,
   },
@@ -2650,7 +2650,7 @@ const styles = StyleSheet.create({
     minWidth: 90,
     fontFamily:
       FONTS.bold,
-    fontSize: 8,
+    fontSize: 10,
     color:
       COLORS.textMuted,
   },
@@ -2659,7 +2659,7 @@ const styles = StyleSheet.create({
     width: 52,
     fontFamily:
       FONTS.bold,
-    fontSize: 8,
+    fontSize: 10,
     color:
       COLORS.textMuted,
   },
@@ -2670,7 +2670,7 @@ const styles = StyleSheet.create({
       "right",
     fontFamily:
       FONTS.bold,
-    fontSize: 9,
+    fontSize: 13,
     color:
       COLORS.text,
   },
@@ -2688,13 +2688,13 @@ const styles = StyleSheet.create({
   transactionIconText: {
     fontFamily:
       FONTS.bold,
-    fontSize: 13,
+    fontSize: 15,
   },
 
   personName: {
     fontFamily:
       FONTS.medium,
-    fontSize: 9,
+    fontSize: 13,
     color:
       COLORS.text,
   },
@@ -2702,7 +2702,7 @@ const styles = StyleSheet.create({
   transactionTypeText: {
     fontFamily:
       FONTS.regular,
-    fontSize: 8,
+    fontSize: 10,
     color:
       COLORS.textMuted,
     marginTop: 2,
@@ -2721,7 +2721,7 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontFamily:
       FONTS.bold,
-    fontSize: 11,
+    fontSize: 14,
     color:
       COLORS.text,
   },
@@ -2729,10 +2729,10 @@ const styles = StyleSheet.create({
   emptyText: {
     fontFamily:
       FONTS.regular,
-    fontSize: 9,
+    fontSize: 12,
     color:
       COLORS.textMuted,
-    marginTop: 4,
+    marginTop: 5,
   },
 
   /* FOOTER */
@@ -2746,7 +2746,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     marginTop: 14,
     paddingHorizontal: 20,
-    paddingVertical: 17,
+    paddingVertical: 19,
     flexDirection:
       "row",
     justifyContent:
@@ -2758,7 +2758,7 @@ const styles = StyleSheet.create({
   footerLabel: {
     fontFamily:
       FONTS.bold,
-    fontSize: 8,
+    fontSize: 10,
     letterSpacing: 0.8,
     color:
       COLORS.textMuted,
@@ -2767,7 +2767,7 @@ const styles = StyleSheet.create({
   footerDescription: {
     fontFamily:
       FONTS.medium,
-    fontSize: 10,
+    fontSize: 14,
     color:
       COLORS.text,
     marginTop: 4,
@@ -2781,13 +2781,13 @@ const styles = StyleSheet.create({
   footerAmount: {
     fontFamily:
       FONTS.bold,
-    fontSize: 22,
+    fontSize: 28,
   },
 
   footerNet: {
     fontFamily:
       FONTS.regular,
-    fontSize: 8,
+    fontSize: 10,
     color:
       COLORS.textMuted,
     marginTop: 2,
@@ -2836,7 +2836,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontFamily:
       FONTS.bold,
-    fontSize: 14,
+    fontSize: 18,
     color:
       COLORS.text,
   },
@@ -2844,7 +2844,7 @@ const styles = StyleSheet.create({
   modalClose: {
     fontFamily:
       FONTS.regular,
-    fontSize: 26,
+    fontSize: 30,
     color:
       COLORS.textMuted,
   },
@@ -2854,7 +2854,7 @@ const styles = StyleSheet.create({
   },
 
   modalOption: {
-    minHeight: 43,
+    minHeight: 50,
     borderRadius: 8,
     paddingHorizontal: 13,
     flexDirection:
@@ -2874,7 +2874,7 @@ const styles = StyleSheet.create({
   modalOptionText: {
     fontFamily:
       FONTS.regular,
-    fontSize: 11,
+    fontSize: 14,
     color:
       COLORS.textSecondary,
   },
@@ -2889,7 +2889,7 @@ const styles = StyleSheet.create({
   modalCheck: {
     fontFamily:
       FONTS.bold,
-    fontSize: 13,
+    fontSize: 16,
     color:
       COLORS.primary,
   },

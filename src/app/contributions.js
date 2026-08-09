@@ -68,7 +68,9 @@ const getOccasionName = (occasion) => {
 };
 
 const formatDate = (value) => {
-  if (!value) return "-";
+  if (!value) {
+    return "-";
+  }
 
   let date = null;
 
@@ -80,66 +82,134 @@ const formatDate = (value) => {
   } else if (value instanceof Date) {
     date = value;
   } else {
-    date = new Date(value);
+    const text = String(value).trim();
+
+    let match = text.match(
+      /^(\d{4})-(\d{2})-(\d{2})$/
+    );
+
+    if (match) {
+      const [, year, month, day] = match;
+
+      date = new Date(
+        Number(year),
+        Number(month) - 1,
+        Number(day)
+      );
+    } else {
+      match = text.match(
+        /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/
+      );
+
+      if (match) {
+        const [, day, month, year] = match;
+
+        date = new Date(
+          Number(year),
+          Number(month) - 1,
+          Number(day)
+        );
+      } else {
+        match = text.match(
+          /^(\d{1,2})-(\d{1,2})-(\d{4})$/
+        );
+
+        if (match) {
+          const [, day, month, year] = match;
+
+          date = new Date(
+            Number(year),
+            Number(month) - 1,
+            Number(day)
+          );
+        } else {
+          date = new Date(text);
+        }
+      }
+    }
   }
 
   if (!date || Number.isNaN(date.getTime())) {
     return String(value);
   }
 
-  return `${String(date.getDate()).padStart(2, "0")}/${String(
+  return `${String(
+    date.getDate()
+  ).padStart(2, "0")}/${String(
     date.getMonth() + 1
   ).padStart(2, "0")}/${date.getFullYear()}`;
 };
 
 const getDateForInput = (value) => {
-  if (!value) return "";
-
-  if (
-    typeof value === "object" &&
-    typeof value.toDate === "function"
-  ) {
-    const date = value.toDate();
-
-    return `${String(date.getDate()).padStart(2, "0")}/${String(
-      date.getMonth() + 1
-    ).padStart(2, "0")}/${date.getFullYear()}`;
+  if (!value) {
+    return "";
   }
 
-  return String(value);
+  return formatDate(value) === "-"
+    ? ""
+    : formatDate(value);
 };
 
+/*
+ * IMPORTANT:
+ * Save user-entered dates as YYYY-MM-DD strings, not JavaScript Date
+ * objects. This prevents timezone conversion from moving 09/08/2026
+ * into September in the browser.
+ */
 const parseDateInput = (value) => {
-  if (!value) return null;
-
-  const parts = value.split("/");
-
-  if (parts.length === 3) {
-    const day = Number(parts[0]);
-    const month = Number(parts[1]);
-    const year = Number(parts[2]);
-
-    if (
-      day &&
-      month &&
-      year &&
-      month >= 1 &&
-      month <= 12 &&
-      day >= 1 &&
-      day <= 31
-    ) {
-      return new Date(year, month - 1, day);
-    }
+  if (!value) {
+    return null;
   }
 
-  const date = new Date(value);
+  const text = String(value).trim();
 
-  return Number.isNaN(date.getTime()) ? null : date;
+  const match = text.match(
+    /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const day = Number(match[1]);
+  const month = Number(match[2]);
+  const year = Number(match[3]);
+
+  if (
+    year < 1900 ||
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    day > 31
+  ) {
+    return null;
+  }
+
+  const date = new Date(
+    year,
+    month - 1,
+    day
+  );
+
+  // Strict validation: reject 31/02 etc.
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return `${year}-${String(month).padStart(
+    2,
+    "0"
+  )}-${String(day).padStart(2, "0")}`;
 };
 
 /* =========================================================
    MAIN SCREEN
 ========================================================= */
+
 
 export default function ContributionsScreen() {
   const [contributions, setContributions] = useState([]);
@@ -166,6 +236,11 @@ export default function ContributionsScreen() {
 
   const [occasionModalVisible, setOccasionModalVisible] =
     useState(false);
+
+  const [
+    formOccasionDropdownVisible,
+    setFormOccasionDropdownVisible,
+  ] = useState(false);
 
   const [formVisible, setFormVisible] = useState(false);
 
@@ -388,14 +463,57 @@ export default function ContributionsScreen() {
     contributions.forEach((item) => {
       let date = null;
 
-      if (
-        item.date &&
-        typeof item.date.toDate === "function"
-      ) {
-        date = item.date.toDate();
-      } else {
-        date = new Date(item.date);
-      }
+      const dateValue =
+            item.dateKey || item.date;
+
+          if (
+            dateValue &&
+            typeof dateValue.toDate ===
+              "function"
+          ) {
+            date = dateValue.toDate();
+          } else {
+            const text =
+              String(dateValue || "").trim();
+
+            let match = text.match(
+              /^(\d{4})-(\d{2})-(\d{2})$/
+            );
+
+            if (match) {
+              date = new Date(
+                Number(match[1]),
+                Number(match[2]) - 1,
+                Number(match[3])
+              );
+            } else {
+              match = text.match(
+                /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/
+              );
+
+              if (match) {
+                date = new Date(
+                  Number(match[3]),
+                  Number(match[2]) - 1,
+                  Number(match[1])
+                );
+              } else {
+                match = text.match(
+                  /^(\d{1,2})-(\d{1,2})-(\d{4})$/
+                );
+
+                if (match) {
+                  date = new Date(
+                    Number(match[3]),
+                    Number(match[2]) - 1,
+                    Number(match[1])
+                  );
+                } else {
+                  date = new Date(text);
+                }
+              }
+            }
+          }
 
       if (
         date &&
@@ -493,18 +611,30 @@ export default function ContributionsScreen() {
       })
       .sort((a, b) => {
         const dateA =
-          a.date &&
-          typeof a.date.toDate ===
+          a.dateKey &&
+          typeof a.dateKey.toDate ===
             "function"
-            ? a.date.toDate()
-            : new Date(a.date);
+            ? a.dateKey.toDate()
+            : a.dateKey
+              ? new Date(a.dateKey)
+              : a.date &&
+                typeof a.date.toDate ===
+                  "function"
+                ? a.date.toDate()
+                : new Date(a.date);
 
         const dateB =
-          b.date &&
-          typeof b.date.toDate ===
+          b.dateKey &&
+          typeof b.dateKey.toDate ===
             "function"
-            ? b.date.toDate()
-            : new Date(b.date);
+            ? b.dateKey.toDate()
+            : b.dateKey
+              ? new Date(b.dateKey)
+              : b.date &&
+                typeof b.date.toDate ===
+                  "function"
+                ? b.date.toDate()
+                : new Date(b.date);
 
         return (
           dateB.getTime() -
@@ -658,9 +788,7 @@ export default function ContributionsScreen() {
     }
 
     const selectedDate =
-      parseDateInput(
-        form.date
-      );
+      parseDateInput(form.date);
 
     if (!selectedDate) {
       Alert.alert(
@@ -694,6 +822,9 @@ export default function ContributionsScreen() {
         amount,
 
         date: selectedDate,
+
+        // Authoritative date-only key. Prevents timezone/month shifting.
+        dateKey: selectedDate,
 
         occasionId:
           form.occasionId ||
@@ -1978,11 +2109,14 @@ export default function ContributionsScreen() {
               </View>
 
               <TouchableOpacity
-                onPress={() =>
+                onPress={() => {
                   setFormVisible(
                     false
-                  )
-                }
+                  );
+                  setFormOccasionDropdownVisible(
+                    false
+                  );
+                }}
               >
                 <Ionicons
                   name="close"
@@ -2023,56 +2157,36 @@ export default function ContributionsScreen() {
                 }
               >
                 <View
-                  style={
-                    styles.formPersonInfo
-                  }
+                  style={styles.formPersonInfo}
                 >
                   <Ionicons
                     name="person-outline"
                     size={17}
-                    color={
-                      COLORS.primary
-                    }
+                    color={COLORS.primary}
                   />
-
                   <View
-                    style={
-                      styles.formPersonText
-                    }
+                    style={styles.formPersonText}
                   >
                     <Text
-                      style={
-                        styles.formValue
-                      }
+                      style={styles.formValue}
                     >
                       {form.personId &&
-                      peopleMap[
-                        form.personId
-                      ]
+                      peopleMap[form.personId]
                         ? getPersonName(
-                            peopleMap[
-                              form.personId
-                            ]
+                            peopleMap[form.personId]
                           )
                         : "Select Person"}
                     </Text>
-
                     {form.personId &&
-                      peopleMap[
-                        form.personId
-                      ] && (
-                        <Text
-                          style={
-                            styles.formMobile
-                          }
-                        >
-                          {getMobileNumber(
-                            peopleMap[
-                              form.personId
-                            ]
-                          )}
-                        </Text>
-                      )}
+                    peopleMap[form.personId] ? (
+                      <Text
+                        style={styles.formMobile}
+                      >
+                        {getMobileNumber(
+                          peopleMap[form.personId]
+                        )}
+                      </Text>
+                    ) : null}
                   </View>
                 </View>
 
@@ -2199,8 +2313,8 @@ export default function ContributionsScreen() {
                   styles.formSelect
                 }
                 onPress={() =>
-                  setOccasionModalVisible(
-                    true
+                  setFormOccasionDropdownVisible(
+                    (visible) => !visible
                   )
                 }
               >
@@ -2222,13 +2336,122 @@ export default function ContributionsScreen() {
                 </Text>
 
                 <Ionicons
-                  name="chevron-down"
+                  name={
+                    formOccasionDropdownVisible
+                      ? "chevron-up"
+                      : "chevron-down"
+                  }
                   size={16}
                   color={
                     COLORS.textMuted
                   }
                 />
               </TouchableOpacity>
+
+              {formOccasionDropdownVisible && (
+                <View
+                  style={
+                    styles.formOccasionDropdown
+                  }
+                >
+                  <ScrollView
+                    nestedScrollEnabled
+                    showsVerticalScrollIndicator={
+                      true
+                    }
+                  >
+                    <TouchableOpacity
+                      style={[
+                        styles.formOccasionOption,
+                        !form.occasionId &&
+                          styles.formOccasionOptionActive,
+                      ]}
+                      onPress={() => {
+                        setForm(
+                          (previous) => ({
+                            ...previous,
+                            occasionId: "",
+                          })
+                        );
+                        setFormOccasionDropdownVisible(
+                          false
+                        );
+                      }}
+                    >
+                      <Text
+                        style={
+                          styles.formOccasionOptionText
+                        }
+                      >
+                        General
+                      </Text>
+
+                      {!form.occasionId && (
+                        <Ionicons
+                          name="checkmark"
+                          size={18}
+                          color={
+                            COLORS.primary
+                          }
+                        />
+                      )}
+                    </TouchableOpacity>
+
+                    {occasions.map(
+                      (occasion) => {
+                        const active =
+                          form.occasionId ===
+                          occasion.id;
+
+                        return (
+                          <TouchableOpacity
+                            key={
+                              occasion.id
+                            }
+                            style={[
+                              styles.formOccasionOption,
+                              active &&
+                                styles.formOccasionOptionActive,
+                            ]}
+                            onPress={() => {
+                              setForm(
+                                (previous) => ({
+                                  ...previous,
+                                  occasionId:
+                                    occasion.id,
+                                })
+                              );
+                              setFormOccasionDropdownVisible(
+                                false
+                              );
+                            }}
+                          >
+                            <Text
+                              style={
+                                styles.formOccasionOptionText
+                              }
+                            >
+                              {getOccasionName(
+                                occasion
+                              )}
+                            </Text>
+
+                            {active && (
+                              <Ionicons
+                                name="checkmark"
+                                size={18}
+                                color={
+                                  COLORS.primary
+                                }
+                              />
+                            )}
+                          </TouchableOpacity>
+                        );
+                      }
+                    )}
+                  </ScrollView>
+                </View>
+              )}
 
               {/* PAYMENT MODE */}
 
@@ -2828,7 +3051,7 @@ const styles = StyleSheet.create({
   title: {
     fontFamily:
       FONTS.bold,
-    fontSize: 30,
+    fontSize: 36,
     color:
       COLORS.text,
   },
@@ -2836,14 +3059,14 @@ const styles = StyleSheet.create({
   subtitle: {
     fontFamily:
       FONTS.regular,
-    fontSize: 14,
+    fontSize: 16,
     color:
       COLORS.textSecondary,
     marginTop: 5,
   },
 
   addButton: {
-    height: 43,
+    height: 48,
     paddingHorizontal: 17,
     borderRadius: 9,
     backgroundColor:
@@ -2856,7 +3079,7 @@ const styles = StyleSheet.create({
   addButtonText: {
     fontFamily:
       FONTS.bold,
-    fontSize: 12,
+    fontSize: 14,
     color: "#FFFFFF",
   },
 
@@ -2869,8 +3092,8 @@ const styles = StyleSheet.create({
     borderColor:
       COLORS.border,
     borderRadius: 14,
-    padding: 18,
-    marginBottom: 14,
+    padding: 20,
+    marginBottom: 18,
   },
 
   filterHeader: {
@@ -2884,7 +3107,7 @@ const styles = StyleSheet.create({
   filterTitle: {
     fontFamily:
       FONTS.bold,
-    fontSize: 15,
+    fontSize: 16,
     color:
       COLORS.text,
   },
@@ -2892,7 +3115,7 @@ const styles = StyleSheet.create({
   resetText: {
     fontFamily:
       FONTS.bold,
-    fontSize: 11,
+    fontSize: 13,
     color:
       COLORS.primary,
   },
@@ -2926,7 +3149,7 @@ const styles = StyleSheet.create({
   filterLabel: {
     fontFamily:
       FONTS.bold,
-    fontSize: 10,
+    fontSize: 11,
     letterSpacing: 0.5,
     color:
       COLORS.textMuted,
@@ -2972,7 +3195,7 @@ const styles = StyleSheet.create({
   filterValue: {
     fontFamily:
       FONTS.medium,
-    fontSize: 13,
+    fontSize: 14,
     color:
       COLORS.text,
   },
@@ -2980,7 +3203,7 @@ const styles = StyleSheet.create({
   filterMobile: {
     fontFamily:
       FONTS.regular,
-    fontSize: 10,
+    fontSize: 11,
     color:
       COLORS.textMuted,
     marginTop: 2,
@@ -3016,7 +3239,7 @@ const styles = StyleSheet.create({
   monthButtonText: {
     fontFamily:
       FONTS.medium,
-    fontSize: 10,
+    fontSize: 12,
     color:
       COLORS.textSecondary,
   },
@@ -3056,7 +3279,7 @@ const styles = StyleSheet.create({
   yearButtonText: {
     fontFamily:
       FONTS.medium,
-    fontSize: 11,
+    fontSize: 12,
     color:
       COLORS.textSecondary,
   },
@@ -3077,14 +3300,14 @@ const styles = StyleSheet.create({
 
   summaryCard: {
     flex: 1,
-    minHeight: 135,
+    minHeight: 148,
     backgroundColor:
       COLORS.surface,
     borderWidth: 1,
     borderColor:
       COLORS.border,
     borderRadius: 14,
-    padding: 18,
+    padding: 20,
   },
 
   summaryTop: {
@@ -3097,7 +3320,7 @@ const styles = StyleSheet.create({
   summaryLabel: {
     fontFamily:
       FONTS.bold,
-    fontSize: 10,
+    fontSize: 11,
     letterSpacing: 0.5,
   },
 
@@ -3112,14 +3335,14 @@ const styles = StyleSheet.create({
   summaryValue: {
     fontFamily:
       FONTS.bold,
-    fontSize: 27,
+    fontSize: 30,
     marginTop: 15,
   },
 
   summaryDescription: {
     fontFamily:
       FONTS.regular,
-    fontSize: 11,
+    fontSize: 13,
     color:
       COLORS.textSecondary,
     marginTop: 4,
@@ -3157,7 +3380,7 @@ const styles = StyleSheet.create({
   tableSubtitle: {
     fontFamily:
       FONTS.regular,
-    fontSize: 11,
+    fontSize: 13,
     color:
       COLORS.textMuted,
     marginTop: 3,
@@ -3174,7 +3397,7 @@ const styles = StyleSheet.create({
   recordBadgeText: {
     fontFamily:
       FONTS.bold,
-    fontSize: 9,
+    fontSize: 11,
     color:
       COLORS.primary,
   },
@@ -3189,7 +3412,7 @@ const styles = StyleSheet.create({
   },
 
   tableRow: {
-    minHeight: 66,
+    minHeight: 72,
     borderBottomWidth: 1,
     borderBottomColor:
       "#EEF2F7",
@@ -3202,7 +3425,7 @@ const styles = StyleSheet.create({
     width: 90,
     fontFamily:
       FONTS.medium,
-    fontSize: 11,
+    fontSize: 13,
     color:
       COLORS.textSecondary,
   },
@@ -3212,7 +3435,7 @@ const styles = StyleSheet.create({
     minWidth: 150,
     fontFamily:
       FONTS.bold,
-    fontSize: 10,
+    fontSize: 12,
     color:
       COLORS.primary,
   },
@@ -3221,7 +3444,7 @@ const styles = StyleSheet.create({
     width: 120,
     fontFamily:
       FONTS.medium,
-    fontSize: 11,
+    fontSize: 13,
     color:
       COLORS.textSecondary,
   },
@@ -3231,7 +3454,7 @@ const styles = StyleSheet.create({
     minWidth: 120,
     fontFamily:
       FONTS.medium,
-    fontSize: 11,
+    fontSize: 13,
     color:
       COLORS.text,
   },
@@ -3240,7 +3463,7 @@ const styles = StyleSheet.create({
     width: 90,
     fontFamily:
       FONTS.medium,
-    fontSize: 11,
+    fontSize: 13,
     color:
       COLORS.textSecondary,
   },
@@ -3250,7 +3473,7 @@ const styles = StyleSheet.create({
     textAlign: "right",
     fontFamily:
       FONTS.bold,
-    fontSize: 12,
+    fontSize: 14,
     color:
       COLORS.success,
   },
@@ -3260,7 +3483,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontFamily:
       FONTS.bold,
-    fontSize: 10,
+    fontSize: 12,
     color:
       COLORS.textMuted,
   },
@@ -3286,7 +3509,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontFamily:
       FONTS.bold,
-    fontSize: 13,
+    fontSize: 14,
     color:
       COLORS.primary,
   },
@@ -3295,7 +3518,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily:
       FONTS.medium,
-    fontSize: 12,
+    fontSize: 14,
     color:
       COLORS.text,
   },
@@ -3338,7 +3561,7 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontFamily:
       FONTS.bold,
-    fontSize: 14,
+    fontSize: 17,
     color:
       COLORS.text,
     marginTop: 10,
@@ -3347,7 +3570,7 @@ const styles = StyleSheet.create({
   emptyText: {
     fontFamily:
       FONTS.regular,
-    fontSize: 11,
+    fontSize: 13,
     color:
       COLORS.textMuted,
     marginTop: 4,
@@ -3391,7 +3614,9 @@ const styles = StyleSheet.create({
     backgroundColor:
       COLORS.surface,
     borderRadius: 16,
-    overflow: "hidden",
+    overflow: "visible",
+    zIndex: 20,
+    elevation: 20,
   },
 
   deleteModal: {
@@ -3419,7 +3644,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontFamily:
       FONTS.bold,
-    fontSize: 17,
+    fontSize: 22,
     color:
       COLORS.text,
   },
@@ -3427,7 +3652,7 @@ const styles = StyleSheet.create({
   modalSubtitle: {
     fontFamily:
       FONTS.regular,
-    fontSize: 11,
+    fontSize: 13,
     color:
       COLORS.textMuted,
     marginTop: 3,
@@ -3452,7 +3677,7 @@ const styles = StyleSheet.create({
     marginLeft: 9,
     fontFamily:
       FONTS.regular,
-    fontSize: 13,
+    fontSize: 15,
     color:
       COLORS.text,
     outlineStyle: "none",
@@ -3513,7 +3738,7 @@ const styles = StyleSheet.create({
   personOptionName: {
     fontFamily:
       FONTS.medium,
-    fontSize: 13,
+    fontSize: 15,
     color:
       COLORS.text,
   },
@@ -3528,7 +3753,7 @@ const styles = StyleSheet.create({
   personOptionMobile: {
     fontFamily:
       FONTS.regular,
-    fontSize: 10,
+    fontSize: 12,
     color:
       COLORS.textMuted,
   },
@@ -3579,7 +3804,7 @@ const styles = StyleSheet.create({
   modalOptionText: {
     fontFamily:
       FONTS.medium,
-    fontSize: 13,
+    fontSize: 14,
     color:
       COLORS.text,
   },
@@ -3594,7 +3819,7 @@ const styles = StyleSheet.create({
   formLabel: {
     fontFamily:
       FONTS.bold,
-    fontSize: 10,
+    fontSize: 11,
     letterSpacing: 0.5,
     color:
       COLORS.textMuted,
@@ -3614,6 +3839,58 @@ const styles = StyleSheet.create({
     justifyContent:
       "space-between",
     marginBottom: 15,
+    backgroundColor:
+      COLORS.surface,
+    zIndex: 30,
+  },
+
+  formOccasionDropdown: {
+    borderWidth: 1,
+    borderColor:
+      COLORS.border,
+    borderRadius: 10,
+    backgroundColor:
+      COLORS.surface,
+    marginTop: -8,
+    marginBottom: 15,
+    maxHeight: 220,
+    overflow: "hidden",
+    zIndex: 40,
+    elevation: 40,
+    shadowColor:
+      "#10244A",
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+  },
+
+  formOccasionOption: {
+    minHeight: 46,
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent:
+      "space-between",
+    borderBottomWidth: 1,
+    borderBottomColor:
+      COLORS.borderLight,
+  },
+
+  formOccasionOptionActive: {
+    backgroundColor:
+      COLORS.primaryLight,
+  },
+
+  formOccasionOptionText: {
+    fontFamily:
+      FONTS.medium,
+    fontSize: 15,
+    color:
+      COLORS.text,
+    flex: 1,
   },
 
   formPersonInfo: {
@@ -3629,7 +3906,7 @@ const styles = StyleSheet.create({
   formValue: {
     fontFamily:
       FONTS.medium,
-    fontSize: 13,
+    fontSize: 15,
     color:
       COLORS.text,
   },
@@ -3637,7 +3914,7 @@ const styles = StyleSheet.create({
   formMobile: {
     fontFamily:
       FONTS.regular,
-    fontSize: 10,
+    fontSize: 12,
     color:
       COLORS.textMuted,
     marginTop: 2,
@@ -3658,7 +3935,7 @@ const styles = StyleSheet.create({
   currencySymbol: {
     fontFamily:
       FONTS.bold,
-    fontSize: 15,
+    fontSize: 17,
     color:
       COLORS.primary,
     marginRight: 8,
@@ -3680,7 +3957,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily:
       FONTS.regular,
-    fontSize: 13,
+    fontSize: 15,
     color:
       COLORS.text,
     marginLeft: 7,
@@ -3715,7 +3992,7 @@ const styles = StyleSheet.create({
   paymentModeText: {
     fontFamily:
       FONTS.medium,
-    fontSize: 11,
+    fontSize: 13,
     color:
       COLORS.textSecondary,
   },
@@ -3735,7 +4012,7 @@ const styles = StyleSheet.create({
     padding: 12,
     fontFamily:
       FONTS.regular,
-    fontSize: 13,
+    fontSize: 15,
     color:
       COLORS.text,
     textAlignVertical: "top",
@@ -3765,7 +4042,7 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     fontFamily:
       FONTS.medium,
-    fontSize: 12,
+    fontSize: 14,
     color:
       COLORS.textSecondary,
   },
@@ -3784,7 +4061,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontFamily:
       FONTS.bold,
-    fontSize: 12,
+    fontSize: 14,
     color: "#FFFFFF",
   },
 
@@ -3812,7 +4089,7 @@ const styles = StyleSheet.create({
   deleteText: {
     fontFamily:
       FONTS.regular,
-    fontSize: 12,
+    fontSize: 14,
     lineHeight: 18,
     color:
       COLORS.textSecondary,
@@ -3840,7 +4117,7 @@ const styles = StyleSheet.create({
   deleteButtonText: {
     fontFamily:
       FONTS.bold,
-    fontSize: 12,
+    fontSize: 14,
     color: "#FFFFFF",
   },
 });

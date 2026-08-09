@@ -1836,52 +1836,48 @@ function PersonCard({
 // ==================================================
 
 const styles = StyleSheet.create({
+  // ==================================================
+  // PAGE
+  // Matches the Dashboard visual system
+  // ==================================================
+
   container: {
     flex: 1,
-    backgroundColor:
-      COLORS.background,
+    backgroundColor: COLORS.background,
   },
 
   content: {
+    width: "100%",
+    maxWidth: 1600,
+    alignSelf: "center",
     paddingHorizontal: 28,
     paddingTop: 28,
-    paddingBottom: 50,
+    paddingBottom: 60,
   },
-
-  // -----------------------------------------------
-  // LOADING
-  // -----------------------------------------------
 
   loading: {
     flex: 1,
-    backgroundColor:
-      COLORS.background,
-    justifyContent:
-      "center",
+    backgroundColor: COLORS.background,
     alignItems: "center",
+    justifyContent: "center",
   },
 
   loadingText: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 13,
-    color:
-      COLORS.textSecondary,
+    fontFamily: FONTS.regular,
+    fontSize: 14,
+    color: COLORS.textSecondary,
     marginTop: 10,
   },
 
-  // -----------------------------------------------
+  // ==================================================
   // HEADER
-  // -----------------------------------------------
+  // ==================================================
 
   header: {
-    flexDirection:
-      "row",
-    justifyContent:
-      "space-between",
-    alignItems:
-      "flex-end",
-    marginBottom: 24,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+    marginBottom: 26,
   },
 
   headerLeft: {
@@ -1889,907 +1885,749 @@ const styles = StyleSheet.create({
   },
 
   eyebrow: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 10,
+    fontFamily: FONTS.medium,
+    fontSize: 11,
     letterSpacing: 1.1,
-    color:
-      COLORS.primary,
+    color: COLORS.primary,
   },
 
   title: {
-    fontFamily:
-      FONTS.extraBold,
-    fontSize: 30,
-    color:
-      COLORS.text,
+    fontFamily: FONTS.bold,
+    fontSize: 36,
+    lineHeight: 43,
+    color: COLORS.text,
     marginTop: 4,
   },
 
   subtitle: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 13,
-    color:
-      COLORS.textSecondary,
-    marginTop: 4,
+    fontFamily: FONTS.regular,
+    fontSize: 16,
+    lineHeight: 22,
+    color: COLORS.textSecondary,
+    marginTop: 5,
   },
 
   primaryButton: {
-    height: 42,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    backgroundColor:
-      COLORS.primary,
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
+    minHeight: 48,
+    paddingHorizontal: 19,
+    borderRadius: 11,
+    backgroundColor: COLORS.primary,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 20,
   },
 
   primaryButtonIcon: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 18,
+    fontFamily: FONTS.bold,
+    fontSize: 20,
     color: "#FFFFFF",
-    marginRight: 7,
+    marginRight: 8,
   },
 
   primaryButtonText: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 12,
+    fontFamily: FONTS.medium,
+    fontSize: 14,
     color: "#FFFFFF",
   },
 
-  // -----------------------------------------------
-  // SUMMARY
-  // -----------------------------------------------
+  // ==================================================
+  // SUMMARY CARDS
+  // Same proportions as Dashboard KPI cards
+  // ==================================================
 
   summaryGrid: {
-    flexDirection:
-      "row",
-    flexWrap:
-      "wrap",
-    gap: 14,
-    marginBottom: 18,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 16,
+    marginBottom: 20,
   },
 
   summaryCard: {
     flex: 1,
-    minWidth: 170,
-    backgroundColor:
-      COLORS.surface,
+    minWidth: 190,
+    minHeight: 142,
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor:
-      COLORS.border,
+    borderColor: COLORS.border,
     borderRadius: 15,
-    padding: 17,
+    padding: 20,
   },
 
   summaryTop: {
-    flexDirection:
-      "row",
-    justifyContent:
-      "space-between",
-    alignItems:
-      "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 
   summaryLabel: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 9,
-    letterSpacing: 0.7,
-    color:
-      COLORS.textMuted,
+    fontFamily: FONTS.medium,
+    fontSize: 11,
+    letterSpacing: 0.75,
+    color: COLORS.textMuted,
   },
 
   summaryIcon: {
-    width: 31,
-    height: 31,
-    borderRadius: 9,
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   summaryIconText: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 14,
+    fontFamily: FONTS.bold,
+    fontSize: 17,
   },
 
   summaryValue: {
-    fontFamily:
-      FONTS.extraBold,
-    fontSize: 22,
-    color:
-      COLORS.text,
-    marginTop: 12,
+    fontFamily: FONTS.bold,
+    fontSize: 30,
+    lineHeight: 37,
+    color: COLORS.text,
+    marginTop: 16,
   },
 
-  // -----------------------------------------------
+  // ==================================================
   // SEARCH
-  // -----------------------------------------------
+  // ==================================================
 
   toolbar: {
-    backgroundColor:
-      COLORS.surface,
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor:
-      COLORS.border,
+    borderColor: COLORS.border,
     borderRadius: 15,
-    padding: 12,
-    marginBottom: 14,
+    padding: 13,
+    marginBottom: 18,
   },
 
   searchBox: {
-    height: 40,
+    height: 48,
     borderWidth: 1,
-    borderColor:
-      COLORS.border,
-    borderRadius: 9,
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
-    paddingHorizontal: 10,
+    borderColor: COLORS.border,
+    borderRadius: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 13,
+    backgroundColor: COLORS.surface,
   },
 
   searchIcon: {
-    fontSize: 18,
-    color:
-      COLORS.textMuted,
-    marginRight: 7,
+    fontFamily: FONTS.medium,
+    fontSize: 20,
+    color: COLORS.textMuted,
+    marginRight: 8,
   },
 
   searchInput: {
     flex: 1,
-    height: 38,
-    fontFamily:
-      FONTS.regular,
-    fontSize: 12,
-    color:
-      COLORS.text,
-    outlineStyle:
-      "none",
+    height: 46,
+    fontFamily: FONTS.regular,
+    fontSize: 15,
+    color: COLORS.text,
+    outlineStyle: "none",
   },
 
-  // -----------------------------------------------
+  // ==================================================
   // FILTERS
-  // -----------------------------------------------
+  // ==================================================
 
   filterSection: {
-    marginBottom: 12,
+    marginBottom: 15,
   },
 
   filterLabel: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 9,
-    letterSpacing: 0.7,
-    color:
-      COLORS.textMuted,
-    marginBottom: 7,
+    fontFamily: FONTS.medium,
+    fontSize: 11,
+    letterSpacing: 0.75,
+    color: COLORS.textMuted,
+    marginBottom: 8,
   },
 
   filterRow: {
-    flexDirection:
-      "row",
-    flexWrap:
-      "wrap",
-    gap: 7,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
   },
 
   filterButton: {
-    paddingHorizontal: 13,
-    height: 34,
-    borderRadius: 8,
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
-    backgroundColor:
-      "#F1F5F9",
+    paddingHorizontal: 16,
+    height: 40,
+    borderRadius: 9,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F1F5F9",
+    borderWidth: 1,
+    borderColor: "#E7EDF5",
   },
 
   filterButtonActive: {
-    backgroundColor:
-      COLORS.primary,
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
 
   filterText: {
-    fontFamily:
-      FONTS.medium,
-    fontSize: 10,
-    color:
-      COLORS.textSecondary,
+    fontFamily: FONTS.medium,
+    fontSize: 14,
+    color: COLORS.textSecondary,
   },
 
   filterTextActive: {
-    fontFamily:
-      FONTS.semiBold,
+    fontFamily: FONTS.bold,
     color: "#FFFFFF",
   },
 
-  // -----------------------------------------------
+  // ==================================================
   // RESULTS
-  // -----------------------------------------------
+  // ==================================================
 
   resultHeader: {
-    flexDirection:
-      "row",
-    justifyContent:
-      "space-between",
-    alignItems:
-      "center",
-    marginTop: 5,
-    marginBottom: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 6,
+    marginBottom: 12,
   },
 
   resultCount: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 11,
-    color:
-      COLORS.textSecondary,
+    fontFamily: FONTS.medium,
+    fontSize: 14,
+    color: COLORS.textSecondary,
   },
 
   clearText: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 10,
-    color:
-      COLORS.primary,
+    fontFamily: FONTS.medium,
+    fontSize: 14,
+    color: COLORS.primary,
   },
 
-  // -----------------------------------------------
-  // PEOPLE
-  // -----------------------------------------------
+  // ==================================================
+  // PEOPLE CARDS
+  // ==================================================
 
   peopleList: {
-    gap: 12,
+    gap: 14,
   },
 
   personCard: {
-    backgroundColor:
-      COLORS.surface,
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor:
-      COLORS.border,
+    borderColor: COLORS.border,
     borderRadius: 15,
-    padding: 17,
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
+    paddingHorizontal: 18,
+    paddingVertical: 17,
+    minHeight: 100,
+    flexDirection: "row",
+    alignItems: "center",
   },
 
   personIdentity: {
     flex: 1,
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
+    flexDirection: "row",
+    alignItems: "center",
     minWidth: 0,
   },
 
   personAvatar: {
-    width: 48,
-    height: 48,
+    width: 52,
+    height: 52,
     borderRadius: 14,
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   personAvatarText: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 17,
+    fontFamily: FONTS.bold,
+    fontSize: 18,
   },
 
   personInfo: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: 14,
     minWidth: 0,
   },
 
   personNameRow: {
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
   },
 
   personName: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 14,
-    color:
-      COLORS.text,
-    maxWidth: 300,
+    fontFamily: FONTS.medium,
+    fontSize: 16,
+    lineHeight: 21,
+    color: COLORS.text,
+    maxWidth: 420,
   },
 
   typeBadge: {
     marginLeft: 9,
-    paddingHorizontal: 8,
+    paddingHorizontal: 9,
     paddingVertical: 4,
     borderRadius: 20,
   },
 
   typeBadgeText: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 8,
+    fontFamily: FONTS.medium,
+    fontSize: 11,
   },
 
   personDetails: {
-    flexDirection:
-      "row",
-    flexWrap:
-      "wrap",
-    alignItems:
-      "center",
-    marginTop: 5,
-    gap: 12,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    marginTop: 6,
+    gap: 13,
   },
 
   detailText: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 10,
-    color:
-      COLORS.textMuted,
+    fontFamily: FONTS.regular,
+    fontSize: 13,
+    color: COLORS.textMuted,
   },
 
   bloodBadge: {
     paddingHorizontal: 7,
     paddingVertical: 3,
     borderRadius: 6,
-    backgroundColor:
-      "#FEF2F2",
+    backgroundColor: "#FEF2F2",
   },
 
   bloodBadgeText: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 9,
-    color:
-      "#DC2626",
+    fontFamily: FONTS.medium,
+    fontSize: 11,
+    color: "#DC2626",
   },
 
   personStatus: {
-    marginHorizontal: 15,
+    marginHorizontal: 16,
   },
 
   statusBadge: {
-    paddingHorizontal: 9,
-    paddingVertical: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     borderRadius: 20,
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
+    flexDirection: "row",
+    alignItems: "center",
   },
 
   activeBadge: {
-    backgroundColor:
-      "#DCFCE7",
+    backgroundColor: COLORS.successLight,
   },
 
   inactiveBadge: {
-    backgroundColor:
-      "#F1F5F9",
+    backgroundColor: "#F1F5F9",
   },
 
   statusDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 5,
-    marginRight: 5,
+    width: 7,
+    height: 7,
+    borderRadius: 7,
+    marginRight: 6,
   },
 
   activeDot: {
-    backgroundColor:
-      COLORS.success,
+    backgroundColor: COLORS.success,
   },
 
   inactiveDot: {
-    backgroundColor:
-      COLORS.textMuted,
+    backgroundColor: COLORS.textMuted,
   },
 
   statusBadgeText: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 8,
-    letterSpacing: 0.4,
+    fontFamily: FONTS.medium,
+    fontSize: 11,
+    letterSpacing: 0.35,
   },
 
   activeText: {
-    color:
-      COLORS.success,
+    color: COLORS.success,
   },
 
   inactiveText: {
-    color:
-      COLORS.textMuted,
+    color: COLORS.textMuted,
   },
 
-  // -----------------------------------------------
+  // ==================================================
   // ACTIONS
-  // -----------------------------------------------
+  // ==================================================
 
   cardActions: {
-    flexDirection:
-      "row",
-    gap: 6,
+    flexDirection: "row",
+    gap: 7,
   },
 
   actionButton: {
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    borderRadius: 7,
-    backgroundColor:
-      "#F1F5F9",
+    minHeight: 36,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: "#F1F5F9",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   actionButtonText: {
-    fontFamily:
-      FONTS.medium,
-    fontSize: 10,
-    color:
-      COLORS.textSecondary,
+    fontFamily: FONTS.medium,
+    fontSize: 13,
+    color: COLORS.textSecondary,
   },
 
   deleteAction: {
-    backgroundColor:
-      "#FEF2F2",
+    backgroundColor: COLORS.dangerLight,
   },
 
   deleteActionText: {
-    fontFamily:
-      FONTS.medium,
-    fontSize: 10,
-    color:
-      COLORS.danger,
+    fontFamily: FONTS.medium,
+    fontSize: 13,
+    color: COLORS.danger,
   },
 
-  // -----------------------------------------------
-  // EMPTY
-  // -----------------------------------------------
+  // ==================================================
+  // EMPTY STATE
+  // ==================================================
 
   emptyCard: {
-    backgroundColor:
-      COLORS.surface,
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor:
-      COLORS.border,
-    borderRadius: 16,
-    paddingVertical: 60,
-    alignItems:
-      "center",
+    borderColor: COLORS.border,
+    borderRadius: 15,
+    paddingVertical: 64,
+    paddingHorizontal: 28,
+    alignItems: "center",
   },
 
   emptyIcon: {
-    width: 55,
-    height: 55,
+    width: 58,
+    height: 58,
     borderRadius: 16,
-    backgroundColor:
-      "#EEF2FF",
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
+    backgroundColor: COLORS.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   emptyIconText: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 22,
-    color:
-      COLORS.primary,
+    fontFamily: FONTS.bold,
+    fontSize: 24,
+    color: COLORS.primary,
   },
 
   emptyTitle: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 16,
-    color:
-      COLORS.text,
-    marginTop: 14,
+    fontFamily: FONTS.bold,
+    fontSize: 18,
+    color: COLORS.text,
+    marginTop: 15,
   },
 
   emptyDescription: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 11,
-    color:
-      COLORS.textMuted,
-    marginTop: 5,
-    textAlign:
-      "center",
+    fontFamily: FONTS.regular,
+    fontSize: 14,
+    lineHeight: 20,
+    color: COLORS.textMuted,
+    marginTop: 6,
+    textAlign: "center",
   },
 
   emptyButton: {
-    marginTop: 16,
-    paddingHorizontal: 15,
-    paddingVertical: 9,
+    marginTop: 17,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
     borderRadius: 9,
-    backgroundColor:
-      COLORS.primary,
+    backgroundColor: COLORS.primary,
   },
 
   emptyButtonText: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 11,
+    fontFamily: FONTS.medium,
+    fontSize: 14,
     color: "#FFFFFF",
   },
 
-  // -----------------------------------------------
+  // ==================================================
   // MODAL
-  // -----------------------------------------------
+  // ==================================================
 
   modalOverlay: {
     flex: 1,
-    backgroundColor:
-      "rgba(15, 23, 42, 0.45)",
+    backgroundColor: "rgba(15, 23, 42, 0.45)",
   },
 
   modalScroll: {
     flexGrow: 1,
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
-    padding: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
   },
 
   modal: {
     width: "100%",
-    maxWidth: 680,
-    backgroundColor:
-      COLORS.surface,
+    maxWidth: 720,
+    backgroundColor: COLORS.surface,
     borderRadius: 18,
-    padding: 24,
+    padding: 26,
   },
 
   modalHeader: {
-    flexDirection:
-      "row",
-    justifyContent:
-      "space-between",
-    alignItems:
-      "flex-start",
-    marginBottom: 18,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 19,
   },
 
   modalTitle: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 20,
-    color:
-      COLORS.text,
+    fontFamily: FONTS.bold,
+    fontSize: 23,
+    lineHeight: 28,
+    color: COLORS.text,
   },
 
   modalSubtitle: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 11,
-    color:
-      COLORS.textMuted,
+    fontFamily: FONTS.regular,
+    fontSize: 13,
+    color: COLORS.textMuted,
     marginTop: 4,
   },
 
   closeButton: {
-    width: 32,
-    height: 32,
+    width: 36,
+    height: 36,
     borderRadius: 9,
-    backgroundColor:
-      "#F1F5F9",
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
+    backgroundColor: "#F1F5F9",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   closeText: {
-    fontSize: 20,
-    color:
-      COLORS.textSecondary,
-    lineHeight: 22,
+    fontFamily: FONTS.regular,
+    fontSize: 23,
+    color: COLORS.textSecondary,
+    lineHeight: 25,
   },
 
-  // -----------------------------------------------
+  // ==================================================
   // FORM
-  // -----------------------------------------------
+  // ==================================================
 
   fieldLabel: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 10,
-    color:
-      COLORS.textSecondary,
-    marginBottom: 6,
-    marginTop: 11,
+    fontFamily: FONTS.medium,
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    marginBottom: 7,
+    marginTop: 13,
   },
 
   input: {
-    height: 42,
+    height: 47,
     borderWidth: 1,
-    borderColor:
-      COLORS.border,
+    borderColor: COLORS.border,
     borderRadius: 9,
-    paddingHorizontal: 12,
-    fontFamily:
-      FONTS.regular,
-    fontSize: 12,
-    color:
-      COLORS.text,
-    backgroundColor:
-      "#FFFFFF",
-    outlineStyle:
-      "none",
+    paddingHorizontal: 13,
+    fontFamily: FONTS.regular,
+    fontSize: 15,
+    color: COLORS.text,
+    backgroundColor: COLORS.surface,
+    outlineStyle: "none",
   },
 
   helperText: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 9,
-    color:
-      COLORS.textMuted,
+    fontFamily: FONTS.regular,
+    fontSize: 12,
+    color: COLORS.textMuted,
     marginTop: 4,
   },
 
   formRow: {
-    flexDirection:
-      "row",
-    gap: 10,
+    flexDirection: "row",
+    gap: 12,
   },
 
   formHalf: {
     flex: 1,
+    minWidth: 0,
   },
 
-  // -----------------------------------------------
+  // ==================================================
   // BLOOD GROUP
-  // -----------------------------------------------
+  // ==================================================
 
   bloodGrid: {
-    flexDirection:
-      "row",
-    flexWrap:
-      "wrap",
-    gap: 5,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
   },
 
   bloodOption: {
-    minWidth: 38,
-    height: 30,
-    paddingHorizontal: 7,
+    minWidth: 42,
+    height: 34,
+    paddingHorizontal: 8,
     borderWidth: 1,
-    borderColor:
-      COLORS.border,
+    borderColor: COLORS.border,
     borderRadius: 7,
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
-    backgroundColor:
-      "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: COLORS.surface,
   },
 
   bloodOptionActive: {
-    backgroundColor:
-      "#FEF2F2",
-    borderColor:
-      "#DC2626",
+    backgroundColor: "#FEF2F2",
+    borderColor: "#DC2626",
   },
 
   bloodText: {
-    fontFamily:
-      FONTS.medium,
-    fontSize: 9,
-    color:
-      COLORS.textSecondary,
+    fontFamily: FONTS.medium,
+    fontSize: 12,
+    color: COLORS.textSecondary,
   },
 
   bloodTextActive: {
-    fontFamily:
-      FONTS.bold,
-    color:
-      "#DC2626",
+    fontFamily: FONTS.bold,
+    color: "#DC2626",
   },
 
-  // -----------------------------------------------
+  // ==================================================
   // TYPE
-  // -----------------------------------------------
+  // ==================================================
 
   typeGrid: {
-    flexDirection:
-      "row",
-    flexWrap:
-      "wrap",
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 8,
   },
 
   typeOption: {
     flex: 1,
-    minWidth: 120,
-    height: 40,
+    minWidth: 130,
+    height: 44,
     borderWidth: 1,
-    borderColor:
-      COLORS.border,
+    borderColor: COLORS.border,
     borderRadius: 9,
-    paddingHorizontal: 10,
-    flexDirection:
-      "row",
-    alignItems:
-      "center",
+    paddingHorizontal: 11,
+    flexDirection: "row",
+    alignItems: "center",
   },
 
   typeOptionActive: {
-    backgroundColor:
-      "#EEF2FF",
-    borderColor:
-      COLORS.primary,
+    backgroundColor: COLORS.primaryLight,
+    borderColor: COLORS.primary,
   },
 
   typeRadio: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    width: 17,
+    height: 17,
+    borderRadius: 9,
     borderWidth: 1.5,
-    borderColor:
-      COLORS.border,
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
+    borderColor: COLORS.border,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   typeRadioActive: {
-    borderColor:
-      COLORS.primary,
+    borderColor: COLORS.primary,
   },
 
   typeRadioDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor:
-      COLORS.primary,
+    backgroundColor: COLORS.primary,
   },
 
   typeOptionText: {
-    fontFamily:
-      FONTS.medium,
-    fontSize: 10,
-    color:
-      COLORS.textSecondary,
-    marginLeft: 7,
+    fontFamily: FONTS.medium,
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    marginLeft: 8,
   },
 
   typeOptionTextActive: {
-    fontFamily:
-      FONTS.semiBold,
-    color:
-      COLORS.primary,
+    fontFamily: FONTS.bold,
+    color: COLORS.primary,
   },
 
-  // -----------------------------------------------
+  // ==================================================
   // ADDRESS
-  // -----------------------------------------------
+  // ==================================================
 
   addressInput: {
-    height: 65,
-    paddingTop: 10,
-    textAlignVertical:
-      "top",
+    height: 82,
+    paddingTop: 11,
+    textAlignVertical: "top",
   },
 
-  // -----------------------------------------------
+  // ==================================================
   // STATUS
-  // -----------------------------------------------
+  // ==================================================
 
   statusSelector: {
-    flexDirection:
-      "row",
+    flexDirection: "row",
     gap: 8,
   },
 
   statusOption: {
     flex: 1,
-    height: 40,
+    height: 44,
     borderRadius: 9,
     borderWidth: 1,
-    borderColor:
-      COLORS.border,
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
+    borderColor: COLORS.border,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   statusOptionActive: {
-    backgroundColor:
-      "#EEF2FF",
-    borderColor:
-      COLORS.primary,
+    backgroundColor: COLORS.primaryLight,
+    borderColor: COLORS.primary,
   },
 
   statusOptionText: {
-    fontFamily:
-      FONTS.medium,
-    fontSize: 11,
-    color:
-      COLORS.textSecondary,
+    fontFamily: FONTS.medium,
+    fontSize: 13,
+    color: COLORS.textSecondary,
   },
 
   statusOptionTextActive: {
-    fontFamily:
-      FONTS.semiBold,
-    color:
-      COLORS.primary,
+    fontFamily: FONTS.bold,
+    color: COLORS.primary,
   },
 
-  // -----------------------------------------------
+  // ==================================================
   // MODAL ACTIONS
-  // -----------------------------------------------
+  // ==================================================
 
   modalActions: {
-    flexDirection:
-      "row",
-    justifyContent:
-      "flex-end",
+    flexDirection: "row",
+    justifyContent: "flex-end",
     gap: 9,
-    marginTop: 22,
+    marginTop: 24,
   },
 
   cancelButton: {
-    height: 40,
-    paddingHorizontal: 17,
+    height: 44,
+    paddingHorizontal: 18,
     borderRadius: 9,
-    backgroundColor:
-      "#F1F5F9",
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
+    backgroundColor: "#F1F5F9",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   cancelButtonText: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 11,
-    color:
-      COLORS.textSecondary,
+    fontFamily: FONTS.medium,
+    fontSize: 14,
+    color: COLORS.textSecondary,
   },
 
   saveButton: {
-    height: 40,
-    minWidth: 120,
-    paddingHorizontal: 17,
+    height: 44,
+    minWidth: 125,
+    paddingHorizontal: 18,
     borderRadius: 9,
-    backgroundColor:
-      COLORS.primary,
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
+    backgroundColor: COLORS.primary,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   saveButtonText: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 11,
+    fontFamily: FONTS.medium,
+    fontSize: 14,
     color: "#FFFFFF",
   },
 });

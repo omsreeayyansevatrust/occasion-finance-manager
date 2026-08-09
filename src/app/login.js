@@ -24,30 +24,19 @@ import { auth } from "../services/firebase";
 export default function LoginScreen() {
   const router = useRouter();
 
-  const [email, setEmail] =
-    useState("");
-
-  const [password, setPassword] =
-    useState("");
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const [error, setError] =
-    useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleLogin = async () => {
     if (!email.trim()) {
-      setError(
-        "Please enter your email address."
-      );
+      setError("Please enter your email address.");
       return;
     }
 
     if (!password) {
-      setError(
-        "Please enter your password."
-      );
+      setError("Please enter your password.");
       return;
     }
 
@@ -61,37 +50,20 @@ export default function LoginScreen() {
         password
       );
 
-      router.replace(
-        "/dashboard"
-      );
+      router.replace("/dashboard");
     } catch (err) {
-      console.log(
-        "LOGIN ERROR:",
-        err
-      );
-
-      setError(
-        "Invalid email or password."
-      );
+      console.log("LOGIN ERROR:", err);
+      setError("Invalid email or password.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View
-      style={styles.container}
-    >
-      <View
-        style={styles.loginCard}
-      >
-        {/* LOGO */}
-
-        <View
-          style={
-            styles.logoContainer
-          }
-        >
+    <View style={styles.container}>
+      <View style={styles.loginCard}>
+        {/* BRAND / LOGO */}
+        <View style={styles.logoContainer}>
           <Image
             source={require("../../assets/images/logo.png")}
             style={styles.logo}
@@ -99,147 +71,119 @@ export default function LoginScreen() {
           />
         </View>
 
-        {/* BRAND */}
-
-        <Text
-          style={styles.appName}
-        >
+        <Text style={styles.appName}>
           Occasion Finance
         </Text>
 
-        <Text
-          style={
-            styles.appSubtitle
-          }
-        >
+        <Text style={styles.appSubtitle}>
           MANAGER
         </Text>
 
-        <Text
-          style={
-            styles.welcomeTitle
-          }
-        >
+        <View style={styles.brandDivider} />
+
+        {/* WELCOME */}
+        <Text style={styles.welcomeTitle}>
           Welcome back
         </Text>
 
-        <Text
-          style={
-            styles.welcomeText
-          }
-        >
-          Sign in to manage your
-          finances and occasions.
+        <Text style={styles.welcomeText}>
+          Sign in to manage your finances
+          {"\n"}
+          and occasions.
         </Text>
 
         {/* EMAIL */}
-
-        <Text
-          style={styles.label}
-        >
+        <Text style={styles.label}>
           EMAIL ADDRESS
         </Text>
 
         <TextInput
           value={email}
-          onChangeText={
-            setEmail
-          }
+          onChangeText={(value) => {
+            setEmail(value);
+            if (error) {
+              setError("");
+            }
+          }}
           placeholder="Enter your email"
-          placeholderTextColor={
-            COLORS.textMuted
-          }
+          placeholderTextColor={COLORS.textMuted}
           autoCapitalize="none"
           autoCorrect={false}
           keyboardType="email-address"
+          textContentType="emailAddress"
           style={styles.input}
         />
 
         {/* PASSWORD */}
-
-        <Text
-          style={styles.label}
-        >
+        <Text style={styles.label}>
           PASSWORD
         </Text>
 
         <TextInput
           value={password}
-          onChangeText={
-            setPassword
-          }
+          onChangeText={(value) => {
+            setPassword(value);
+            if (error) {
+              setError("");
+            }
+          }}
           placeholder="Enter your password"
-          placeholderTextColor={
-            COLORS.textMuted
-          }
+          placeholderTextColor={COLORS.textMuted}
           secureTextEntry
+          autoCapitalize="none"
+          autoCorrect={false}
+          textContentType="password"
           style={styles.input}
-          onSubmitEditing={
-            handleLogin
-          }
+          onSubmitEditing={handleLogin}
+          returnKeyType="done"
         />
 
         {/* ERROR */}
-
         {error ? (
-          <View
-            style={
-              styles.errorBox
-            }
-          >
-            <Text
-              style={
-                styles.errorText
-              }
-            >
+          <View style={styles.errorBox}>
+            <Text style={styles.errorIcon}>
+              !
+            </Text>
+
+            <Text style={styles.errorText}>
               {error}
             </Text>
           </View>
         ) : null}
 
         {/* LOGIN */}
-
         <TouchableOpacity
-          style={
-            styles.loginButton
-          }
-          onPress={
-            handleLogin
-          }
+          style={[
+            styles.loginButton,
+            loading && styles.loginButtonDisabled,
+          ]}
+          onPress={handleLogin}
           disabled={loading}
-          activeOpacity={0.8}
+          activeOpacity={0.82}
         >
           {loading ? (
-            <ActivityIndicator
-              size="small"
-              color="#FFFFFF"
-            />
+            <View style={styles.loadingContent}>
+              <ActivityIndicator
+                size="small"
+                color={COLORS.white}
+              />
+              <Text style={styles.loginButtonText}>
+                Signing in...
+              </Text>
+            </View>
           ) : (
-            <Text
-              style={
-                styles.loginButtonText
-              }
-            >
+            <Text style={styles.loginButtonText}>
               Sign In
             </Text>
           )}
         </TouchableOpacity>
 
         {/* FOOTER */}
-
-        <Text
-          style={
-            styles.footerText
-          }
-        >
+        <Text style={styles.footerText}>
           Om Sree Iyyan Seva Trust
         </Text>
 
-        <Text
-          style={
-            styles.versionText
-          }
-        >
+        <Text style={styles.versionText}>
           Version 1.0.0
         </Text>
       </View>
@@ -251,185 +195,206 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     minHeight: "100vh",
-    backgroundColor:
-      "#F8FAFC",
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
-    padding: 20,
+    width: "100%",
+    backgroundColor: COLORS.background,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 32,
   },
 
   loginCard: {
     width: "100%",
-    maxWidth: 430,
-    backgroundColor:
-      "#FFFFFF",
+    maxWidth: 460,
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor:
-      "#E2E8F0",
+    borderColor: COLORS.border,
     borderRadius: 20,
-    paddingHorizontal: 34,
-    paddingVertical: 35,
-    alignItems:
-      "stretch",
+    paddingHorizontal: 42,
+    paddingVertical: 38,
+    alignItems: "stretch",
+
+    shadowColor: COLORS.text,
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 28,
+    elevation: 5,
   },
 
   logoContainer: {
-    width: 82,
-    height: 82,
-    borderRadius: 20,
-    backgroundColor:
-      "#F8FAFC",
-    alignSelf:
-      "center",
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
+    width: 88,
+    height: 88,
+    borderRadius: 22,
+    backgroundColor: COLORS.primaryLight,
+    alignSelf: "center",
+    alignItems: "center",
+    justifyContent: "center",
     overflow: "hidden",
-    marginBottom: 13,
+    marginBottom: 14,
   },
 
   logo: {
-    width: 70,
-    height: 70,
+    width: 76,
+    height: 76,
   },
 
   appName: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 18,
-    color:
-      COLORS.text,
-    textAlign:
-      "center",
+    fontFamily: FONTS.bold,
+    fontSize: 21,
+    lineHeight: 27,
+    color: COLORS.text,
+    textAlign: "center",
   },
 
   appSubtitle: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 8,
-    letterSpacing: 1.4,
-    color:
-      COLORS.primary,
-    textAlign:
-      "center",
-    marginTop: 3,
+    fontFamily: FONTS.medium,
+    fontSize: 10,
+    lineHeight: 14,
+    letterSpacing: 2,
+    color: COLORS.primary,
+    textAlign: "center",
+    marginTop: 4,
+  },
+
+  brandDivider: {
+    width: 42,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: COLORS.primary,
+    alignSelf: "center",
+    marginTop: 15,
   },
 
   welcomeTitle: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 23,
-    color:
-      COLORS.text,
-    textAlign:
-      "center",
+    fontFamily: FONTS.bold,
+    fontSize: 28,
+    lineHeight: 34,
+    color: COLORS.text,
+    textAlign: "center",
     marginTop: 30,
   },
 
   welcomeText: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 11,
-    lineHeight: 17,
-    color:
-      COLORS.textSecondary,
-    textAlign:
-      "center",
-    marginTop: 6,
+    fontFamily: FONTS.regular,
+    fontSize: 15,
+    lineHeight: 22,
+    color: COLORS.textSecondary,
+    textAlign: "center",
+    marginTop: 8,
     marginBottom: 24,
   },
 
   label: {
-    fontFamily:
-      FONTS.semiBold,
-    fontSize: 9,
-    letterSpacing: 0.5,
-    color:
-      COLORS.textSecondary,
-    marginBottom: 6,
-    marginTop: 12,
+    fontFamily: FONTS.medium,
+    fontSize: 12,
+    lineHeight: 17,
+    letterSpacing: 0.7,
+    color: COLORS.textSecondary,
+    marginBottom: 8,
+    marginTop: 15,
   },
 
   input: {
-    height: 46,
+    height: 52,
     borderWidth: 1,
-    borderColor:
-      COLORS.border,
-    borderRadius: 9,
-    paddingHorizontal: 13,
-    backgroundColor:
-      "#FFFFFF",
-    fontFamily:
-      FONTS.regular,
-    fontSize: 12,
-    color:
-      COLORS.text,
-    outlineStyle:
-      "none",
+    borderColor: COLORS.border,
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    backgroundColor: COLORS.white,
+    fontFamily: FONTS.regular,
+    fontSize: 15,
+    color: COLORS.text,
+    outlineStyle: "none",
   },
 
   errorBox: {
-    backgroundColor:
-      "#FEF2F2",
+    minHeight: 46,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.dangerLight,
     borderWidth: 1,
-    borderColor:
-      "#FECACA",
-    borderRadius: 8,
-    paddingHorizontal: 11,
-    paddingVertical: 9,
-    marginTop: 13,
+    borderColor: "#F6B8B8",
+    borderRadius: 10,
+    paddingHorizontal: 13,
+    paddingVertical: 10,
+    marginTop: 15,
+  },
+
+  errorIcon: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: COLORS.danger,
+    color: COLORS.white,
+    fontFamily: FONTS.bold,
+    fontSize: 13,
+    lineHeight: 22,
+    textAlign: "center",
+    marginRight: 9,
   },
 
   errorText: {
-    fontFamily:
-      FONTS.medium,
-    fontSize: 10,
-    color:
-      COLORS.danger,
+    flex: 1,
+    fontFamily: FONTS.medium,
+    fontSize: 13,
+    lineHeight: 18,
+    color: COLORS.danger,
   },
 
   loginButton: {
-    height: 46,
-    borderRadius: 9,
-    backgroundColor:
-      COLORS.primary,
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
-    marginTop: 20,
+    height: 52,
+    borderRadius: 10,
+    backgroundColor: COLORS.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 22,
+
+    shadowColor: COLORS.primary,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+
+  loginButtonDisabled: {
+    opacity: 0.75,
+  },
+
+  loadingContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
   },
 
   loginButtonText: {
-    fontFamily:
-      FONTS.bold,
-    fontSize: 12,
-    color:
-      "#FFFFFF",
+    fontFamily: FONTS.bold,
+    fontSize: 15,
+    lineHeight: 20,
+    color: COLORS.white,
   },
 
   footerText: {
-    fontFamily:
-      FONTS.medium,
-    fontSize: 9,
-    color:
-      COLORS.textSecondary,
-    textAlign:
-      "center",
-    marginTop: 25,
+    fontFamily: FONTS.medium,
+    fontSize: 12,
+    lineHeight: 17,
+    color: COLORS.textSecondary,
+    textAlign: "center",
+    marginTop: 27,
   },
 
   versionText: {
-    fontFamily:
-      FONTS.regular,
-    fontSize: 8,
-    color:
-      COLORS.textMuted,
-    textAlign:
-      "center",
-    marginTop: 3,
+    fontFamily: FONTS.regular,
+    fontSize: 11,
+    lineHeight: 16,
+    color: COLORS.textMuted,
+    textAlign: "center",
+    marginTop: 4,
   },
 });

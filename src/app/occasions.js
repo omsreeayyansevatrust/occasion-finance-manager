@@ -1071,103 +1071,121 @@ function FinancialItem({
 // ==================================================
 
 const styles = StyleSheet.create({
+  // ==================================================
+  // PAGE
+  // ==================================================
+
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
   },
 
   content: {
+    width: "100%",
+    maxWidth: 1600,
+    alignSelf: "center",
     paddingHorizontal: 28,
     paddingTop: 28,
-    paddingBottom: 50,
+    paddingBottom: 60,
   },
 
+  // ==================================================
   // LOADING
+  // ==================================================
 
   loading: {
     flex: 1,
     backgroundColor: COLORS.background,
-    justifyContent: "center",
     alignItems: "center",
+    justifyContent: "center",
   },
 
   loadingText: {
     fontFamily: FONTS.regular,
-    fontSize: 13,
+    fontSize: 14,
     color: COLORS.textSecondary,
     marginTop: 10,
   },
 
-  // HEADER
+  // ==================================================
+  // HEADER - DASHBOARD STANDARD
+  // ==================================================
 
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-end",
-    marginBottom: 24,
+    marginBottom: 26,
   },
 
   eyebrow: {
-    fontFamily: FONTS.semiBold,
-    fontSize: 10,
+    fontFamily: FONTS.medium,
+    fontSize: 11,
     letterSpacing: 1.1,
     color: COLORS.primary,
   },
 
   title: {
-    fontFamily: FONTS.extraBold,
-    fontSize: 30,
+    fontFamily: FONTS.bold,
+    fontSize: 36,
+    lineHeight: 43,
     color: COLORS.text,
     marginTop: 4,
   },
 
   subtitle: {
     fontFamily: FONTS.regular,
-    fontSize: 13,
+    fontSize: 16,
+    lineHeight: 22,
     color: COLORS.textSecondary,
-    marginTop: 4,
+    marginTop: 5,
   },
 
   primaryButton: {
-    height: 42,
-    paddingHorizontal: 16,
-    borderRadius: 10,
+    minHeight: 48,
+    paddingHorizontal: 19,
+    borderRadius: 11,
     backgroundColor: COLORS.primary,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    marginLeft: 20,
   },
 
   primaryButtonIcon: {
     fontFamily: FONTS.bold,
-    fontSize: 18,
+    fontSize: 21,
+    lineHeight: 23,
     color: "#FFFFFF",
-    marginRight: 7,
+    marginRight: 8,
   },
 
   primaryButtonText: {
-    fontFamily: FONTS.semiBold,
-    fontSize: 12,
+    fontFamily: FONTS.medium,
+    fontSize: 14,
     color: "#FFFFFF",
   },
 
-  // SUMMARY
+  // ==================================================
+  // SUMMARY CARDS
+  // ==================================================
 
   summaryGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 14,
-    marginBottom: 18,
+    gap: 16,
+    marginBottom: 20,
   },
 
   summaryCard: {
     flex: 1,
     minWidth: 190,
+    minHeight: 142,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 15,
-    padding: 17,
+    padding: 20,
   },
 
   summaryTop: {
@@ -1177,40 +1195,43 @@ const styles = StyleSheet.create({
   },
 
   summaryLabel: {
-    fontFamily: FONTS.semiBold,
-    fontSize: 9,
-    letterSpacing: 0.7,
+    fontFamily: FONTS.medium,
+    fontSize: 11,
+    letterSpacing: 0.75,
     color: COLORS.textMuted,
   },
 
   summaryIcon: {
-    width: 31,
-    height: 31,
-    borderRadius: 9,
+    width: 38,
+    height: 38,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
   },
 
   summaryIconText: {
     fontFamily: FONTS.bold,
-    fontSize: 14,
+    fontSize: 17,
   },
 
   summaryValue: {
-    fontFamily: FONTS.extraBold,
-    fontSize: 22,
+    fontFamily: FONTS.bold,
+    fontSize: 30,
+    lineHeight: 37,
     color: COLORS.text,
-    marginTop: 12,
+    marginTop: 16,
   },
 
-  // TOOLBAR
+  // ==================================================
+  // SEARCH / FILTER TOOLBAR
+  // ==================================================
 
   toolbar: {
     backgroundColor: COLORS.surface,
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 15,
-    padding: 12,
+    padding: 13,
     marginBottom: 18,
     flexDirection: "row",
     alignItems: "center",
@@ -1218,62 +1239,70 @@ const styles = StyleSheet.create({
 
   searchBox: {
     flex: 1,
-    height: 40,
+    height: 48,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 9,
+    borderRadius: 10,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 10,
-    maxWidth: 500,
+    paddingHorizontal: 13,
+    maxWidth: 620,
+    backgroundColor: COLORS.surface,
   },
 
   searchIcon: {
-    fontSize: 18,
+    fontFamily: FONTS.medium,
+    fontSize: 20,
     color: COLORS.textMuted,
-    marginRight: 7,
+    marginRight: 9,
   },
 
   searchInput: {
     flex: 1,
-    height: 38,
+    height: 46,
     fontFamily: FONTS.regular,
-    fontSize: 12,
+    fontSize: 15,
     color: COLORS.text,
     outlineStyle: "none",
   },
 
   filters: {
     flexDirection: "row",
+    flexWrap: "wrap",
     marginLeft: 12,
-    gap: 6,
+    gap: 8,
   },
 
   filterButton: {
-    paddingHorizontal: 13,
-    height: 34,
-    borderRadius: 8,
+    paddingHorizontal: 15,
+    minHeight: 40,
+    borderRadius: 9,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#F1F5F9",
+    borderWidth: 1,
+    borderColor: "#E7EDF5",
   },
 
   filterButtonActive: {
     backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
 
   filterText: {
     fontFamily: FONTS.medium,
-    fontSize: 10,
+    fontSize: 14,
     color: COLORS.textSecondary,
   },
 
   filterTextActive: {
+    fontFamily: FONTS.bold,
     color: "#FFFFFF",
-    fontFamily: FONTS.semiBold,
   },
 
-  // LIST
+  // ==================================================
+  // OCCASION LIST
+  // ==================================================
 
   list: {
     gap: 14,
@@ -1283,7 +1312,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 16,
+    borderRadius: 15,
     padding: 20,
   },
 
@@ -1297,51 +1326,55 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
+    minWidth: 0,
   },
 
   occasionAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 13,
-    backgroundColor: "#EEF2FF",
+    width: 54,
+    height: 54,
+    borderRadius: 15,
+    backgroundColor: COLORS.primaryLight,
     alignItems: "center",
     justifyContent: "center",
   },
 
   occasionAvatarText: {
     fontFamily: FONTS.bold,
-    fontSize: 17,
+    fontSize: 19,
     color: COLORS.primary,
   },
 
   identityText: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: 14,
+    minWidth: 0,
   },
 
   nameLine: {
     flexDirection: "row",
     alignItems: "center",
+    flexWrap: "wrap",
   },
 
   occasionName: {
-    fontFamily: FONTS.bold,
-    fontSize: 16,
+    fontFamily: FONTS.medium,
+    fontSize: 17,
+    lineHeight: 22,
     color: COLORS.text,
-    maxWidth: 350,
+    maxWidth: 500,
   },
 
   statusBadge: {
     marginLeft: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
     borderRadius: 20,
     flexDirection: "row",
     alignItems: "center",
   },
 
   activeBadge: {
-    backgroundColor: "#DCFCE7",
+    backgroundColor: COLORS.successLight,
   },
 
   closedBadge: {
@@ -1349,10 +1382,10 @@ const styles = StyleSheet.create({
   },
 
   statusDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 5,
-    marginRight: 5,
+    width: 7,
+    height: 7,
+    borderRadius: 7,
+    marginRight: 6,
   },
 
   activeDot: {
@@ -1364,9 +1397,9 @@ const styles = StyleSheet.create({
   },
 
   statusBadgeText: {
-    fontFamily: FONTS.semiBold,
-    fontSize: 8,
-    letterSpacing: 0.5,
+    fontFamily: FONTS.medium,
+    fontSize: 11,
+    letterSpacing: 0.4,
   },
 
   activeText: {
@@ -1379,171 +1412,186 @@ const styles = StyleSheet.create({
 
   occasionDate: {
     fontFamily: FONTS.regular,
-    fontSize: 10,
+    fontSize: 14,
+    lineHeight: 20,
     color: COLORS.textMuted,
-    marginTop: 5,
+    marginTop: 6,
   },
 
   cardActions: {
     flexDirection: "row",
-    gap: 6,
-    marginLeft: 15,
+    gap: 8,
+    marginLeft: 18,
   },
 
   actionButton: {
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    borderRadius: 7,
+    minHeight: 38,
+    paddingHorizontal: 13,
+    paddingVertical: 8,
+    borderRadius: 8,
     backgroundColor: "#F1F5F9",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   actionButtonText: {
     fontFamily: FONTS.medium,
-    fontSize: 10,
+    fontSize: 13,
     color: COLORS.textSecondary,
   },
 
   deleteAction: {
-    backgroundColor: "#FEF2F2",
+    backgroundColor: COLORS.dangerLight,
   },
 
   deleteActionText: {
     fontFamily: FONTS.medium,
-    fontSize: 10,
+    fontSize: 13,
     color: COLORS.danger,
   },
 
   description: {
     fontFamily: FONTS.regular,
-    fontSize: 11,
+    fontSize: 14,
+    lineHeight: 21,
     color: COLORS.textSecondary,
-    lineHeight: 17,
-    marginTop: 14,
-    marginBottom: 14,
+    marginTop: 15,
+    marginBottom: 15,
   },
 
-  // FINANCIAL GRID
+  // ==================================================
+  // FINANCIAL SUMMARY INSIDE OCCASION CARD
+  // ==================================================
 
   financialGrid: {
     marginTop: 16,
-    paddingTop: 15,
+    paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: "#F1F5F9",
+    borderTopColor: COLORS.borderLight,
     flexDirection: "row",
     alignItems: "center",
+    flexWrap: "wrap",
   },
 
   financialItem: {
-    minWidth: 130,
-    paddingRight: 20,
+    minWidth: 140,
+    paddingRight: 24,
+    marginBottom: 4,
   },
 
   financialLabel: {
     fontFamily: FONTS.regular,
-    fontSize: 9,
+    fontSize: 12,
     color: COLORS.textMuted,
-    marginBottom: 4,
+    marginBottom: 5,
   },
 
   financialValue: {
     fontFamily: FONTS.bold,
-    fontSize: 13,
+    fontSize: 16,
   },
 
   detailsButton: {
     marginLeft: "auto",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: "#EEF2FF",
+    paddingHorizontal: 14,
+    minHeight: 40,
+    borderRadius: 9,
+    backgroundColor: COLORS.primaryLight,
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
   },
 
   detailsButtonText: {
-    fontFamily: FONTS.semiBold,
-    fontSize: 10,
+    fontFamily: FONTS.medium,
+    fontSize: 13,
     color: COLORS.primary,
   },
 
   detailsArrow: {
     fontFamily: FONTS.bold,
-    fontSize: 13,
+    fontSize: 16,
     color: COLORS.primary,
-    marginLeft: 5,
+    marginLeft: 6,
   },
 
-  // EMPTY
+  // ==================================================
+  // EMPTY STATE
+  // ==================================================
 
   emptyCard: {
     backgroundColor: COLORS.surface,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 16,
-    paddingVertical: 60,
+    borderRadius: 15,
+    paddingVertical: 70,
+    paddingHorizontal: 30,
     alignItems: "center",
   },
 
   emptyIcon: {
-    width: 55,
-    height: 55,
-    borderRadius: 16,
-    backgroundColor: "#EEF2FF",
+    width: 60,
+    height: 60,
+    borderRadius: 17,
+    backgroundColor: COLORS.primaryLight,
     alignItems: "center",
     justifyContent: "center",
   },
 
   emptyIconText: {
     fontFamily: FONTS.bold,
-    fontSize: 20,
+    fontSize: 25,
     color: COLORS.primary,
   },
 
   emptyTitle: {
     fontFamily: FONTS.bold,
-    fontSize: 16,
+    fontSize: 18,
     color: COLORS.text,
-    marginTop: 14,
+    marginTop: 16,
   },
 
   emptyDescription: {
     fontFamily: FONTS.regular,
-    fontSize: 11,
+    fontSize: 14,
+    lineHeight: 20,
     color: COLORS.textMuted,
-    marginTop: 5,
+    marginTop: 6,
     textAlign: "center",
   },
 
   emptyButton: {
-    marginTop: 16,
-    paddingHorizontal: 15,
-    paddingVertical: 9,
+    marginTop: 18,
+    paddingHorizontal: 18,
+    paddingVertical: 11,
     borderRadius: 9,
     backgroundColor: COLORS.primary,
   },
 
   emptyButtonText: {
-    fontFamily: FONTS.semiBold,
-    fontSize: 11,
+    fontFamily: FONTS.medium,
+    fontSize: 14,
     color: "#FFFFFF",
   },
 
+  // ==================================================
   // MODAL
+  // ==================================================
 
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(15, 23, 42, 0.45)",
     alignItems: "center",
     justifyContent: "center",
-    padding: 20,
+    padding: 24,
   },
 
   modal: {
     width: "100%",
-    maxWidth: 620,
+    maxWidth: 720,
     backgroundColor: COLORS.surface,
-    borderRadius: 18,
-    padding: 24,
+    borderRadius: 19,
+    padding: 28,
   },
 
   modalHeader: {
@@ -1555,71 +1603,74 @@ const styles = StyleSheet.create({
 
   modalTitle: {
     fontFamily: FONTS.bold,
-    fontSize: 20,
+    fontSize: 24,
+    lineHeight: 29,
     color: COLORS.text,
   },
 
   modalSubtitle: {
     fontFamily: FONTS.regular,
-    fontSize: 11,
+    fontSize: 14,
     color: COLORS.textMuted,
-    marginTop: 4,
+    marginTop: 5,
   },
 
   closeButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 9,
+    width: 38,
+    height: 38,
+    borderRadius: 10,
     backgroundColor: "#F1F5F9",
     alignItems: "center",
     justifyContent: "center",
   },
 
   closeText: {
-    fontSize: 20,
+    fontFamily: FONTS.regular,
+    fontSize: 25,
     color: COLORS.textSecondary,
-    lineHeight: 22,
+    lineHeight: 28,
   },
 
   fieldLabel: {
-    fontFamily: FONTS.semiBold,
-    fontSize: 10,
+    fontFamily: FONTS.medium,
+    fontSize: 13,
     color: COLORS.textSecondary,
-    marginBottom: 6,
-    marginTop: 11,
+    marginBottom: 7,
+    marginTop: 14,
   },
 
   input: {
-    height: 42,
+    height: 48,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 9,
-    paddingHorizontal: 12,
+    borderRadius: 10,
+    paddingHorizontal: 14,
     fontFamily: FONTS.regular,
-    fontSize: 12,
+    fontSize: 15,
     color: COLORS.text,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: COLORS.surface,
     outlineStyle: "none",
   },
 
   formRow: {
     flexDirection: "row",
-    gap: 10,
+    gap: 14,
   },
 
   formHalf: {
     flex: 1,
+    minWidth: 0,
   },
 
   statusSelector: {
     flexDirection: "row",
-    gap: 8,
+    gap: 10,
   },
 
   statusOption: {
     flex: 1,
-    height: 40,
-    borderRadius: 9,
+    height: 44,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: COLORS.border,
     alignItems: "center",
@@ -1627,62 +1678,62 @@ const styles = StyleSheet.create({
   },
 
   statusOptionActive: {
-    backgroundColor: "#EEF2FF",
+    backgroundColor: COLORS.primaryLight,
     borderColor: COLORS.primary,
   },
 
   statusOptionText: {
     fontFamily: FONTS.medium,
-    fontSize: 11,
+    fontSize: 14,
     color: COLORS.textSecondary,
   },
 
   statusOptionTextActive: {
-    fontFamily: FONTS.semiBold,
+    fontFamily: FONTS.bold,
     color: COLORS.primary,
   },
 
   descriptionInput: {
-    height: 75,
-    paddingTop: 11,
+    height: 90,
+    paddingTop: 12,
     textAlignVertical: "top",
   },
 
   modalActions: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    gap: 9,
-    marginTop: 22,
+    gap: 10,
+    marginTop: 26,
   },
 
   cancelButton: {
-    height: 40,
-    paddingHorizontal: 17,
-    borderRadius: 9,
+    height: 46,
+    paddingHorizontal: 20,
+    borderRadius: 10,
     backgroundColor: "#F1F5F9",
     alignItems: "center",
     justifyContent: "center",
   },
 
   cancelButtonText: {
-    fontFamily: FONTS.semiBold,
-    fontSize: 11,
+    fontFamily: FONTS.medium,
+    fontSize: 14,
     color: COLORS.textSecondary,
   },
 
   saveButton: {
-    height: 40,
-    minWidth: 125,
-    paddingHorizontal: 17,
-    borderRadius: 9,
+    height: 46,
+    minWidth: 140,
+    paddingHorizontal: 20,
+    borderRadius: 10,
     backgroundColor: COLORS.primary,
     alignItems: "center",
     justifyContent: "center",
   },
 
   saveButtonText: {
-    fontFamily: FONTS.semiBold,
-    fontSize: 11,
+    fontFamily: FONTS.medium,
+    fontSize: 14,
     color: "#FFFFFF",
   },
 });

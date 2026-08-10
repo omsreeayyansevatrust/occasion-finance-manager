@@ -21,19 +21,55 @@ const TIME_ZONE =
   "Asia/Kolkata";
 
 /*
- * Cloudinary screenshot shows:
+ * Cloudinary birthday template.
  *
- * Media Library location:
- *   OccasionFinanceManager
- *
- * Public ID:
- *   birthday_template
- *
- * In dynamic-folder mode, the asset folder
- * and public ID are separate concepts.
+ * Keep this as the template that is currently
+ * working in your Cloudinary account.
  */
 const BIRTHDAY_TEMPLATE =
   "birthday_generic";
+
+/*
+ * =================================================
+ * WHATSAPP TEST MODE
+ * =================================================
+ *
+ * For the FIRST test:
+ *
+ * WHATSAPP_TEST_MODE=true
+ *
+ * The agent will:
+ *
+ * 1. Initialize Firebase
+ * 2. Initialize Cloudinary
+ * 3. Verify WhatsApp configuration
+ * 4. Send hello_world template
+ * 5. Exit
+ *
+ * It will NOT process birthdays.
+ *
+ * After the WhatsApp test succeeds:
+ *
+ * WHATSAPP_TEST_MODE=false
+ *
+ * Then normal birthday processing can continue.
+ */
+
+const WHATSAPP_TEST_MODE =
+  String(
+    process.env.WHATSAPP_TEST_MODE || ""
+  ).toLowerCase() === "true";
+
+/*
+ * Meta Graph API version.
+ *
+ * Can be overridden using:
+ *
+ * WHATSAPP_GRAPH_API_VERSION
+ */
+const WHATSAPP_GRAPH_API_VERSION =
+  process.env.WHATSAPP_GRAPH_API_VERSION ||
+  "v25.0";
 
 // ==================================================
 // FIREBASE
@@ -103,6 +139,236 @@ function initializeCloudinary() {
 }
 
 // ==================================================
+// WHATSAPP CONFIGURATION CHECK
+// ==================================================
+
+function verifyWhatsAppConfiguration() {
+  console.log("");
+  console.log(
+    "🔎 Verifying WhatsApp configuration..."
+  );
+
+  const accessToken =
+    process.env.WHATSAPP_ACCESS_TOKEN;
+
+  const phoneNumberId =
+    process.env.WHATSAPP_PHONE_NUMBER_ID;
+
+  const recipient =
+    process.env.WHATSAPP_TEST_RECIPIENT;
+
+  if (!accessToken) {
+    throw new Error(
+      "WHATSAPP_ACCESS_TOKEN secret is missing."
+    );
+  }
+
+  if (!phoneNumberId) {
+    throw new Error(
+      "WHATSAPP_PHONE_NUMBER_ID secret is missing."
+    );
+  }
+
+  if (!recipient) {
+    throw new Error(
+      "WHATSAPP_TEST_RECIPIENT secret is missing."
+    );
+  }
+
+  console.log(
+    "✅ WhatsApp access token found."
+  );
+
+  console.log(
+    `📱 WhatsApp Phone Number ID: ${phoneNumberId}`
+  );
+
+  console.log(
+    `📨 WhatsApp test recipient: ${recipient}`
+  );
+
+  console.log(
+    `🌐 Graph API: ${WHATSAPP_GRAPH_API_VERSION}`
+  );
+}
+
+// ==================================================
+// WHATSAPP HELLO WORLD TEST
+// ==================================================
+
+async function sendWhatsAppTestMessage() {
+  const accessToken =
+    process.env.WHATSAPP_ACCESS_TOKEN;
+
+  const phoneNumberId =
+    process.env.WHATSAPP_PHONE_NUMBER_ID;
+
+  const recipient =
+    process.env.WHATSAPP_TEST_RECIPIENT;
+
+  if (
+    !accessToken ||
+    !phoneNumberId ||
+    !recipient
+  ) {
+    throw new Error(
+      "WhatsApp secrets are missing."
+    );
+  }
+
+  console.log("");
+  console.log(
+    "=========================================="
+  );
+
+  console.log(
+    "📱 WHATSAPP TEST"
+  );
+
+  console.log(
+    "=========================================="
+  );
+
+  console.log(
+    `📤 Template: hello_world`
+  );
+
+  console.log(
+    `🌍 Language: en_US`
+  );
+
+  console.log(
+    `📨 Recipient: ${recipient}`
+  );
+
+  const url =
+    `https://graph.facebook.com/${WHATSAPP_GRAPH_API_VERSION}/${phoneNumberId}/messages`;
+
+  const requestBody = {
+    messaging_product:
+      "whatsapp",
+
+    to:
+      recipient,
+
+    type:
+      "template",
+
+    template: {
+      name:
+        "hello_world",
+
+      language: {
+        code:
+          "en_US",
+      },
+    },
+  };
+
+  console.log("");
+  console.log(
+    "🌐 Sending request to Meta..."
+  );
+
+  let response;
+
+  try {
+    response =
+      await fetch(
+        url,
+        {
+          method: "POST",
+
+          headers: {
+            Authorization:
+              `Bearer ${accessToken}`,
+
+            "Content-Type":
+              "application/json",
+          },
+
+          body:
+            JSON.stringify(
+              requestBody
+            ),
+        }
+      );
+  } catch (error) {
+    console.error(
+      "❌ Unable to connect to WhatsApp API."
+    );
+
+    console.error(
+      error
+    );
+
+    throw error;
+  }
+
+  let result;
+
+  try {
+    result =
+      await response.json();
+  } catch (error) {
+    result = {
+      rawResponse:
+        await response.text(),
+    };
+  }
+
+  console.log("");
+
+  console.log(
+    `📡 Meta HTTP status: ${response.status}`
+  );
+
+  console.log(
+    JSON.stringify(
+      result,
+      null,
+      2
+    )
+  );
+
+  if (!response.ok) {
+    console.error("");
+    console.error(
+      "❌ WhatsApp API rejected the message."
+    );
+
+    throw new Error(
+      `WhatsApp API failed with HTTP ${response.status}.`
+    );
+  }
+
+  console.log("");
+  console.log(
+    "=========================================="
+  );
+
+  console.log(
+    "✅ WHATSAPP TEST MESSAGE SENT"
+  );
+
+  console.log(
+    "=========================================="
+  );
+
+  if (
+    result &&
+    Array.isArray(result.messages) &&
+    result.messages.length > 0
+  ) {
+    console.log(
+      `🆔 WhatsApp Message ID: ${result.messages[0].id}`
+    );
+  }
+
+  return result;
+}
+
+// ==================================================
 // INDIA DATE
 // ==================================================
 
@@ -114,9 +380,14 @@ function getIndiaDate() {
         timeZone:
           TIME_ZONE,
 
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
+        year:
+          "numeric",
+
+        month:
+          "2-digit",
+
+        day:
+          "2-digit",
       }
     );
 
@@ -202,25 +473,11 @@ function getPublicIdFromCloudinaryUrl(
           marker.length
       );
 
-    /*
-     * Remove query string.
-     */
-
     remaining =
       remaining.split("?")[0];
 
     const parts =
       remaining.split("/");
-
-    /*
-     * Remove transformation
-     * components and version.
-     *
-     * We identify the version
-     * segment such as:
-     *
-     * v1786346340
-     */
 
     const versionIndex =
       parts.findIndex(
@@ -238,10 +495,6 @@ function getPublicIdFromCloudinaryUrl(
           )
           .join("/");
     }
-
-    /*
-     * Remove extension.
-     */
 
     remaining =
       remaining.replace(
@@ -366,13 +619,6 @@ async function verifyPersonPhoto(
     );
   }
 
-  /*
-   * IMPORTANT:
-   *
-   * We now ask Cloudinary itself to verify
-   * the public ID.
-   */
-
   try {
     const resource =
       await cloudinary.api.resource(
@@ -481,12 +727,16 @@ function createBirthdayImageUrl(
     cloudinary.url(
       templatePublicId,
       {
-        resource_type: "image",
-        type: "upload",
-        secure: true,
+        resource_type:
+          "image",
+
+        type:
+          "upload",
+
+        secure:
+          true,
 
         transformation: [
-
           // =========================================
           // PERSON PHOTO
           // =========================================
@@ -495,20 +745,28 @@ function createBirthdayImageUrl(
             overlay:
               overlayPublicId,
 
-            width: 300,
-            height: 300,
+            width:
+              300,
 
-            crop: "fill",
+            height:
+              300,
 
-            radius: "max",
+            crop:
+              "fill",
+
+            radius:
+              "max",
           },
 
           {
-            gravity: "center",
+            gravity:
+              "center",
 
-            x: 0,
+            x:
+              0,
 
-            y: 50,
+            y:
+              75,
 
             flags:
               "layer_apply",
@@ -529,9 +787,6 @@ function createBirthdayImageUrl(
               font_weight:
                 "bold",
 
-              color:
-              "#0B2D6B",
-
               text:
                 personName,
             },
@@ -541,9 +796,11 @@ function createBirthdayImageUrl(
             gravity:
               "center",
 
-            x: 0,
+            x:
+              0,
 
-            y: 270,
+            y:
+              295,
 
             flags:
               "layer_apply",
@@ -566,6 +823,7 @@ function createBirthdayImageUrl(
 
   return imageUrl;
 }
+
 // ==================================================
 // SAVE BIRTHDAY LOG
 // ==================================================
@@ -751,9 +1009,9 @@ async function processBirthdays() {
         person.name || ""
       ).trim();
 
-    /*
-     * PILOT MODE
-     */
+    // ------------------------------------------------
+    // PILOT MODE
+    // ------------------------------------------------
 
     if (
       personName.toLowerCase() !==
@@ -763,6 +1021,7 @@ async function processBirthdays() {
     }
 
     console.log("");
+
     console.log(
       "------------------------------------------"
     );
@@ -784,7 +1043,8 @@ async function processBirthdays() {
         .toLowerCase();
 
     if (
-      status !== "active"
+      status !==
+      "active"
     ) {
       console.log(
         "⏭️ Person is inactive."
@@ -866,6 +1126,7 @@ async function processBirthdays() {
     birthdaysFound++;
 
     console.log("");
+
     console.log(
       "🎉🎉🎉 BIRTHDAY FOUND 🎉🎉🎉"
     );
@@ -1031,6 +1292,7 @@ async function processBirthdays() {
     processed++;
 
     console.log("");
+
     console.log(
       "=========================================="
     );
@@ -1087,6 +1349,7 @@ async function processBirthdays() {
   };
 
   console.log("");
+
   console.log(
     "FINAL RESULT:"
   );
@@ -1106,8 +1369,81 @@ async function processBirthdays() {
 // START
 // ==================================================
 
-processBirthdays()
+async function main() {
+  console.log("");
+  console.log(
+    "=========================================="
+  );
+
+  console.log(
+    "🎂 OCCASION FINANCE BIRTHDAY AGENT"
+  );
+
+  console.log(
+    "=========================================="
+  );
+
+  /*
+   * =================================================
+   * WHATSAPP TEST MODE
+   * =================================================
+   *
+   * This intentionally runs BEFORE birthday
+   * processing.
+   *
+   * Therefore our first test cannot accidentally
+   * send birthday messages to people.
+   */
+
+  if (WHATSAPP_TEST_MODE) {
+    console.log("");
+    console.log(
+      "🧪 WHATSAPP TEST MODE ENABLED"
+    );
+
+    console.log(
+      "⚠️ Birthday processing is disabled for this run."
+    );
+
+    console.log("");
+
+    verifyWhatsAppConfiguration();
+
+    await sendWhatsAppTestMessage();
+
+    console.log("");
+
+    console.log(
+      "🎉 WhatsApp connectivity test completed successfully."
+    );
+
+    console.log(
+      "📱 Check the recipient WhatsApp phone now."
+    );
+
+    return;
+  }
+
+  /*
+   * =================================================
+   * NORMAL BIRTHDAY MODE
+   * =================================================
+   */
+
+  await processBirthdays();
+}
+
+// ==================================================
+// RUN
+// ==================================================
+
+main()
   .then(() => {
+    console.log("");
+    console.log(
+      "✅ AGENT COMPLETED SUCCESSFULLY."
+    );
+
     process.exit(0);
   })
   .catch((error) => {

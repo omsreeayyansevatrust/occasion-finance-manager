@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
+
 import {
   ActivityIndicator,
   Alert,
+  Image,
   Modal,
   ScrollView,
   StyleSheet,
@@ -11,6 +13,8 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
+
+import * as ImagePicker from "expo-image-picker";
 
 import {
   addDoc,
@@ -24,6 +28,10 @@ import {
 
 import { COLORS, FONTS } from "../constants/theme";
 import { db } from "../services/firebase";
+
+import {
+  uploadImageToCloudinary,
+} from "../services/cloudinary";
 
 const PERSON_TYPES = [
   "Volunteer",
@@ -51,10 +59,14 @@ export default function PeopleScreen() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] =
+    useState(false);
 
   const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState("All");
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [typeFilter, setTypeFilter] =
+    useState("All");
+  const [statusFilter, setStatusFilter] =
+    useState("All");
 
   const [modalVisible, setModalVisible] =
     useState(false);
@@ -71,6 +83,7 @@ export default function PeopleScreen() {
     type: "Volunteer",
     address: "",
     status: "Active",
+    photoUrl: "",
   });
 
   // ==================================================
@@ -118,6 +131,7 @@ export default function PeopleScreen() {
       type: "Volunteer",
       address: "",
       status: "Active",
+      photoUrl: "",
     });
 
     setEditingId(null);
@@ -138,19 +152,122 @@ export default function PeopleScreen() {
       bloodGroup:
         person.bloodGroup || "",
       email: person.email || "",
-      type: person.type || "Volunteer",
-      address: person.address || "",
-      status: person.status || "Active",
+      type:
+        person.type || "Volunteer",
+      address:
+        person.address || "",
+      status:
+        person.status || "Active",
+      photoUrl:
+        person.photoUrl || "",
     });
 
     setModalVisible(true);
   };
 
   // ==================================================
+  // PHOTO
+  // ==================================================
+
+  const pickPersonPhoto =
+    async () => {
+      try {
+        const permission =
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+        if (
+          permission.status !==
+          "granted"
+        ) {
+          Alert.alert(
+            "Permission Required",
+            "Please allow photo library access to select a profile photo."
+          );
+
+          return;
+        }
+
+        const result =
+          await ImagePicker.launchImageLibraryAsync(
+            {
+              mediaTypes: [
+                "images",
+              ],
+              allowsEditing:
+                true,
+              aspect: [1, 1],
+              quality: 0.8,
+            }
+          );
+
+        if (
+          result.canceled
+        ) {
+          return;
+        }
+
+        const asset =
+          result.assets?.[0];
+
+        if (!asset) {
+          return;
+        }
+
+        setUploadingPhoto(true);
+
+        const uploaded =
+          await uploadImageToCloudinary(
+            asset,
+            "occasionfinancemanager/people"
+          );
+
+        setForm(
+          (current) => ({
+            ...current,
+            photoUrl:
+              uploaded.url,
+          })
+        );
+
+        Alert.alert(
+          "Photo Uploaded",
+          "Profile photo uploaded successfully."
+        );
+      } catch (error) {
+        console.log(
+          "Person photo upload error:",
+          error
+        );
+
+        Alert.alert(
+          "Photo Upload Failed",
+          error?.message ||
+            "Unable to upload the photo. Please try again."
+        );
+      } finally {
+        setUploadingPhoto(
+          false
+        );
+      }
+    };
+
+  const removePersonPhoto =
+    () => {
+      setForm(
+        (current) => ({
+          ...current,
+          photoUrl: "",
+        })
+      );
+    };
+
+  // ==================================================
   // MOBILE VALIDATION
   // ==================================================
 
-  const validateMobile = (mobile) => {
+  const validateMobile = (
+    mobile
+  ) => {
     const cleaned = String(
       mobile || ""
     ).replace(/\D/g, "");
@@ -164,7 +281,9 @@ export default function PeopleScreen() {
   // DOB VALIDATION
   // ==================================================
 
-  const validateDOB = (dob) => {
+  const validateDOB = (
+    dob
+  ) => {
     if (!dob.trim()) {
       return true;
     }
@@ -182,7 +301,9 @@ export default function PeopleScreen() {
     );
 
     if (
-      Number.isNaN(date.getTime())
+      Number.isNaN(
+        date.getTime()
+      )
     ) {
       return false;
     }
@@ -280,6 +401,11 @@ export default function PeopleScreen() {
         address:
           form.address.trim(),
         status: form.status,
+
+        // NEW
+        photoUrl:
+          form.photoUrl || "",
+
         updatedAt:
           serverTimestamp(),
       };
@@ -590,7 +716,8 @@ export default function PeopleScreen() {
         }
         contentContainerStyle={[
           styles.content,
-          isMobile && styles.contentMobile,
+          isMobile &&
+            styles.contentMobile,
         ]}
       >
         {/* HEADER */}
@@ -598,7 +725,8 @@ export default function PeopleScreen() {
         <View
           style={[
             styles.header,
-            isMobile && styles.headerMobile,
+            isMobile &&
+              styles.headerMobile,
           ]}
         >
           <View
@@ -630,7 +758,8 @@ export default function PeopleScreen() {
           <TouchableOpacity
             style={[
               styles.primaryButton,
-              isMobile && styles.primaryButtonMobile,
+              isMobile &&
+                styles.primaryButtonMobile,
             ]}
             onPress={openNew}
           >
@@ -657,7 +786,8 @@ export default function PeopleScreen() {
         <View
           style={[
             styles.summaryGrid,
-            isMobile && styles.summaryGridMobile,
+            isMobile &&
+              styles.summaryGridMobile,
           ]}
         >
           <SummaryCard
@@ -714,7 +844,8 @@ export default function PeopleScreen() {
         <View
           style={[
             styles.toolbar,
-            isMobile && styles.toolbarMobile,
+            isMobile &&
+              styles.toolbarMobile,
           ]}
         >
           <View
@@ -764,7 +895,8 @@ export default function PeopleScreen() {
           <View
             style={[
               styles.filterRow,
-              isMobile && styles.filterRowMobile,
+              isMobile &&
+                styles.filterRowMobile,
             ]}
           >
             {[
@@ -818,7 +950,8 @@ export default function PeopleScreen() {
           <View
             style={[
               styles.filterRow,
-              isMobile && styles.filterRowMobile,
+              isMobile &&
+                styles.filterRowMobile,
             ]}
           >
             {[
@@ -860,7 +993,8 @@ export default function PeopleScreen() {
         <View
           style={[
             styles.resultHeader,
-            isMobile && styles.resultHeaderMobile,
+            isMobile &&
+              styles.resultHeaderMobile,
           ]}
         >
           <Text
@@ -1032,7 +1166,8 @@ export default function PeopleScreen() {
             <View
               style={[
                 styles.modal,
-                isMobile && styles.modalMobile,
+                isMobile &&
+                  styles.modalMobile,
               ]}
             >
               {/* HEADER */}
@@ -1083,6 +1218,128 @@ export default function PeopleScreen() {
                     ×
                   </Text>
                 </TouchableOpacity>
+              </View>
+
+              {/* ==================================================
+                  PROFILE PHOTO
+                  ================================================== */}
+
+              <Text
+                style={
+                  styles.fieldLabel
+                }
+              >
+                Profile Photo
+              </Text>
+
+              <View
+                style={
+                  styles.photoSection
+                }
+              >
+                <View
+                  style={
+                    styles.photoPreview
+                  }
+                >
+                  {form.photoUrl ? (
+                    <Image
+                      source={{
+                        uri: form.photoUrl,
+                      }}
+                      style={
+                        styles.photoImage
+                      }
+                    />
+                  ) : (
+                    <Text
+                      style={
+                        styles.photoPlaceholder
+                      }
+                    >
+                      {form.name
+                        ? form.name
+                            .charAt(
+                              0
+                            )
+                            .toUpperCase()
+                        : "?"}
+                    </Text>
+                  )}
+                </View>
+
+                <View
+                  style={
+                    styles.photoActions
+                  }
+                >
+                  <TouchableOpacity
+                    style={
+                      styles.photoButton
+                    }
+                    onPress={
+                      pickPersonPhoto
+                    }
+                    disabled={
+                      uploadingPhoto ||
+                      saving
+                    }
+                  >
+                    {uploadingPhoto ? (
+                      <View
+                        style={
+                          styles.photoLoadingContent
+                        }
+                      >
+                        <ActivityIndicator
+                          size="small"
+                          color="#FFFFFF"
+                        />
+
+                        <Text
+                          style={
+                            styles.photoButtonText
+                          }
+                        >
+                          Uploading...
+                        </Text>
+                      </View>
+                    ) : (
+                      <Text
+                        style={
+                          styles.photoButtonText
+                        }
+                      >
+                        {form.photoUrl
+                          ? "Change Photo"
+                          : "Add Photo"}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+
+                  {form.photoUrl ? (
+                    <TouchableOpacity
+                      style={
+                        styles.removePhotoButton
+                      }
+                      onPress={
+                        removePersonPhoto
+                      }
+                      disabled={
+                        uploadingPhoto ||
+                        saving
+                      }
+                    >
+                      <Text
+                        style={
+                          styles.removePhotoText
+                        }
+                      >
+                        Remove Photo
+                      </Text>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
               </View>
 
               {/* NAME */}
@@ -1468,13 +1725,15 @@ export default function PeopleScreen() {
               <View
                 style={[
                   styles.modalActions,
-                  isMobile && styles.modalActionsMobile,
+                  isMobile &&
+                    styles.modalActionsMobile,
                 ]}
               >
                 <TouchableOpacity
                   style={[
                     styles.cancelButton,
-                    isMobile && styles.modalActionButtonMobile,
+                    isMobile &&
+                      styles.modalActionButtonMobile,
                   ]}
                   onPress={() => {
                     setModalVisible(
@@ -1495,20 +1754,36 @@ export default function PeopleScreen() {
                 <TouchableOpacity
                   style={[
                     styles.saveButton,
-                    isMobile && styles.modalActionButtonMobile,
+                    isMobile &&
+                      styles.modalActionButtonMobile,
                   ]}
                   onPress={
                     savePerson
                   }
                   disabled={
-                    saving
+                    saving ||
+                    uploadingPhoto
                   }
                 >
                   {saving ? (
-                    <ActivityIndicator
-                      size="small"
-                      color="#FFFFFF"
-                    />
+                    <View
+                      style={
+                        styles.saveLoadingContent
+                      }
+                    >
+                      <ActivityIndicator
+                        size="small"
+                        color="#FFFFFF"
+                      />
+
+                      <Text
+                        style={
+                          styles.saveButtonText
+                        }
+                      >
+                        Saving...
+                      </Text>
+                    </View>
                   ) : (
                     <Text
                       style={
@@ -1541,14 +1816,21 @@ function SummaryCard({
   color,
   wide = false,
 }) {
-  const { width } = useWindowDimensions();
-  const isMobile = width < 768;
+  const { width } =
+    useWindowDimensions();
+
+  const isMobile =
+    width < 768;
+
   return (
     <View
       style={[
         styles.summaryCard,
-        isMobile && styles.summaryCardMobile,
-        isMobile && wide && styles.summaryCardMobileWide,
+        isMobile &&
+          styles.summaryCardMobile,
+        isMobile &&
+          wide &&
+          styles.summaryCardMobileWide,
       ]}
     >
       <View
@@ -1560,6 +1842,8 @@ function SummaryCard({
           style={
             styles.summaryLabel
           }
+          numberOfLines={1}
+          adjustsFontSizeToFit
         >
           {label}
         </Text>
@@ -1589,7 +1873,8 @@ function SummaryCard({
       <Text
         style={[
           styles.summaryValue,
-          isMobile && styles.summaryValueMobile,
+          isMobile &&
+            styles.summaryValueMobile,
         ]}
       >
         {value}
@@ -1607,8 +1892,11 @@ function PersonCard({
   onEdit,
   onDelete,
 }) {
-  const { width } = useWindowDimensions();
-  const isMobile = width < 768;
+  const { width } =
+    useWindowDimensions();
+
+  const isMobile =
+    width < 768;
 
   const isActive =
     String(
@@ -1638,7 +1926,8 @@ function PersonCard({
     <View
       style={[
         styles.personCard,
-        isMobile && styles.personCardMobile,
+        isMobile &&
+          styles.personCardMobile,
       ]}
     >
       {/* IDENTITY */}
@@ -1646,7 +1935,8 @@ function PersonCard({
       <View
         style={[
           styles.personIdentity,
-          isMobile && styles.personIdentityMobile,
+          isMobile &&
+            styles.personIdentityMobile,
         ]}
       >
         <View
@@ -1658,43 +1948,54 @@ function PersonCard({
             },
           ]}
         >
-          <Text
-            style={[
-              styles.personAvatarText,
-              {
-                color:
-                  typeColor,
-              },
-            ]}
-          >
-            {String(
-              person.name ||
-                "?"
-            )
-              .charAt(0)
-              .toUpperCase()}
-          </Text>
+          {person.photoUrl ? (
+            <Image
+              source={{
+                uri: person.photoUrl,
+              }}
+              style={
+                styles.personAvatarImage
+              }
+            />
+          ) : (
+            <Text
+              style={[
+                styles.personAvatarText,
+                {
+                  color:
+                    typeColor,
+                },
+              ]}
+            >
+              {String(
+                person.name ||
+                  "?"
+              )
+                .charAt(0)
+                .toUpperCase()}
+            </Text>
+          )}
         </View>
 
         <View
           style={[
             styles.personInfo,
-            isMobile && styles.personInfoMobile,
+            isMobile &&
+              styles.personInfoMobile,
           ]}
         >
           <View
             style={[
               styles.personNameRow,
-              isMobile && styles.personNameRowMobile,
+              isMobile &&
+                styles.personNameRowMobile,
             ]}
           >
             <Text
               style={
                 styles.personName
               }
-              numberOfLines={
-                1
-              }
+              numberOfLines={1}
             >
               {person.name ||
                 "Unnamed Person"}
@@ -1761,7 +2062,9 @@ function PersonCard({
                     styles.bloodBadgeText
                   }
                 >
-                  {person.bloodGroup}
+                  {
+                    person.bloodGroup
+                  }
                 </Text>
               </View>
             ) : null}
@@ -1771,9 +2074,7 @@ function PersonCard({
                 style={
                   styles.detailText
                 }
-                numberOfLines={
-                  1
-                }
+                numberOfLines={1}
               >
                 {person.email}
               </Text>
@@ -1787,7 +2088,8 @@ function PersonCard({
       <View
         style={[
           styles.personStatus,
-          isMobile && styles.personStatusMobile,
+          isMobile &&
+            styles.personStatusMobile,
         ]}
       >
         <View
@@ -1827,13 +2129,15 @@ function PersonCard({
       <View
         style={[
           styles.cardActions,
-          isMobile && styles.cardActionsMobile,
+          isMobile &&
+            styles.cardActionsMobile,
         ]}
       >
         <TouchableOpacity
           style={[
             styles.actionButton,
-            isMobile && styles.actionButtonMobile,
+            isMobile &&
+              styles.actionButtonMobile,
           ]}
           onPress={
             onEdit
@@ -1852,7 +2156,8 @@ function PersonCard({
           style={[
             styles.actionButton,
             styles.deleteAction,
-            isMobile && styles.actionButtonMobile,
+            isMobile &&
+              styles.actionButtonMobile,
           ]}
           onPress={
             onDelete
@@ -1878,12 +2183,12 @@ function PersonCard({
 const styles = StyleSheet.create({
   // ==================================================
   // PAGE
-  // Matches the Dashboard visual system
   // ==================================================
 
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor:
+      COLORS.background,
   },
 
   contentMobile: {
@@ -1903,15 +2208,18 @@ const styles = StyleSheet.create({
 
   loading: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor:
+      COLORS.background,
     alignItems: "center",
     justifyContent: "center",
   },
 
   loadingText: {
-    fontFamily: FONTS.regular,
+    fontFamily:
+      FONTS.regular,
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color:
+      COLORS.textSecondary,
     marginTop: 10,
   },
 
@@ -1921,7 +2229,8 @@ const styles = StyleSheet.create({
 
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent:
+      "space-between",
     alignItems: "flex-end",
     marginBottom: 26,
   },
@@ -1931,71 +2240,82 @@ const styles = StyleSheet.create({
   },
 
   eyebrow: {
-    fontFamily: FONTS.medium,
+    fontFamily:
+      FONTS.medium,
     fontSize: 11,
     letterSpacing: 1.1,
-    color: COLORS.primary,
+    color:
+      COLORS.primary,
   },
 
   title: {
-    fontFamily: FONTS.bold,
+    fontFamily:
+      FONTS.bold,
     fontSize: 36,
     lineHeight: 43,
-    color: COLORS.text,
+    color:
+      COLORS.text,
     marginTop: 4,
   },
 
   subtitle: {
-    fontFamily: FONTS.regular,
+    fontFamily:
+      FONTS.regular,
     fontSize: 16,
     lineHeight: 22,
-    color: COLORS.textSecondary,
+    color:
+      COLORS.textSecondary,
     marginTop: 5,
   },
 
   headerMobile: {
-    flexDirection: "column",
-    alignItems: "stretch",
+    flexDirection:
+      "column",
+    alignItems:
+      "stretch",
     marginBottom: 20,
   },
 
   primaryButtonMobile: {
-    alignSelf: "flex-start",
+    alignSelf:
+      "flex-start",
     marginLeft: 0,
     marginTop: 14,
     minHeight: 46,
     paddingHorizontal: 16,
   },
 
-  primaryButtonMobileText: {},
-
   primaryButton: {
     minHeight: 48,
     paddingHorizontal: 19,
     borderRadius: 11,
-    backgroundColor: COLORS.primary,
+    backgroundColor:
+      COLORS.primary,
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems:
+      "center",
+    justifyContent:
+      "center",
     marginLeft: 20,
   },
 
   primaryButtonIcon: {
-    fontFamily: FONTS.bold,
+    fontFamily:
+      FONTS.bold,
     fontSize: 20,
     color: "#FFFFFF",
     marginRight: 8,
   },
 
   primaryButtonText: {
-    fontFamily: FONTS.medium,
+    fontFamily:
+      FONTS.medium,
     fontSize: 14,
     color: "#FFFFFF",
   },
 
   // ==================================================
-  // SUMMARY CARDS
-  // Same proportions as Dashboard KPI cards
+  // SUMMARY
   // ==================================================
 
   summaryGridMobile: {
@@ -2026,55 +2346,65 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 190,
     minHeight: 142,
-    backgroundColor: COLORS.surface,
+    backgroundColor:
+      COLORS.surface,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor:
+      COLORS.border,
     borderRadius: 15,
     padding: 20,
   },
 
   summaryTop: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
-  summaryLabelMobile: {
-    fontSize: 10,
-  },
-
-  summaryValueMobile: {
-    fontSize: 27,
-    lineHeight: 32,
-    marginTop: 12,
+    justifyContent:
+      "space-between",
+    alignItems:
+      "center",
   },
 
   summaryLabel: {
-    fontFamily: FONTS.medium,
+    flex: 1,
+    fontFamily:
+      FONTS.medium,
     fontSize: 11,
     letterSpacing: 0.75,
-    color: COLORS.textMuted,
+    color:
+      COLORS.textMuted,
+    marginRight: 8,
   },
 
   summaryIcon: {
     width: 38,
     height: 38,
     borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems:
+      "center",
+    justifyContent:
+      "center",
+    flexShrink: 0,
   },
 
   summaryIconText: {
-    fontFamily: FONTS.bold,
+    fontFamily:
+      FONTS.bold,
     fontSize: 17,
   },
 
   summaryValue: {
-    fontFamily: FONTS.bold,
+    fontFamily:
+      FONTS.bold,
     fontSize: 30,
     lineHeight: 37,
-    color: COLORS.text,
+    color:
+      COLORS.text,
     marginTop: 16,
+  },
+
+  summaryValueMobile: {
+    fontSize: 27,
+    lineHeight: 32,
+    marginTop: 12,
   },
 
   // ==================================================
@@ -2088,9 +2418,11 @@ const styles = StyleSheet.create({
   },
 
   toolbar: {
-    backgroundColor: COLORS.surface,
+    backgroundColor:
+      COLORS.surface,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor:
+      COLORS.border,
     borderRadius: 15,
     padding: 13,
     marginBottom: 18,
@@ -2099,28 +2431,36 @@ const styles = StyleSheet.create({
   searchBox: {
     height: 48,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor:
+      COLORS.border,
     borderRadius: 10,
     flexDirection: "row",
-    alignItems: "center",
+    alignItems:
+      "center",
     paddingHorizontal: 13,
-    backgroundColor: COLORS.surface,
+    backgroundColor:
+      COLORS.surface,
   },
 
   searchIcon: {
-    fontFamily: FONTS.medium,
+    fontFamily:
+      FONTS.medium,
     fontSize: 20,
-    color: COLORS.textMuted,
+    color:
+      COLORS.textMuted,
     marginRight: 8,
   },
 
   searchInput: {
     flex: 1,
     height: 46,
-    fontFamily: FONTS.regular,
+    fontFamily:
+      FONTS.regular,
     fontSize: 15,
-    color: COLORS.text,
-    outlineStyle: "none",
+    color:
+      COLORS.text,
+    outlineStyle:
+      "none",
   },
 
   // ==================================================
@@ -2132,10 +2472,12 @@ const styles = StyleSheet.create({
   },
 
   filterLabel: {
-    fontFamily: FONTS.medium,
+    fontFamily:
+      FONTS.medium,
     fontSize: 11,
     letterSpacing: 0.75,
-    color: COLORS.textMuted,
+    color:
+      COLORS.textMuted,
     marginBottom: 8,
   },
 
@@ -2153,26 +2495,35 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     height: 40,
     borderRadius: 9,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#F1F5F9",
+    alignItems:
+      "center",
+    justifyContent:
+      "center",
+    backgroundColor:
+      "#F1F5F9",
     borderWidth: 1,
-    borderColor: "#E7EDF5",
+    borderColor:
+      "#E7EDF5",
   },
 
   filterButtonActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+    backgroundColor:
+      COLORS.primary,
+    borderColor:
+      COLORS.primary,
   },
 
   filterText: {
-    fontFamily: FONTS.medium,
+    fontFamily:
+      FONTS.medium,
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color:
+      COLORS.textSecondary,
   },
 
   filterTextActive: {
-    fontFamily: FONTS.bold,
+    fontFamily:
+      FONTS.bold,
     color: "#FFFFFF",
   },
 
@@ -2186,23 +2537,30 @@ const styles = StyleSheet.create({
   },
 
   resultHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection:
+      "row",
+    justifyContent:
+      "space-between",
+    alignItems:
+      "center",
     marginTop: 6,
     marginBottom: 12,
   },
 
   resultCount: {
-    fontFamily: FONTS.medium,
+    fontFamily:
+      FONTS.medium,
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color:
+      COLORS.textSecondary,
   },
 
   clearText: {
-    fontFamily: FONTS.medium,
+    fontFamily:
+      FONTS.medium,
     fontSize: 14,
-    color: COLORS.primary,
+    color:
+      COLORS.primary,
   },
 
   // ==================================================
@@ -2217,8 +2575,10 @@ const styles = StyleSheet.create({
     minHeight: 0,
     paddingHorizontal: 15,
     paddingVertical: 15,
-    flexDirection: "column",
-    alignItems: "stretch",
+    flexDirection:
+      "column",
+    alignItems:
+      "stretch",
   },
 
   personIdentityMobile: {
@@ -2230,13 +2590,15 @@ const styles = StyleSheet.create({
   },
 
   personNameRowMobile: {
-    flexWrap: "wrap",
+    flexWrap:
+      "wrap",
   },
 
   personStatusMobile: {
     marginHorizontal: 0,
     marginTop: 12,
-    alignSelf: "flex-start",
+    alignSelf:
+      "flex-start",
   },
 
   cardActionsMobile: {
@@ -2244,7 +2606,8 @@ const styles = StyleSheet.create({
     marginTop: 13,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    borderTopColor:
+      COLORS.border,
     gap: 9,
   },
 
@@ -2254,21 +2617,27 @@ const styles = StyleSheet.create({
   },
 
   personCard: {
-    backgroundColor: COLORS.surface,
+    backgroundColor:
+      COLORS.surface,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor:
+      COLORS.border,
     borderRadius: 15,
     paddingHorizontal: 18,
     paddingVertical: 17,
     minHeight: 100,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection:
+      "row",
+    alignItems:
+      "center",
   },
 
   personIdentity: {
     flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection:
+      "row",
+    alignItems:
+      "center",
     minWidth: 0,
   },
 
@@ -2276,12 +2645,23 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems:
+      "center",
+    justifyContent:
+      "center",
+    overflow: "hidden",
+    flexShrink: 0,
+  },
+
+  personAvatarImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 14,
   },
 
   personAvatarText: {
-    fontFamily: FONTS.bold,
+    fontFamily:
+      FONTS.bold,
     fontSize: 18,
   },
 
@@ -2292,16 +2672,21 @@ const styles = StyleSheet.create({
   },
 
   personNameRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
+    flexDirection:
+      "row",
+    alignItems:
+      "center",
+    flexWrap:
+      "wrap",
   },
 
   personName: {
-    fontFamily: FONTS.medium,
+    fontFamily:
+      FONTS.medium,
     fontSize: 16,
     lineHeight: 21,
-    color: COLORS.text,
+    color:
+      COLORS.text,
     maxWidth: 420,
   },
 
@@ -2313,35 +2698,44 @@ const styles = StyleSheet.create({
   },
 
   typeBadgeText: {
-    fontFamily: FONTS.medium,
+    fontFamily:
+      FONTS.medium,
     fontSize: 11,
   },
 
   personDetails: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "center",
+    flexDirection:
+      "row",
+    flexWrap:
+      "wrap",
+    alignItems:
+      "center",
     marginTop: 6,
     gap: 13,
   },
 
   detailText: {
-    fontFamily: FONTS.regular,
+    fontFamily:
+      FONTS.regular,
     fontSize: 13,
-    color: COLORS.textMuted,
+    color:
+      COLORS.textMuted,
   },
 
   bloodBadge: {
     paddingHorizontal: 7,
     paddingVertical: 3,
     borderRadius: 6,
-    backgroundColor: "#FEF2F2",
+    backgroundColor:
+      "#FEF2F2",
   },
 
   bloodBadgeText: {
-    fontFamily: FONTS.medium,
+    fontFamily:
+      FONTS.medium,
     fontSize: 11,
-    color: "#DC2626",
+    color:
+      "#DC2626",
   },
 
   personStatus: {
@@ -2352,16 +2746,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 20,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection:
+      "row",
+    alignItems:
+      "center",
   },
 
   activeBadge: {
-    backgroundColor: COLORS.successLight,
+    backgroundColor:
+      COLORS.successLight,
   },
 
   inactiveBadge: {
-    backgroundColor: "#F1F5F9",
+    backgroundColor:
+      "#F1F5F9",
   },
 
   statusDot: {
@@ -2372,25 +2770,30 @@ const styles = StyleSheet.create({
   },
 
   activeDot: {
-    backgroundColor: COLORS.success,
+    backgroundColor:
+      COLORS.success,
   },
 
   inactiveDot: {
-    backgroundColor: COLORS.textMuted,
+    backgroundColor:
+      COLORS.textMuted,
   },
 
   statusBadgeText: {
-    fontFamily: FONTS.medium,
+    fontFamily:
+      FONTS.medium,
     fontSize: 11,
     letterSpacing: 0.35,
   },
 
   activeText: {
-    color: COLORS.success,
+    color:
+      COLORS.success,
   },
 
   inactiveText: {
-    color: COLORS.textMuted,
+    color:
+      COLORS.textMuted,
   },
 
   // ==================================================
@@ -2398,7 +2801,8 @@ const styles = StyleSheet.create({
   // ==================================================
 
   cardActions: {
-    flexDirection: "row",
+    flexDirection:
+      "row",
     gap: 7,
   },
 
@@ -2407,25 +2811,33 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
-    backgroundColor: "#F1F5F9",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor:
+      "#F1F5F9",
+    alignItems:
+      "center",
+    justifyContent:
+      "center",
   },
 
   actionButtonText: {
-    fontFamily: FONTS.medium,
+    fontFamily:
+      FONTS.medium,
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color:
+      COLORS.textSecondary,
   },
 
   deleteAction: {
-    backgroundColor: COLORS.dangerLight,
+    backgroundColor:
+      COLORS.dangerLight,
   },
 
   deleteActionText: {
-    fontFamily: FONTS.medium,
+    fontFamily:
+      FONTS.medium,
     fontSize: 13,
-    color: COLORS.danger,
+    color:
+      COLORS.danger,
   },
 
   // ==================================================
@@ -2433,44 +2845,57 @@ const styles = StyleSheet.create({
   // ==================================================
 
   emptyCard: {
-    backgroundColor: COLORS.surface,
+    backgroundColor:
+      COLORS.surface,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor:
+      COLORS.border,
     borderRadius: 15,
     paddingVertical: 64,
     paddingHorizontal: 28,
-    alignItems: "center",
+    alignItems:
+      "center",
   },
 
   emptyIcon: {
     width: 58,
     height: 58,
     borderRadius: 16,
-    backgroundColor: COLORS.primaryLight,
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor:
+      COLORS.primaryLight,
+    alignItems:
+      "center",
+    justifyContent:
+      "center",
   },
 
   emptyIconText: {
-    fontFamily: FONTS.bold,
+    fontFamily:
+      FONTS.bold,
     fontSize: 24,
-    color: COLORS.primary,
+    color:
+      COLORS.primary,
   },
 
   emptyTitle: {
-    fontFamily: FONTS.bold,
+    fontFamily:
+      FONTS.bold,
     fontSize: 18,
-    color: COLORS.text,
+    color:
+      COLORS.text,
     marginTop: 15,
   },
 
   emptyDescription: {
-    fontFamily: FONTS.regular,
+    fontFamily:
+      FONTS.regular,
     fontSize: 14,
     lineHeight: 20,
-    color: COLORS.textMuted,
+    color:
+      COLORS.textMuted,
     marginTop: 6,
-    textAlign: "center",
+    textAlign:
+      "center",
   },
 
   emptyButton: {
@@ -2478,11 +2903,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 9,
-    backgroundColor: COLORS.primary,
+    backgroundColor:
+      COLORS.primary,
   },
 
   emptyButtonText: {
-    fontFamily: FONTS.medium,
+    fontFamily:
+      FONTS.medium,
     fontSize: 14,
     color: "#FFFFFF",
   },
@@ -2493,13 +2920,16 @@ const styles = StyleSheet.create({
 
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(15, 23, 42, 0.45)",
+    backgroundColor:
+      "rgba(15, 23, 42, 0.45)",
   },
 
   modalScroll: {
     flexGrow: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems:
+      "center",
+    justifyContent:
+      "center",
     padding: 24,
   },
 
@@ -2510,36 +2940,46 @@ const styles = StyleSheet.create({
   },
 
   modalActionsMobile: {
-    flexDirection: "column-reverse",
-    alignItems: "stretch",
+    flexDirection:
+      "column-reverse",
+    alignItems:
+      "stretch",
   },
 
   modal: {
     width: "100%",
     maxWidth: 720,
-    backgroundColor: COLORS.surface,
+    backgroundColor:
+      COLORS.surface,
     borderRadius: 18,
     padding: 26,
   },
 
   modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
+    flexDirection:
+      "row",
+    justifyContent:
+      "space-between",
+    alignItems:
+      "flex-start",
     marginBottom: 19,
   },
 
   modalTitle: {
-    fontFamily: FONTS.bold,
+    fontFamily:
+      FONTS.bold,
     fontSize: 23,
     lineHeight: 28,
-    color: COLORS.text,
+    color:
+      COLORS.text,
   },
 
   modalSubtitle: {
-    fontFamily: FONTS.regular,
+    fontFamily:
+      FONTS.regular,
     fontSize: 13,
-    color: COLORS.textMuted,
+    color:
+      COLORS.textMuted,
     marginTop: 4,
   },
 
@@ -2547,15 +2987,20 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 9,
-    backgroundColor: "#F1F5F9",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor:
+      "#F1F5F9",
+    alignItems:
+      "center",
+    justifyContent:
+      "center",
   },
 
   closeText: {
-    fontFamily: FONTS.regular,
+    fontFamily:
+      FONTS.regular,
     fontSize: 23,
-    color: COLORS.textSecondary,
+    color:
+      COLORS.textSecondary,
     lineHeight: 25,
   },
 
@@ -2564,9 +3009,11 @@ const styles = StyleSheet.create({
   // ==================================================
 
   fieldLabel: {
-    fontFamily: FONTS.medium,
+    fontFamily:
+      FONTS.medium,
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color:
+      COLORS.textSecondary,
     marginBottom: 7,
     marginTop: 13,
   },
@@ -2574,25 +3021,33 @@ const styles = StyleSheet.create({
   input: {
     height: 47,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor:
+      COLORS.border,
     borderRadius: 9,
     paddingHorizontal: 13,
-    fontFamily: FONTS.regular,
+    fontFamily:
+      FONTS.regular,
     fontSize: 15,
-    color: COLORS.text,
-    backgroundColor: COLORS.surface,
-    outlineStyle: "none",
+    color:
+      COLORS.text,
+    backgroundColor:
+      COLORS.surface,
+    outlineStyle:
+      "none",
   },
 
   helperText: {
-    fontFamily: FONTS.regular,
+    fontFamily:
+      FONTS.regular,
     fontSize: 12,
-    color: COLORS.textMuted,
+    color:
+      COLORS.textMuted,
     marginTop: 4,
   },
 
   formRow: {
-    flexDirection: "row",
+    flexDirection:
+      "row",
     gap: 12,
   },
 
@@ -2602,12 +3057,116 @@ const styles = StyleSheet.create({
   },
 
   // ==================================================
+  // PHOTO
+  // ==================================================
+
+  photoSection: {
+    flexDirection:
+      "row",
+    alignItems:
+      "center",
+    marginBottom: 4,
+  },
+
+  photoPreview: {
+    width: 82,
+    height: 82,
+    borderRadius: 41,
+    backgroundColor:
+      COLORS.primaryLight,
+    borderWidth: 1,
+    borderColor:
+      COLORS.border,
+    alignItems:
+      "center",
+    justifyContent:
+      "center",
+    overflow:
+      "hidden",
+    flexShrink: 0,
+  },
+
+  photoImage: {
+    width: "100%",
+    height: "100%",
+  },
+
+  photoPlaceholder: {
+    fontFamily:
+      FONTS.bold,
+    fontSize: 28,
+    color:
+      COLORS.primary,
+  },
+
+  photoActions: {
+    marginLeft: 15,
+    gap: 8,
+    flex: 1,
+  },
+
+  photoButton: {
+    minHeight: 40,
+    paddingHorizontal: 15,
+    borderRadius: 9,
+    backgroundColor:
+      COLORS.primary,
+    alignItems:
+      "center",
+    justifyContent:
+      "center",
+    alignSelf:
+      "flex-start",
+  },
+
+  photoLoadingContent: {
+    flexDirection:
+      "row",
+    alignItems:
+      "center",
+    justifyContent:
+      "center",
+    gap: 8,
+  },
+
+  photoButtonText: {
+    fontFamily:
+      FONTS.medium,
+    fontSize: 13,
+    color: "#FFFFFF",
+  },
+
+  removePhotoButton: {
+    minHeight: 36,
+    paddingHorizontal: 15,
+    borderRadius: 9,
+    backgroundColor:
+      COLORS.dangerLight,
+    alignItems:
+      "center",
+    justifyContent:
+      "center",
+    alignSelf:
+      "flex-start",
+  },
+
+  removePhotoText: {
+    fontFamily:
+      FONTS.medium,
+    fontSize: 12,
+    color:
+      COLORS.danger,
+  },
+
+  // ==================================================
   // BLOOD GROUP
   // ==================================================
 
   bloodGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection:
+      "row",
+    flexWrap:
+      "wrap",
     gap: 6,
   },
 
@@ -2616,27 +3175,37 @@ const styles = StyleSheet.create({
     height: 34,
     paddingHorizontal: 8,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor:
+      COLORS.border,
     borderRadius: 7,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: COLORS.surface,
+    alignItems:
+      "center",
+    justifyContent:
+      "center",
+    backgroundColor:
+      COLORS.surface,
   },
 
   bloodOptionActive: {
-    backgroundColor: "#FEF2F2",
-    borderColor: "#DC2626",
+    backgroundColor:
+      "#FEF2F2",
+    borderColor:
+      "#DC2626",
   },
 
   bloodText: {
-    fontFamily: FONTS.medium,
+    fontFamily:
+      FONTS.medium,
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color:
+      COLORS.textSecondary,
   },
 
   bloodTextActive: {
-    fontFamily: FONTS.bold,
-    color: "#DC2626",
+    fontFamily:
+      FONTS.bold,
+    color:
+      "#DC2626",
   },
 
   // ==================================================
@@ -2644,8 +3213,10 @@ const styles = StyleSheet.create({
   // ==================================================
 
   typeGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection:
+      "row",
+    flexWrap:
+      "wrap",
     gap: 8,
   },
 
@@ -2654,16 +3225,21 @@ const styles = StyleSheet.create({
     minWidth: 130,
     height: 44,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor:
+      COLORS.border,
     borderRadius: 9,
     paddingHorizontal: 11,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection:
+      "row",
+    alignItems:
+      "center",
   },
 
   typeOptionActive: {
-    backgroundColor: COLORS.primaryLight,
-    borderColor: COLORS.primary,
+    backgroundColor:
+      COLORS.primaryLight,
+    borderColor:
+      COLORS.primary,
   },
 
   typeRadio: {
@@ -2671,32 +3247,41 @@ const styles = StyleSheet.create({
     height: 17,
     borderRadius: 9,
     borderWidth: 1.5,
-    borderColor: COLORS.border,
-    alignItems: "center",
-    justifyContent: "center",
+    borderColor:
+      COLORS.border,
+    alignItems:
+      "center",
+    justifyContent:
+      "center",
   },
 
   typeRadioActive: {
-    borderColor: COLORS.primary,
+    borderColor:
+      COLORS.primary,
   },
 
   typeRadioDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: COLORS.primary,
+    backgroundColor:
+      COLORS.primary,
   },
 
   typeOptionText: {
-    fontFamily: FONTS.medium,
+    fontFamily:
+      FONTS.medium,
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color:
+      COLORS.textSecondary,
     marginLeft: 8,
   },
 
   typeOptionTextActive: {
-    fontFamily: FONTS.bold,
-    color: COLORS.primary,
+    fontFamily:
+      FONTS.bold,
+    color:
+      COLORS.primary,
   },
 
   // ==================================================
@@ -2706,7 +3291,8 @@ const styles = StyleSheet.create({
   addressInput: {
     height: 82,
     paddingTop: 11,
-    textAlignVertical: "top",
+    textAlignVertical:
+      "top",
   },
 
   // ==================================================
@@ -2714,7 +3300,8 @@ const styles = StyleSheet.create({
   // ==================================================
 
   statusSelector: {
-    flexDirection: "row",
+    flexDirection:
+      "row",
     gap: 8,
   },
 
@@ -2723,25 +3310,34 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 9,
     borderWidth: 1,
-    borderColor: COLORS.border,
-    alignItems: "center",
-    justifyContent: "center",
+    borderColor:
+      COLORS.border,
+    alignItems:
+      "center",
+    justifyContent:
+      "center",
   },
 
   statusOptionActive: {
-    backgroundColor: COLORS.primaryLight,
-    borderColor: COLORS.primary,
+    backgroundColor:
+      COLORS.primaryLight,
+    borderColor:
+      COLORS.primary,
   },
 
   statusOptionText: {
-    fontFamily: FONTS.medium,
+    fontFamily:
+      FONTS.medium,
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color:
+      COLORS.textSecondary,
   },
 
   statusOptionTextActive: {
-    fontFamily: FONTS.bold,
-    color: COLORS.primary,
+    fontFamily:
+      FONTS.bold,
+    color:
+      COLORS.primary,
   },
 
   // ==================================================
@@ -2749,8 +3345,10 @@ const styles = StyleSheet.create({
   // ==================================================
 
   modalActions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
+    flexDirection:
+      "row",
+    justifyContent:
+      "flex-end",
     gap: 9,
     marginTop: 24,
   },
@@ -2759,15 +3357,20 @@ const styles = StyleSheet.create({
     height: 44,
     paddingHorizontal: 18,
     borderRadius: 9,
-    backgroundColor: "#F1F5F9",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor:
+      "#F1F5F9",
+    alignItems:
+      "center",
+    justifyContent:
+      "center",
   },
 
   cancelButtonText: {
-    fontFamily: FONTS.medium,
+    fontFamily:
+      FONTS.medium,
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color:
+      COLORS.textSecondary,
   },
 
   modalActionButtonMobile: {
@@ -2779,13 +3382,27 @@ const styles = StyleSheet.create({
     minWidth: 125,
     paddingHorizontal: 18,
     borderRadius: 9,
-    backgroundColor: COLORS.primary,
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor:
+      COLORS.primary,
+    alignItems:
+      "center",
+    justifyContent:
+      "center",
+  },
+
+  saveLoadingContent: {
+    flexDirection:
+      "row",
+    alignItems:
+      "center",
+    justifyContent:
+      "center",
+    gap: 9,
   },
 
   saveButtonText: {
-    fontFamily: FONTS.medium,
+    fontFamily:
+      FONTS.medium,
     fontSize: 14,
     color: "#FFFFFF",
   },

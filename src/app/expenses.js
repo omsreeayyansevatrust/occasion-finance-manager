@@ -2,14 +2,16 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Image,
   Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
   useWindowDimensions,
+  View,
 } from "react-native";
 
 import {
@@ -24,6 +26,11 @@ import {
 
 import { COLORS, FONTS } from "../constants/theme";
 import { db } from "../services/firebase";
+
+import * as ImagePicker from "expo-image-picker";
+
+const CLOUDINARY_CLOUD_NAME = "etejpids";
+const CLOUDINARY_UPLOAD_PRESET = "Occasionfinancemanager";
 
 const EXPENSE_CATEGORIES = [
   "Food",
@@ -100,6 +107,12 @@ export default function ExpensesScreen() {
   const [showOccasions, setShowOccasions] =
     useState(false);
 
+  const [proofViewerVisible, setProofViewerVisible] =
+    useState(false);
+
+  const [proofViewerUrl, setProofViewerUrl] =
+    useState("");
+
   const [form, setForm] = useState({
     occasionId: "",
     occasionName: "",
@@ -109,6 +122,7 @@ export default function ExpensesScreen() {
     amount: "",
     paymentMode: "UPI",
     notes: "",
+    proofImageUrl: "",
   });
 
   // ==================================================
@@ -253,9 +267,105 @@ export default function ExpensesScreen() {
         expense.paymentMode || "UPI",
       notes:
         expense.notes || "",
+      proofImageUrl:
+        expense.proofImageUrl || "",
     });
 
     setModalVisible(true);
+  };
+
+  // ==================================================
+  // CLOUDINARY PROOF IMAGE
+  // ==================================================
+
+  const pickProofImage = async () => {
+    try {
+      const permission =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (!permission.granted) {
+        Alert.alert(
+          "Permission Required",
+          "Please allow photo access to upload an expense proof image."
+        );
+        return;
+      }
+
+      const result =
+        await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ["images"],
+          allowsEditing: true,
+          aspect: [4, 3],
+          quality: 0.8,
+        });
+
+      if (result.canceled || !result.assets?.length) {
+        return;
+      }
+
+      const asset = result.assets[0];
+      setSaving(true);
+
+      const formData = new FormData();
+      formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+      if (Platform.OS === "web") {
+        const response = await fetch(asset.uri);
+        const blob = await response.blob();
+        formData.append("file", blob, asset.fileName || "expense-proof.jpg");
+      } else {
+        formData.append("file", {
+          uri: asset.uri,
+          type: asset.mimeType || "image/jpeg",
+          name: asset.fileName || `expense-proof-${Date.now()}.jpg`,
+        });
+      }
+
+      const uploadResponse = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      const uploadResult = await uploadResponse.json();
+
+      if (!uploadResponse.ok || !uploadResult.secure_url) {
+        console.log("Cloudinary upload error:", uploadResult);
+        throw new Error(
+          uploadResult?.error?.message ||
+            "Unable to upload the proof image."
+        );
+      }
+
+      setForm((current) => ({
+        ...current,
+        proofImageUrl: uploadResult.secure_url,
+      }));
+    } catch (error) {
+      console.log("Proof image upload error:", error);
+      Alert.alert(
+        "Upload Failed",
+        error?.message ||
+          "Unable to upload the proof image. Please try again."
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const removeProofImage = () => {
+    setForm((current) => ({
+      ...current,
+      proofImageUrl: "",
+    }));
+  };
+
+  const openProofViewer = (url) => {
+    if (!url) return;
+    setProofViewerUrl(url);
+    setProofViewerVisible(true);
   };
 
   // ==================================================
@@ -535,6 +645,8 @@ export default function ExpensesScreen() {
           form.paymentMode,
         notes:
           form.notes.trim(),
+        proofImageUrl:
+          form.proofImageUrl || "",
         updatedAt:
           serverTimestamp(),
       };
@@ -1184,6 +1296,11 @@ export default function ExpensesScreen() {
                       expense
                     )
                   }
+                  onViewProof={() =>
+                    openProofViewer(
+                      expense.proofImageUrl
+                    )
+                  }
                   isMobile={isMobile}
                 />
               )
@@ -1789,6 +1906,87 @@ export default function ExpensesScreen() {
                 ]}
               />
 
+              {/* EXPENSE PROOF IMAGE */}
+
+              <Text
+                style={
+                  styles.fieldLabel
+                }
+              >
+                Expense Proof
+              </Text>
+
+              {form.proofImageUrl ? (
+                <View style={styles.proofPreviewBox}>
+                  <TouchableOpacity
+                    activeOpacity={0.9}
+                    onPress={() =>
+                      openProofViewer(form.proofImageUrl)
+                    }
+                  >
+                    <Image
+                      source={{ uri: form.proofImageUrl }}
+                      style={styles.proofPreviewImage}
+                      resizeMode="contain"
+                    />
+                    <View style={styles.proofTapHint}>
+                      <Text style={styles.proofTapHintText}>
+                        Tap image to view
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  <View style={styles.proofPreviewActions}>
+                    <TouchableOpacity
+                      style={styles.proofViewButton}
+                      onPress={() =>
+                        openProofViewer(form.proofImageUrl)
+                      }
+                    >
+                      <Text style={styles.proofViewButtonText}>
+                        View Proof
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.proofSecondaryButton}
+                      onPress={pickProofImage}
+                      disabled={saving}
+                    >
+                      <Text style={styles.proofSecondaryButtonText}>
+                        Replace
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.proofRemoveButton}
+                      onPress={removeProofImage}
+                      disabled={saving}
+                    >
+                      <Text style={styles.proofRemoveButtonText}>
+                        Remove
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={styles.proofUploadBox}
+                  onPress={pickProofImage}
+                  disabled={saving}
+                >
+                  <View style={styles.proofUploadIcon}>
+                    <Text style={styles.proofUploadIconText}>📷</Text>
+                  </View>
+                  <Text style={styles.proofUploadTitle}>
+                    Add expense proof
+                  </Text>
+                  <Text style={styles.proofUploadSubtitle}>
+                    Upload receipt, bill or payment proof
+                  </Text>
+                </TouchableOpacity>
+              )}
+
               {/* ACTIONS */}
 
               <View
@@ -1850,6 +2048,74 @@ export default function ExpensesScreen() {
               </View>
             </View>
           </ScrollView>
+        </View>
+      </Modal>
+
+      {/* ==================================================
+          EXPENSE PROOF VIEWER
+          ================================================== */}
+
+      <Modal
+        visible={proofViewerVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          setProofViewerVisible(false);
+          setProofViewerUrl("");
+        }}
+      >
+        <View style={styles.proofViewerOverlay}>
+          <View
+            style={[
+              styles.proofViewerCard,
+              isMobile && styles.proofViewerCardMobile,
+            ]}
+          >
+            <View style={styles.proofViewerHeader}>
+              <Text style={styles.proofViewerTitle}>
+                Expense Proof
+              </Text>
+
+              <TouchableOpacity
+                style={styles.proofViewerClose}
+                onPress={() => {
+                  setProofViewerVisible(false);
+                  setProofViewerUrl("");
+                }}
+              >
+                <Text style={styles.proofViewerCloseText}>
+                  ×
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View
+              style={[
+                styles.proofViewerImageContainer,
+                isMobile && styles.proofViewerImageContainerMobile,
+              ]}
+            >
+              {proofViewerUrl ? (
+                <Image
+                  source={{ uri: proofViewerUrl }}
+                  style={styles.proofViewerImage}
+                  resizeMode="contain"
+                />
+              ) : null}
+            </View>
+
+            <TouchableOpacity
+              style={styles.proofViewerDoneButton}
+              onPress={() => {
+                setProofViewerVisible(false);
+                setProofViewerUrl("");
+              }}
+            >
+              <Text style={styles.proofViewerDoneText}>
+                Close
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
     </View>
@@ -1957,6 +2223,7 @@ function ExpenseCard({
   expense,
   onEdit,
   onDelete,
+  onViewProof,
   isMobile = false,
 }) {
   const categoryColors = {
@@ -2099,6 +2366,19 @@ function ExpenseCard({
               </Text>
             </View>
           </View>
+
+          {expense.proofImageUrl ? (
+            <TouchableOpacity
+              style={styles.proofBadge}
+              activeOpacity={0.8}
+              onPress={onViewProof}
+            >
+              <Text style={styles.proofBadgeIcon}>📎</Text>
+              <Text style={styles.proofBadgeText}>
+                View proof
+              </Text>
+            </TouchableOpacity>
+          ) : null}
 
           {expense.notes ? (
             <Text
@@ -2971,6 +3251,238 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
   },
 
+  proofUploadBox: {
+    minHeight: 120,
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderColor: COLORS.primary,
+    borderRadius: 12,
+    backgroundColor: COLORS.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 18,
+    paddingVertical: 18,
+  },
+
+  proofUploadIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: COLORS.surface,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
+  },
+
+  proofUploadIconText: {
+    fontSize: 20,
+  },
+
+  proofUploadTitle: {
+    fontFamily: FONTS.bold,
+    fontSize: 14,
+    color: COLORS.primary,
+  },
+
+  proofUploadSubtitle: {
+    fontFamily: FONTS.regular,
+    fontSize: 12,
+    color: COLORS.textMuted,
+    marginTop: 3,
+    textAlign: "center",
+  },
+
+  proofPreviewBox: {
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 12,
+    overflow: "hidden",
+    backgroundColor: COLORS.surface,
+  },
+
+  proofPreviewImage: {
+    width: "100%",
+    height: 220,
+    backgroundColor: "#F1F5F9",
+  },
+
+  proofTapHint: {
+    position: "absolute",
+    left: 10,
+    right: 10,
+    bottom: 10,
+    alignItems: "center",
+  },
+
+  proofTapHintText: {
+    fontFamily: FONTS.medium,
+    fontSize: 11,
+    color: "#FFFFFF",
+    backgroundColor: "rgba(15, 23, 42, 0.68)",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+  },
+
+  proofPreviewActions: {
+    flexDirection: "row",
+    gap: 8,
+    padding: 10,
+  },
+
+  proofViewButton: {
+    flex: 1,
+    minHeight: 40,
+    borderRadius: 8,
+    backgroundColor: COLORS.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  proofViewButtonText: {
+    fontFamily: FONTS.medium,
+    fontSize: 13,
+    color: "#FFFFFF",
+  },
+
+  proofSecondaryButton: {
+    flex: 1,
+    minHeight: 40,
+    borderRadius: 8,
+    backgroundColor: COLORS.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  proofSecondaryButtonText: {
+    fontFamily: FONTS.medium,
+    fontSize: 13,
+    color: COLORS.primary,
+  },
+
+  proofRemoveButton: {
+    minWidth: 90,
+    minHeight: 40,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: COLORS.dangerLight,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  proofRemoveButtonText: {
+    fontFamily: FONTS.medium,
+    fontSize: 13,
+    color: COLORS.danger,
+  },
+
+  proofBadge: {
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 7,
+    backgroundColor: COLORS.primaryLight,
+    marginTop: 7,
+  },
+
+  proofBadgeIcon: {
+    fontSize: 12,
+    marginRight: 5,
+  },
+
+  proofBadgeText: {
+    fontFamily: FONTS.medium,
+    fontSize: 11,
+    color: COLORS.primary,
+  },
+
+  proofViewerOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(2, 6, 23, 0.78)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 18,
+  },
+
+  proofViewerCard: {
+    width: "100%",
+    maxWidth: 900,
+    maxHeight: "94%",
+    backgroundColor: COLORS.surface,
+    borderRadius: 18,
+    padding: 14,
+    overflow: "hidden",
+  },
+
+  proofViewerCardMobile: {
+    width: "100%",
+    maxWidth: "100%",
+    borderRadius: 15,
+    padding: 10,
+  },
+
+  proofViewerHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 4,
+    paddingBottom: 10,
+  },
+
+  proofViewerTitle: {
+    fontFamily: FONTS.bold,
+    fontSize: 18,
+    color: COLORS.text,
+  },
+
+  proofViewerClose: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: "#F1F5F9",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  proofViewerCloseText: {
+    fontFamily: FONTS.regular,
+    fontSize: 25,
+    lineHeight: 28,
+    color: COLORS.textSecondary,
+  },
+
+  proofViewerImageContainer: {
+    width: "100%",
+    height: 560,
+    borderRadius: 12,
+    backgroundColor: "#F1F5F9",
+    overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  proofViewerImage: {
+    width: "100%",
+    height: "100%",
+  },
+
+  proofViewerDoneButton: {
+    height: 44,
+    marginTop: 10,
+    borderRadius: 9,
+    backgroundColor: COLORS.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  proofViewerDoneText: {
+    fontFamily: FONTS.medium,
+    fontSize: 14,
+    color: "#FFFFFF",
+  },
+
   modalActions: {
     flexDirection: "row",
     justifyContent: "flex-end",
@@ -3145,5 +3657,9 @@ const styles = StyleSheet.create({
   mobileFullButton: {
     width: "100%",
     minWidth: 0,
+  },
+
+  proofViewerImageContainerMobile: {
+    height: 420,
   },
 });

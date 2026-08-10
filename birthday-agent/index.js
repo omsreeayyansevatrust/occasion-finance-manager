@@ -460,16 +460,6 @@ function createBirthdayImageUrl(
     `📸 Person Public ID: ${personPublicId}`
   );
 
-  /*
-   * Cloudinary overlay syntax:
-   *
-   * occasionfinancemanager/people/photo
-   *
-   * becomes:
-   *
-   * occasionfinancemanager:people:photo
-   */
-
   const overlayPublicId =
     personPublicId.replace(
       /\//g,
@@ -496,6 +486,10 @@ function createBirthdayImageUrl(
             height: 300,
 
             crop: "fill",
+
+            gravity: "center",
+
+            radius: "max",
           },
 
           {

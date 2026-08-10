@@ -431,63 +431,52 @@ async function verifyPersonPhoto(
 
 function createBirthdayImageUrl(
   templateResource,
-  personPhotoResource
+  person
 ) {
-  const templatePublicId =
-    templateResource.public_id;
+  const photoUrl =
+    getPersonPhoto(person);
 
-  const personPublicId =
-    personPhotoResource.public_id;
+  if (!photoUrl) {
+    throw new Error(
+      `No photo found for ${person.name}`
+    );
+  }
 
-  console.log("");
   console.log(
-    "🎨 Creating birthday image transformation..."
+    "📸 Using complete Cloudinary photo URL."
   );
 
   console.log(
-    `🖼️ Template Public ID: ${templatePublicId}`
-  );
-
-  console.log(
-    `📸 Person Public ID: ${personPublicId}`
+    `📸 Photo URL: ${photoUrl}`
   );
 
   /*
    * IMPORTANT
    *
-   * Cloudinary's overlay syntax uses:
+   * We use the complete existing Cloudinary
+   * URL instead of trying to reconstruct the
+   * public ID.
    *
-   * folder/image
-   *
-   * converted to:
-   *
-   * folder:image
-   *
-   * inside the overlay parameter.
+   * This avoids dynamic-folder/public-ID issues.
    */
 
-  const overlayPublicId =
-    personPublicId.replace(
-      /\//g,
-      ":"
-    );
+  const encodedPhotoUrl =
+    Buffer.from(
+      photoUrl
+    ).toString("base64");
 
   const imageUrl =
     cloudinary.url(
-      templatePublicId,
+      templateResource.public_id,
       {
-        resource_type:
-          "image",
-
-        type:
-          "upload",
-
         secure: true,
 
         transformation: [
           {
-            overlay:
-              overlayPublicId,
+            overlay: {
+              fetch:
+                encodedPhotoUrl,
+            },
 
             width: 300,
 

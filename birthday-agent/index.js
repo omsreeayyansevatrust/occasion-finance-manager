@@ -431,52 +431,65 @@ async function verifyPersonPhoto(
 
 function createBirthdayImageUrl(
   templateResource,
-  person
+  personPhotoResource
 ) {
-  const photoUrl =
-    getPersonPhoto(person);
-
-  if (!photoUrl) {
+  if (
+    !personPhotoResource ||
+    !personPhotoResource.public_id
+  ) {
     throw new Error(
-      `No photo found for ${person.name}`
+      "Verified Cloudinary person photo is missing."
     );
   }
 
+  const templatePublicId =
+    templateResource.public_id;
+
+  const personPublicId =
+    personPhotoResource.public_id;
+
   console.log(
-    "📸 Using complete Cloudinary photo URL."
+    "🎨 Creating birthday image transformation..."
   );
 
   console.log(
-    `📸 Photo URL: ${photoUrl}`
+    `🖼️ Template Public ID: ${templatePublicId}`
+  );
+
+  console.log(
+    `📸 Person Public ID: ${personPublicId}`
   );
 
   /*
-   * IMPORTANT
+   * Cloudinary overlay syntax:
    *
-   * We use the complete existing Cloudinary
-   * URL instead of trying to reconstruct the
-   * public ID.
+   * occasionfinancemanager/people/photo
    *
-   * This avoids dynamic-folder/public-ID issues.
+   * becomes:
+   *
+   * occasionfinancemanager:people:photo
    */
 
-  const encodedPhotoUrl =
-    Buffer.from(
-      photoUrl
-    ).toString("base64");
+  const overlayPublicId =
+    personPublicId.replace(
+      /\//g,
+      ":"
+    );
 
   const imageUrl =
     cloudinary.url(
-      templateResource.public_id,
+      templatePublicId,
       {
+        resource_type: "image",
+
+        type: "upload",
+
         secure: true,
 
         transformation: [
           {
-            overlay: {
-              fetch:
-                encodedPhotoUrl,
-            },
+            overlay:
+              overlayPublicId,
 
             width: 300,
 
@@ -486,23 +499,19 @@ function createBirthdayImageUrl(
           },
 
           {
-            gravity:
-              "center",
+            gravity: "center",
 
             x: 0,
 
             y: 0,
 
-            flags:
-              "layer_apply",
+            flags: "layer_apply",
           },
 
           {
-            quality:
-              "auto",
+            quality: "auto",
 
-            fetch_format:
-              "auto",
+            fetch_format: "auto",
           },
         ],
       }
@@ -510,7 +519,6 @@ function createBirthdayImageUrl(
 
   return imageUrl;
 }
-
 // ==================================================
 // SAVE BIRTHDAY LOG
 // ==================================================

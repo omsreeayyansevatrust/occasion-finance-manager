@@ -541,7 +541,7 @@ function createBirthdayImageUrl(
             gravity:
               "center",
 
-            x: 10,
+            x: 0,
 
             y: 270,
 

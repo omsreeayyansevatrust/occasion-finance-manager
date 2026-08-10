@@ -8,17 +8,20 @@ const {
   FieldValue,
 } = require("firebase-admin/firestore");
 
+const cloudinary = require("cloudinary").v2;
 
 // ==================================================
 // CONFIGURATION
 // ==================================================
 
-const PILOT_PERSON_NAME =
-  "Vinoth Kumar S";
+const PILOT_PERSON_NAME = "Vinoth Kumar S";
+const TIME_ZONE = "Asia/Kolkata";
 
-const TIME_ZONE =
-  "Asia/Kolkata";
-
+// IMPORTANT:
+// This must match the public ID of your approved
+// birthday template in Cloudinary.
+const BIRTHDAY_TEMPLATE =
+  "occasion_finance/birthday_template";
 
 // ==================================================
 // FIREBASE
@@ -31,49 +34,68 @@ function initializeFirebase() {
     );
   }
 
-  const serviceAccount =
-    JSON.parse(
-      process.env.FIREBASE_SERVICE_ACCOUNT
-    );
+  const serviceAccount = JSON.parse(
+    process.env.FIREBASE_SERVICE_ACCOUNT
+  );
 
   initializeApp({
-    credential:
-      cert(serviceAccount),
+    credential: cert(serviceAccount),
   });
 
   return getFirestore();
 }
 
+// ==================================================
+// CLOUDINARY
+// ==================================================
+
+function initializeCloudinary() {
+  if (
+    !process.env.CLOUDINARY_CLOUD_NAME ||
+    !process.env.CLOUDINARY_API_KEY ||
+    !process.env.CLOUDINARY_API_SECRET
+  ) {
+    throw new Error(
+      "Cloudinary secrets are missing. Required: " +
+        "CLOUDINARY_CLOUD_NAME, " +
+        "CLOUDINARY_API_KEY, " +
+        "CLOUDINARY_API_SECRET"
+    );
+  }
+
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+    secure: true,
+  });
+
+  console.log("☁️ Cloudinary initialized.");
+}
 
 // ==================================================
 // INDIA DATE
 // ==================================================
 
 function getIndiaDate() {
-  const formatter =
-    new Intl.DateTimeFormat(
-      "en-CA",
-      {
-        timeZone: TIME_ZONE,
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      }
-    );
-
-  return formatter.format(
-    new Date()
+  const formatter = new Intl.DateTimeFormat(
+    "en-CA",
+    {
+      timeZone: TIME_ZONE,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }
   );
-}
 
+  return formatter.format(new Date());
+}
 
 // ==================================================
 // BIRTHDAY MESSAGE
 // ==================================================
 
-function createBirthdayMessage(
-  name
-) {
+function createBirthdayMessage(name) {
   return `🎉 Happy Birthday ${name}! 🎉
 
 ஒம் ஶ்ரீ ஐயன் சேவா அறக்கட்டளை சார்பாக
@@ -92,14 +114,11 @@ good health, peace and success.
 Have a wonderful year ahead! 🙏`;
 }
 
-
 // ==================================================
-// FIND PHOTO
+// GET PERSON PHOTO
 // ==================================================
 
-function getPersonPhoto(
-  person
-) {
+function getPersonPhoto(person) {
   return (
     person.photoUrl ||
     person.photo ||
@@ -109,17 +128,176 @@ function getPersonPhoto(
   );
 }
 
+// ==================================================
+// GENERATE BIRTHDAY IMAGE URL
+// ==================================================
+
+function createBirthdayImageUrl(person) {
+  const photoUrl = getPersonPhoto(person);
+
+  if (!photoUrl) {
+    throw new Error(
+      `No photo found for ${person.name}`
+    );
+  }
+
+  /*
+   * IMPORTANT
+   *
+   * This uses the approved frozen template.
+   *
+   * We are NOT modifying the original template.
+   *
+   * The person photo is applied as a Cloudinary
+   * transformation layer.
+   */
+
+  const imageUrl = cloudinary.url(
+    BIRTHDAY_TEMPLATE,
+    {
+      secure: true,
+
+      transformation: [
+        {
+          overlay: {
+            url: photoUrl,
+          },
+
+          width: 300,
+          height: 300,
+
+          crop: "fill",
+
+          gravity: "center",
+
+          /*
+           * These coordinates are temporary.
+           * After the first generated image,
+           * we will adjust them to exactly match
+           * your approved template.
+           */
+
+          x: 0,
+          y: 0,
+
+          flags: "layer_apply",
+        },
+
+        {
+          quality: "auto",
+          fetch_format: "auto",
+        },
+      ],
+    }
+  );
+
+  return imageUrl;
+}
+
+// ==================================================
+// CREATE BIRTHDAY LOG
+// ==================================================
+
+async function createBirthdayLog(
+  db,
+  personDoc,
+  person,
+  year,
+  dob,
+  birthdayMessage,
+  photoUrl,
+  birthdayImageUrl
+) {
+  const logId =
+    `${personDoc.id}_${year}`;
+
+  const logRef = db
+    .collection("birthday_logs")
+    .doc(logId);
+
+  const existing = await logRef.get();
+
+  if (existing.exists) {
+    console.log(
+      `⚠️ Birthday already processed for ${person.name}`
+    );
+
+    return false;
+  }
+
+  await logRef.set({
+    personId: personDoc.id,
+
+    personName: person.name || "",
+
+    mobile: person.mobile || "",
+
+    birthdayDate: dob,
+
+    birthdayYear: Number(year),
+
+    photoUrl: photoUrl || "",
+
+    birthdayImageUrl:
+      birthdayImageUrl || "",
+
+    message: birthdayMessage,
+
+    status: "pending",
+
+    imageStatus: birthdayImageUrl
+      ? "generated"
+      : "failed",
+
+    whatsappStatus: "pending",
+
+    createdAt:
+      FieldValue.serverTimestamp(),
+
+    updatedAt:
+      FieldValue.serverTimestamp(),
+  });
+
+  return true;
+}
 
 // ==================================================
 // PROCESS BIRTHDAYS
 // ==================================================
 
 async function processBirthdays() {
-  const db =
-    initializeFirebase();
+  console.log("");
+  console.log(
+    "=========================================="
+  );
+  console.log(
+    "🎂 OCCASION FINANCE BIRTHDAY AGENT"
+  );
+  console.log(
+    "=========================================="
+  );
 
-  const indiaDate =
-    getIndiaDate();
+  // --------------------------------------------------
+  // FIREBASE
+  // --------------------------------------------------
+
+  const db = initializeFirebase();
+
+  console.log(
+    "🔥 Firebase initialized."
+  );
+
+  // --------------------------------------------------
+  // CLOUDINARY
+  // --------------------------------------------------
+
+  initializeCloudinary();
+
+  // --------------------------------------------------
+  // INDIA DATE
+  // --------------------------------------------------
+
+  const indiaDate = getIndiaDate();
 
   const [
     year,
@@ -130,71 +308,57 @@ async function processBirthdays() {
   const birthdayKey =
     `${month}-${day}`;
 
-  console.log("");
   console.log(
-    "======================================"
-  );
-  console.log(
-    "🎂 OCCASION FINANCE BIRTHDAY AGENT"
-  );
-  console.log(
-    "======================================"
+    `🇮🇳 India date : ${indiaDate}`
   );
 
   console.log(
-    `India date : ${indiaDate}`
+    `🎂 Birthday key: ${birthdayKey}`
   );
 
   console.log(
-    `Birthday   : ${birthdayKey}`
+    `🧪 Pilot person: ${PILOT_PERSON_NAME}`
   );
 
   console.log(
-    `Pilot      : ${PILOT_PERSON_NAME}`
+    "=========================================="
   );
 
-  console.log(
-    "======================================"
-  );
-
-  // ==================================================
+  // --------------------------------------------------
   // PEOPLE
-  // ==================================================
+  // --------------------------------------------------
 
-  const snapshot =
-    await db
-      .collection("people")
-      .get();
+  const peopleSnapshot = await db
+    .collection("people")
+    .get();
 
   console.log(
-    `People found: ${snapshot.size}`
+    `👥 People found: ${peopleSnapshot.size}`
   );
 
   let birthdaysFound = 0;
   let processed = 0;
   let skipped = 0;
 
-  // ==================================================
+  // --------------------------------------------------
   // LOOP
-  // ==================================================
+  // --------------------------------------------------
 
   for (
-    const personDoc of snapshot.docs
+    const personDoc of peopleSnapshot.docs
   ) {
-    const person =
-      personDoc.data();
+    const person = personDoc.data();
 
-    const name =
-      String(
-        person.name || ""
-      ).trim();
+    const personName = String(
+      person.name || ""
+    ).trim();
 
-    // ==================================================
+    // ------------------------------------------------
     // PILOT MODE
-    // ==================================================
+    // ------------------------------------------------
 
     if (
-      name.toLowerCase() !==
+      personName.toLowerCase() !==
       PILOT_PERSON_NAME.toLowerCase()
     ) {
       continue;
@@ -202,41 +366,39 @@ async function processBirthdays() {
 
     console.log("");
     console.log(
-      `Checking: ${name}`
+      "------------------------------------------"
     );
 
-    // ==================================================
+    console.log(
+      `👤 Checking: ${personName}`
+    );
+
+    // ------------------------------------------------
     // STATUS
-    // ==================================================
+    // ------------------------------------------------
 
-    const status =
-      String(
-        person.status ||
-          "Active"
-      )
-        .trim()
-        .toLowerCase();
+    const status = String(
+      person.status || "Active"
+    )
+      .trim()
+      .toLowerCase();
 
-    if (
-      status !== "active"
-    ) {
+    if (status !== "active") {
       console.log(
-        `⏭ Skipped - status: ${status}`
+        `⏭️ Skipped - status: ${status}`
       );
 
       skipped++;
-
       continue;
     }
 
-    // ==================================================
+    // ------------------------------------------------
     // DOB
-    // ==================================================
+    // ------------------------------------------------
 
-    const dob =
-      String(
-        person.dob || ""
-      ).trim();
+    const dob = String(
+      person.dob || ""
+    ).trim();
 
     if (!dob) {
       console.log(
@@ -244,49 +406,42 @@ async function processBirthdays() {
       );
 
       skipped++;
-
       continue;
     }
 
-    console.log(
-      `DOB: ${dob}`
-    );
+    const dobParts = dob.split("-");
 
-    const dobParts =
-      dob.split("-");
-
-    if (
-      dobParts.length !== 3
-    ) {
+    if (dobParts.length !== 3) {
       console.log(
-        "⚠️ Invalid DOB format."
+        `⚠️ Invalid DOB format: ${dob}`
       );
 
       skipped++;
-
       continue;
     }
 
-    const dobMonth =
-      String(
-        dobParts[1]
-      ).padStart(2, "0");
+    const dobMonth = String(
+      dobParts[1]
+    ).padStart(2, "0");
 
-    const dobDay =
-      String(
-        dobParts[2]
-      ).padStart(2, "0");
+    const dobDay = String(
+      dobParts[2]
+    ).padStart(2, "0");
 
     const personBirthdayKey =
       `${dobMonth}-${dobDay}`;
 
     console.log(
-      `Birthday key: ${personBirthdayKey}`
+      `📅 DOB: ${dob}`
     );
 
-    // ==================================================
+    console.log(
+      `🎂 Person birthday key: ${personBirthdayKey}`
+    );
+
+    // ------------------------------------------------
     // BIRTHDAY CHECK
-    // ==================================================
+    // ------------------------------------------------
 
     if (
       personBirthdayKey !==
@@ -303,49 +458,84 @@ async function processBirthdays() {
 
     console.log("");
     console.log(
-      "🎉🎂 BIRTHDAY FOUND!"
-    );
-    console.log(
-      `🎂 ${name}`
+      "🎉🎉🎉 BIRTHDAY FOUND 🎉🎉🎉"
     );
 
-    // ==================================================
+    console.log(
+      `🎂 ${personName}`
+    );
+
+    // ------------------------------------------------
     // DUPLICATE PROTECTION
-    // ==================================================
+    // ------------------------------------------------
 
     const logId =
-      `${personDoc.id}_${year}`;
+  `${personDoc.id}_${year}`;
 
-    const logRef =
-      db
-        .collection(
-          "birthday_logs"
-        )
-        .doc(logId);
+const logRef = db
+  .collection("birthday_logs")
+  .doc(logId);
 
-    const existing =
-      await logRef.get();
+const existingLog =
+  await logRef.get();
 
-    if (
-      existing.exists
-    ) {
-      console.log(
-        "⚠️ Birthday already processed for this year."
-      );
+let existingLogData = null;
 
-      skipped++;
+if (existingLog.exists) {
+  existingLogData = existingLog.data();
 
-      continue;
-    }
+  const existingImageStatus =
+    String(
+      existingLogData.imageStatus || ""
+    ).toLowerCase();
 
-    // ==================================================
+  const existingWhatsAppStatus =
+    String(
+      existingLogData.whatsappStatus || ""
+    ).toLowerCase();
+
+  /*
+   * If the birthday image has already been
+   * successfully generated, don't process again.
+   */
+  if (
+    existingImageStatus === "generated"
+  ) {
+    logger.info(
+      `Birthday already completed for ${person.name}`
+    );
+
+    continue;
+  }
+
+  /*
+   * If image generation is still pending
+   * or failed, continue processing the
+   * existing birthday record.
+   */
+  logger.info(
+    `Existing birthday log found for ${person.name}.`
+  );
+
+  logger.info(
+    `Image status: ${existingImageStatus || "unknown"}`
+  );
+
+  logger.info(
+    `WhatsApp status: ${existingWhatsAppStatus || "unknown"}`
+  );
+
+  logger.info(
+    `Continuing birthday image generation...`
+  );
+}
+
+    // ------------------------------------------------
     // PHOTO
-    // ==================================================
+    // ------------------------------------------------
 
     const photoUrl =
-      getPersonPhoto(
-        person
-      );
+      getPersonPhoto(person);
 
     if (photoUrl) {
       console.log(
@@ -357,70 +547,89 @@ async function processBirthdays() {
       );
     }
 
-    // ==================================================
+    // ------------------------------------------------
     // MESSAGE
-    // ==================================================
+    // ------------------------------------------------
 
-    const message =
+    const birthdayMessage =
       createBirthdayMessage(
-        name
+        personName
       );
 
-    // ==================================================
-    // CREATE LOG
-    // ==================================================
+    // ------------------------------------------------
+    // IMAGE
+    // ------------------------------------------------
 
-    await logRef.set({
-      personId:
-        personDoc.id,
+    let birthdayImageUrl = "";
 
-      personName:
-        name,
+    if (photoUrl) {
+      try {
+        console.log(
+          "🖼️ Generating birthday image..."
+        );
 
-      mobile:
-        person.mobile || "",
+        birthdayImageUrl =
+          createBirthdayImageUrl(
+            person
+          );
 
-      birthdayDate:
+        console.log(
+          "✅ Birthday image URL generated."
+        );
+
+        console.log(
+          birthdayImageUrl
+        );
+      } catch (imageError) {
+        console.error(
+          "❌ Birthday image generation failed."
+        );
+
+        console.error(
+          imageError
+        );
+      }
+    }
+
+    // ------------------------------------------------
+    // FIRESTORE LOG
+    // ------------------------------------------------
+
+    const created =
+      await createBirthdayLog(
+        db,
+        personDoc,
+        person,
+        year,
         dob,
-
-      birthdayYear:
-        Number(year),
-
-      photoUrl:
+        birthdayMessage,
         photoUrl,
+        birthdayImageUrl
+      );
 
-      message:
-        message,
-
-      status:
-        "pending",
-
-      whatsappStatus:
-        "pending",
-
-      imageStatus:
-        "pending",
-
-      createdAt:
-        FieldValue.serverTimestamp(),
-
-      updatedAt:
-        FieldValue.serverTimestamp(),
-    });
+    if (!created) {
+      continue;
+    }
 
     processed++;
 
     console.log("");
     console.log(
-      "✅ Birthday log created."
+      "✅ Birthday log created successfully."
     );
 
     console.log(
-      `Person ID: ${personDoc.id}`
+      `👤 Person   : ${personName}`
     );
 
     console.log(
-      `Photo: ${
+      `📱 Mobile   : ${
+        person.mobile || "Missing"
+      }`
+    );
+
+    console.log(
+      `📸 Photo    : ${
         photoUrl
           ? "Available"
           : "Missing"
@@ -428,27 +637,33 @@ async function processBirthdays() {
     );
 
     console.log(
-      "WhatsApp: PENDING"
+      `🖼️ Image    : ${
+        birthdayImageUrl
+          ? "Generated"
+          : "Failed"
+      }`
     );
 
     console.log(
-      "Image: PENDING"
+      "💬 WhatsApp : Pending"
     );
   }
 
-  // ==================================================
-  // RESULT
-  // ==================================================
+  // --------------------------------------------------
+  // FINAL RESULT
+  // --------------------------------------------------
 
   console.log("");
   console.log(
-    "======================================"
+    "=========================================="
   );
+
   console.log(
-    "🎂 AGENT COMPLETED"
+    "🎂 BIRTHDAY AGENT COMPLETED"
   );
+
   console.log(
-    "======================================"
+    "=========================================="
   );
 
   console.log(
@@ -456,7 +671,7 @@ async function processBirthdays() {
   );
 
   console.log(
-    `People checked   : ${snapshot.size}`
+    `People checked   : ${peopleSnapshot.size}`
   );
 
   console.log(
@@ -472,49 +687,48 @@ async function processBirthdays() {
   );
 
   console.log(
-    "======================================"
+    "=========================================="
   );
 
   return {
     indiaDate,
     birthdayKey,
     peopleChecked:
-      snapshot.size,
+      peopleSnapshot.size,
     birthdaysFound,
     processed,
     skipped,
   };
 }
 
-
 // ==================================================
 // RUN
 // ==================================================
 
 processBirthdays()
-  .then(
-    (result) => {
-      console.log(
-        JSON.stringify(
-          result,
-          null,
-          2
-        )
-      );
+  .then((result) => {
+    console.log("");
+    console.log(
+      "FINAL RESULT:"
+    );
 
-      process.exit(0);
-    }
-  )
-  .catch(
-    (error) => {
-      console.error("");
-      console.error(
-        "❌ BIRTHDAY AGENT FAILED"
-      );
-      console.error(
-        error
-      );
+    console.log(
+      JSON.stringify(
+        result,
+        null,
+        2
+      )
+    );
 
-      process.exit(1);
-    }
-  );
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error("");
+    console.error(
+      "❌ BIRTHDAY AGENT FAILED"
+    );
+
+    console.error(error);
+
+    process.exit(1);
+  });

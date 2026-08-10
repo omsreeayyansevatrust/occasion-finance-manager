@@ -9,6 +9,7 @@
     "test": "node index.js"
   },
   "dependencies": {
+    "cloudinary": "^2.10.0",
     "firebase-admin": "^13.5.0"
   }
 }

@@ -142,14 +142,14 @@ function createBirthdayImageUrl(person) {
   }
 
   /*
-   * IMPORTANT
+   * Cloudinary transformation structure:
    *
-   * This uses the approved frozen template.
+   * 1. Use the approved birthday template
+   * 2. Add Vinoth's photo as a remote image layer
+   * 3. Resize/crop the photo
+   * 4. Apply the layer separately
    *
-   * We are NOT modifying the original template.
-   *
-   * The person photo is applied as a Cloudinary
-   * transformation layer.
+   * fl_layer_apply must close the overlay layer.
    */
 
   const imageUrl = cloudinary.url(
@@ -165,21 +165,13 @@ function createBirthdayImageUrl(person) {
 
           width: 300,
           height: 300,
-
           crop: "fill",
+        },
 
+        {
           gravity: "center",
-
-          /*
-           * These coordinates are temporary.
-           * After the first generated image,
-           * we will adjust them to exactly match
-           * your approved template.
-           */
-
           x: 0,
           y: 0,
-
           flags: "layer_apply",
         },
 

@@ -1,0 +1,14 @@
+{
+  "name": "occasion-finance-birthday-agent",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Automated birthday agent for Occasion Finance Manager",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node index.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.5.0"
+  }
+}

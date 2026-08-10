@@ -33,7 +33,7 @@ const TIME_ZONE =
  * and public ID are separate concepts.
  */
 const BIRTHDAY_TEMPLATE =
-  "birthday_template";
+  "birthday_master";
 
 // ==================================================
 // FIREBASE
@@ -431,7 +431,8 @@ async function verifyPersonPhoto(
 
 function createBirthdayImageUrl(
   templateResource,
-  personPhotoResource
+  personPhotoResource,
+  personName
 ) {
   if (
     !personPhotoResource ||
@@ -442,6 +443,12 @@ function createBirthdayImageUrl(
     );
   }
 
+  if (!personName) {
+    throw new Error(
+      "Person name is missing."
+    );
+  }
+
   const templatePublicId =
     templateResource.public_id;
 
@@ -449,15 +456,19 @@ function createBirthdayImageUrl(
     personPhotoResource.public_id;
 
   console.log(
-    "🎨 Creating birthday image transformation..."
+    "🎨 Creating personalized birthday image..."
   );
 
   console.log(
-    `🖼️ Template Public ID: ${templatePublicId}`
+    `🖼️ Template: ${templatePublicId}`
   );
 
   console.log(
-    `📸 Person Public ID: ${personPublicId}`
+    `📸 Photo: ${personPublicId}`
+  );
+
+  console.log(
+    `👤 Name: ${personName}`
   );
 
   const overlayPublicId =
@@ -471,23 +482,23 @@ function createBirthdayImageUrl(
       templatePublicId,
       {
         resource_type: "image",
-
         type: "upload",
-
         secure: true,
 
         transformation: [
+
+          // =========================================
+          // PERSON PHOTO
+          // =========================================
+
           {
             overlay:
               overlayPublicId,
 
             width: 300,
-
             height: 300,
 
             crop: "fill",
-
-            gravity: "center",
 
             radius: "max",
           },
@@ -497,15 +508,54 @@ function createBirthdayImageUrl(
 
             x: 0,
 
-            y: 0,
+            y: 75,
 
-            flags: "layer_apply",
+            flags:
+              "layer_apply",
+          },
+
+          // =========================================
+          // PERSON NAME
+          // =========================================
+
+          {
+            overlay: {
+              font_family:
+                "Arial",
+
+              font_size:
+                52,
+
+              font_weight:
+                "bold",
+
+              text:
+                personName,
+            },
           },
 
           {
-            quality: "auto",
+            gravity:
+              "center",
 
-            fetch_format: "auto",
+            x: 0,
+
+            y: 295,
+
+            flags:
+              "layer_apply",
+          },
+
+          // =========================================
+          // OPTIMIZATION
+          // =========================================
+
+          {
+            quality:
+              "auto",
+
+            fetch_format:
+              "auto",
           },
         ],
       }
@@ -928,7 +978,8 @@ async function processBirthdays() {
       birthdayImageUrl =
         createBirthdayImageUrl(
           templateResource,
-          personPhotoResource
+          personPhotoResource,
+          personName
         );
 
       console.log(

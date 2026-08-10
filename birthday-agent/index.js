@@ -21,8 +21,7 @@ const TIME_ZONE = "Asia/Kolkata";
 // This must match the public ID of your approved
 // birthday template in Cloudinary.
 const BIRTHDAY_TEMPLATE =
-  "occasion_finance/birthday_template";
-
+  "OccasionFinanceManager/birthday_template";
 // ==================================================
 // FIREBASE
 // ==================================================

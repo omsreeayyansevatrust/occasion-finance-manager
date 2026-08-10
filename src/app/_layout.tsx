@@ -29,10 +29,7 @@ export default function RootLayout() {
           backgroundColor: "#F8FAFC",
         }}
       >
-        <ActivityIndicator
-          size="large"
-          color="#123F91"
-        />
+        <ActivityIndicator size="small" color="#1D4ED8" />
       </View>
     );
   }

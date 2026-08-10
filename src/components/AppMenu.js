@@ -19,7 +19,10 @@ import {
   COLORS,
   FONTS,
 } from "../constants/theme";
+
 import { auth } from "../services/firebase";
+
+import BirthdayNotificationBell from "./BirthdayNotificationBell";
 
 const MENU_ITEMS = [
   {
@@ -52,8 +55,7 @@ const MENU_ITEMS = [
     route: "/financialdetails",
     icon: "analytics-outline",
   },
-
-   {
+  {
     label: "Reports",
     route: "/reports",
     icon: "document-text-outline",
@@ -66,9 +68,12 @@ export default function AppMenu() {
 
   const currentUser = auth.currentUser;
 
+  // ==================================================
+  // NAVIGATION
+  // ==================================================
+
   const handleNavigation = (route) => {
-    // Do not use push for the current route.
-    // replace gives deterministic navigation for the web app.
+    // Do not navigate if already on the route.
     if (pathname === route) {
       return;
     }
@@ -76,12 +81,20 @@ export default function AppMenu() {
     router.replace(route);
   };
 
+  // ==================================================
+  // LOGOUT
+  // ==================================================
+
   const performLogout = async () => {
     try {
       await signOut(auth);
+
       router.replace("/");
     } catch (error) {
-      console.log("Logout error:", error);
+      console.log(
+        "Logout error:",
+        error
+      );
 
       if (
         Platform.OS === "web" &&
@@ -106,9 +119,10 @@ export default function AppMenu() {
       typeof window !== "undefined" &&
       typeof window.confirm === "function"
     ) {
-      const confirmed = window.confirm(
-        "Are you sure you want to logout?"
-      );
+      const confirmed =
+        window.confirm(
+          "Are you sure you want to logout?"
+        );
 
       if (confirmed) {
         await performLogout();
@@ -134,6 +148,10 @@ export default function AppMenu() {
     );
   };
 
+  // ==================================================
+  // ACTIVE MENU
+  // ==================================================
+
   const isActive = (route) => {
     if (route === "/dashboard") {
       return (
@@ -148,10 +166,19 @@ export default function AppMenu() {
     );
   };
 
+  // ==================================================
+  // SCREEN
+  // ==================================================
+
   return (
     <View style={styles.container}>
-      {/* BRAND */}
+
+      {/* ==================================================
+          BRAND
+          ================================================== */}
+
       <View style={styles.brand}>
+
         <View style={styles.logoContainer}>
           <Image
             source={require("../../assets/images/logo.png")}
@@ -161,6 +188,7 @@ export default function AppMenu() {
         </View>
 
         <View style={styles.brandText}>
+
           <Text
             style={styles.appName}
             numberOfLines={1}
@@ -171,10 +199,16 @@ export default function AppMenu() {
           <Text style={styles.appSubtitle}>
             MANAGER
           </Text>
+
         </View>
+
       </View>
 
-      {/* NAVIGATION */}
+
+      {/* ==================================================
+          NAVIGATION
+          ================================================== */}
+
       <ScrollView
         style={styles.navigation}
         contentContainerStyle={
@@ -182,12 +216,14 @@ export default function AppMenu() {
         }
         showsVerticalScrollIndicator={false}
       >
+
         <Text style={styles.menuLabel}>
           MAIN MENU
         </Text>
 
         {MENU_ITEMS.map((item) => {
-          const active = isActive(item.route);
+          const active =
+            isActive(item.route);
 
           return (
             <TouchableOpacity
@@ -198,13 +234,18 @@ export default function AppMenu() {
                   styles.menuItemActive,
               ]}
               onPress={() =>
-                handleNavigation(item.route)
+                handleNavigation(
+                  item.route
+                )
               }
               activeOpacity={0.8}
             >
+
               {active ? (
                 <View
-                  style={styles.activeIndicator}
+                  style={
+                    styles.activeIndicator
+                  }
                 />
               ) : null}
 
@@ -235,64 +276,109 @@ export default function AppMenu() {
               >
                 {item.label}
               </Text>
+
             </TouchableOpacity>
           );
         })}
+
       </ScrollView>
 
-      {/* USER / LOGOUT */}
+
+      {/* ==================================================
+          USER / NOTIFICATION / LOGOUT
+          ================================================== */}
+
       <View style={styles.bottomArea}>
+
+        {/* USER + NOTIFICATION */}
+
         <View style={styles.userSection}>
-          <View style={styles.userAvatar}>
-            <Text style={styles.userAvatarText}>
-              {getInitial(
-                currentUser?.email
-              )}
-            </Text>
+
+          {/* USER DETAILS */}
+
+          <View style={styles.userMain}>
+
+            <View style={styles.userAvatar}>
+              <Text
+                style={
+                  styles.userAvatarText
+                }
+              >
+                {getInitial(
+                  currentUser?.email
+                )}
+              </Text>
+            </View>
+
+            <View style={styles.userInfo}>
+
+              <Text
+                style={styles.userName}
+                numberOfLines={1}
+              >
+                {currentUser?.displayName ||
+                  "Administrator"}
+              </Text>
+
+              <Text
+                style={styles.userEmail}
+                numberOfLines={1}
+              >
+                {currentUser?.email ||
+                  "Signed in"}
+              </Text>
+
+            </View>
+
           </View>
 
-          <View style={styles.userInfo}>
-            <Text
-              style={styles.userName}
-              numberOfLines={1}
-            >
-              {currentUser?.displayName ||
-                "Administrator"}
-            </Text>
 
-            <Text
-              style={styles.userEmail}
-              numberOfLines={1}
-            >
-              {currentUser?.email ||
-                "Signed in"}
-            </Text>
-          </View>
+          {/* BIRTHDAY NOTIFICATION */}
+
+          <BirthdayNotificationBell />
+
         </View>
+
+
+        {/* LOGOUT */}
 
         <TouchableOpacity
           style={styles.logoutButton}
           onPress={handleLogout}
           activeOpacity={0.8}
         >
+
           <Ionicons
             name="log-out-outline"
             size={19}
             color={COLORS.danger}
           />
 
-          <Text style={styles.logoutText}>
+          <Text
+            style={styles.logoutText}
+          >
             Logout
           </Text>
+
         </TouchableOpacity>
+
+
+        {/* VERSION */}
 
         <Text style={styles.version}>
           Version 1.0.0
         </Text>
+
       </View>
+
     </View>
   );
 }
+
+
+// ==================================================
+// USER INITIAL
+// ==================================================
 
 function getInitial(email) {
   if (!email) {
@@ -304,207 +390,335 @@ function getInitial(email) {
     .toUpperCase();
 }
 
-const styles = StyleSheet.create({
-  container: {
-    width: 245,
-    height: "100%",
-    backgroundColor: COLORS.surface,
-    borderRightWidth: 1,
-    borderRightColor: COLORS.border,
-    paddingHorizontal: 14,
-    paddingTop: 20,
-    paddingBottom: 15,
-  },
 
-  brand: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 6,
-    paddingBottom: 22,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.borderLight,
-  },
+// ==================================================
+// STYLES
+// ==================================================
 
-  logoContainer: {
-    width: 46,
-    height: 46,
-    borderRadius: 12,
-    backgroundColor: COLORS.primaryLight,
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
-  },
+const styles =
+  StyleSheet.create({
 
-  logo: {
-    width: 41,
-    height: 41,
-  },
+    // ==================================================
+    // CONTAINER
+    // ==================================================
 
-  brandText: {
-    flex: 1,
-    minWidth: 0,
-    marginLeft: 10,
-  },
+    container: {
+      width: 245,
+      height: "100%",
 
-  appName: {
-    fontFamily: FONTS.bold,
-    fontSize: 15,
-    lineHeight: 20,
-    color: COLORS.text,
-  },
+      backgroundColor:
+        COLORS.surface,
 
-  appSubtitle: {
-    fontFamily: FONTS.medium,
-    fontSize: 9,
-    lineHeight: 13,
-    letterSpacing: 1.7,
-    color: COLORS.primary,
-    marginTop: 3,
-  },
+      borderRightWidth: 1,
+      borderRightColor:
+        COLORS.border,
 
-  navigation: {
-    flex: 1,
-  },
+      paddingHorizontal: 14,
+      paddingTop: 20,
+      paddingBottom: 15,
+    },
 
-  navigationContent: {
-    paddingTop: 24,
-    paddingBottom: 12,
-  },
 
-  menuLabel: {
-    fontFamily: FONTS.medium,
-    fontSize: 10,
-    lineHeight: 14,
-    letterSpacing: 1,
-    color: COLORS.textMuted,
-    paddingHorizontal: 10,
-    marginBottom: 10,
-  },
+    // ==================================================
+    // BRAND
+    // ==================================================
 
-  menuItem: {
-    minHeight: 49,
-    borderRadius: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 9,
-    marginBottom: 4,
-    position: "relative",
-  },
+    brand: {
+      flexDirection: "row",
+      alignItems: "center",
 
-  menuItemActive: {
-    backgroundColor: COLORS.primaryLight,
-  },
+      paddingHorizontal: 10,
+      paddingBottom: 14,
 
-  activeIndicator: {
-    position: "absolute",
-    left: 0,
-    top: 8,
-    bottom: 8,
-    width: 3,
-    borderRadius: 2,
-    backgroundColor: COLORS.primary,
-  },
+      borderBottomWidth: 1,
+      borderBottomColor:
+        COLORS.borderLight,
+    },
 
-  menuIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 9,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    logoContainer: {
+      width: 46,
+      height: 46,
 
-  menuIconActive: {
-    backgroundColor: COLORS.white,
-  },
+      borderRadius: 12,
 
-  menuText: {
-    flex: 1,
-    fontFamily: FONTS.medium,
-    fontSize: 14,
-    lineHeight: 19,
-    color: COLORS.textSecondary,
-    marginLeft: 10,
-  },
+      backgroundColor:
+        COLORS.primaryLight,
 
-  menuTextActive: {
-    fontFamily: FONTS.bold,
-    color: COLORS.primary,
-  },
+      alignItems: "center",
+      justifyContent: "center",
 
-  bottomArea: {
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.borderLight,
-  },
+      overflow: "hidden",
+    },
 
-  userSection: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 10,
-    backgroundColor: COLORS.background,
-    borderRadius: 11,
-    marginBottom: 7,
-  },
+    logo: {
+      width: 41,
+      height: 41,
+    },
 
-  userAvatar: {
-    width: 37,
-    height: 37,
-    borderRadius: 10,
-    backgroundColor: COLORS.primary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    brandText: {
+      flex: 1,
+      minWidth: 0,
 
-  userAvatarText: {
-    fontFamily: FONTS.bold,
-    fontSize: 14,
-    color: COLORS.white,
-  },
+      marginLeft: 10,
+    },
 
-  userInfo: {
-    flex: 1,
-    minWidth: 0,
-    marginLeft: 9,
-  },
+    appName: {
+      fontFamily: FONTS.bold,
 
-  userName: {
-    fontFamily: FONTS.medium,
-    fontSize: 12,
-    lineHeight: 17,
-    color: COLORS.text,
-  },
+      fontSize: 15,
+      lineHeight: 20,
 
-  userEmail: {
-    fontFamily: FONTS.regular,
-    fontSize: 10,
-    lineHeight: 14,
-    color: COLORS.textMuted,
-    marginTop: 2,
-  },
+      color: COLORS.text,
+    },
 
-  logoutButton: {
-    height: 42,
-    borderRadius: 9,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 10,
-    marginBottom: 4,
-  },
+    appSubtitle: {
+      fontFamily: FONTS.medium,
 
-  logoutText: {
-    fontFamily: FONTS.medium,
-    fontSize: 13,
-    lineHeight: 18,
-    color: COLORS.danger,
-    marginLeft: 10,
-  },
+      fontSize: 9,
+      lineHeight: 13,
 
-  version: {
-    fontFamily: FONTS.regular,
-    fontSize: 9,
-    lineHeight: 13,
-    color: COLORS.textMuted,
-    textAlign: "center",
-    marginTop: 3,
-  },
-});
+      letterSpacing: 1.7,
+
+      color: COLORS.primary,
+
+      marginTop: 3,
+    },
+
+
+    // ==================================================
+    // NAVIGATION
+    // ==================================================
+
+    navigation: {
+      flex: 1,
+    },
+
+    navigationContent: {
+      paddingTop: 24,
+      paddingBottom: 12,
+    },
+
+    menuLabel: {
+      fontFamily: FONTS.medium,
+
+      fontSize: 10,
+      lineHeight: 14,
+
+      letterSpacing: 1,
+
+      color: COLORS.textMuted,
+
+      paddingHorizontal: 10,
+
+      marginBottom: 10,
+    },
+
+    menuItem: {
+      minHeight: 49,
+
+      borderRadius: 10,
+
+      flexDirection: "row",
+      alignItems: "center",
+
+      paddingHorizontal: 9,
+
+      marginBottom: 4,
+
+      position: "relative",
+    },
+
+    menuItemActive: {
+      backgroundColor:
+        COLORS.primaryLight,
+    },
+
+    activeIndicator: {
+      position: "absolute",
+
+      left: 0,
+      top: 8,
+      bottom: 8,
+
+      width: 3,
+
+      borderRadius: 2,
+
+      backgroundColor:
+        COLORS.primary,
+    },
+
+    menuIcon: {
+      width: 34,
+      height: 34,
+
+      borderRadius: 9,
+
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    menuIconActive: {
+      backgroundColor:
+        COLORS.white,
+    },
+
+    menuText: {
+      flex: 1,
+
+      fontFamily: FONTS.medium,
+
+      fontSize: 14,
+      lineHeight: 19,
+
+      color:
+        COLORS.textSecondary,
+
+      marginLeft: 10,
+    },
+
+    menuTextActive: {
+      fontFamily: FONTS.bold,
+
+      color: COLORS.primary,
+    },
+
+
+    // ==================================================
+    // BOTTOM AREA
+    // ==================================================
+
+    bottomArea: {
+      paddingTop: 10,
+
+      borderTopWidth: 1,
+      borderTopColor:
+        COLORS.borderLight,
+    },
+
+
+    // ==================================================
+    // USER SECTION
+    // ==================================================
+
+    userSection: {
+      flexDirection: "row",
+      alignItems: "center",
+
+      width: "100%",
+
+      padding: 8,
+
+      backgroundColor:
+        COLORS.background,
+
+      borderRadius: 11,
+
+      marginBottom: 7,
+    },
+
+    userMain: {
+      flexDirection: "row",
+      alignItems: "center",
+
+      flex: 1,
+      minWidth: 0,
+    },
+
+    userAvatar: {
+      width: 37,
+      height: 37,
+
+      borderRadius: 10,
+
+      backgroundColor:
+        COLORS.primary,
+
+      alignItems: "center",
+      justifyContent: "center",
+
+      flexShrink: 0,
+    },
+
+    userAvatarText: {
+      fontFamily: FONTS.bold,
+
+      fontSize: 14,
+
+      color: COLORS.white,
+    },
+
+    userInfo: {
+      flex: 1,
+      minWidth: 0,
+
+      marginLeft: 9,
+    },
+
+    userName: {
+      fontFamily: FONTS.medium,
+
+      fontSize: 12,
+      lineHeight: 17,
+
+      color: COLORS.text,
+    },
+
+    userEmail: {
+      fontFamily: FONTS.regular,
+
+      fontSize: 10,
+      lineHeight: 14,
+
+      color: COLORS.textMuted,
+
+      marginTop: 2,
+    },
+
+
+    // ==================================================
+    // LOGOUT
+    // ==================================================
+
+    logoutButton: {
+      height: 42,
+
+      borderRadius: 9,
+
+      flexDirection: "row",
+      alignItems: "center",
+
+      paddingHorizontal: 10,
+
+      marginBottom: 4,
+    },
+
+    logoutText: {
+      fontFamily: FONTS.medium,
+
+      fontSize: 13,
+      lineHeight: 18,
+
+      color: COLORS.danger,
+
+      marginLeft: 10,
+    },
+
+
+    // ==================================================
+    // VERSION
+    // ==================================================
+
+    version: {
+      fontFamily: FONTS.regular,
+
+      fontSize: 9,
+      lineHeight: 13,
+
+      color: COLORS.textMuted,
+
+      textAlign: "center",
+
+      marginTop: 3,
+    },
+  });

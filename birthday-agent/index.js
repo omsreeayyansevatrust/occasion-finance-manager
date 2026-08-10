@@ -429,10 +429,6 @@ async function verifyPersonPhoto(
 // CREATE BIRTHDAY IMAGE
 // ==================================================
 
-// ==================================================
-// CREATE BIRTHDAY IMAGE
-// ==================================================
-
 function createBirthdayImageUrl(
   templateResource,
   personPhotoResource,
@@ -486,9 +482,7 @@ function createBirthdayImageUrl(
       templatePublicId,
       {
         resource_type: "image",
-
         type: "upload",
-
         secure: true,
 
         transformation: [
@@ -502,7 +496,6 @@ function createBirthdayImageUrl(
               overlayPublicId,
 
             width: 300,
-
             height: 300,
 
             crop: "fill",
@@ -513,7 +506,6 @@ function createBirthdayImageUrl(
           {
             gravity: "center",
 
-            // MOVED PHOTO UP
             x: 0,
 
             y: 50,
@@ -537,9 +529,8 @@ function createBirthdayImageUrl(
               font_weight:
                 "bold",
 
-              // TRUST BLUE
               color:
-                "#0B2D6B",
+              "#0B2D6B",
 
               text:
                 personName,
@@ -550,7 +541,6 @@ function createBirthdayImageUrl(
             gravity:
               "center",
 
-            // MOVED NAME UP
             x: 0,
 
             y: 265,
@@ -575,6 +565,83 @@ function createBirthdayImageUrl(
     );
 
   return imageUrl;
+}
+// ==================================================
+// SAVE BIRTHDAY LOG
+// ==================================================
+
+async function saveBirthdayLog(
+  db,
+  logRef,
+  existingLog,
+  personDoc,
+  person,
+  year,
+  dob,
+  birthdayMessage,
+  photoUrl,
+  birthdayImageUrl
+) {
+  const data = {
+    personId:
+      personDoc.id,
+
+    personName:
+      person.name || "",
+
+    mobile:
+      person.mobile || "",
+
+    birthdayDate:
+      dob,
+
+    birthdayYear:
+      Number(year),
+
+    photoUrl:
+      photoUrl || "",
+
+    birthdayImageUrl:
+      birthdayImageUrl || "",
+
+    message:
+      birthdayMessage,
+
+    status:
+      "pending",
+
+    imageStatus:
+      birthdayImageUrl
+        ? "generated"
+        : "failed",
+
+    whatsappStatus:
+      "pending",
+
+    updatedAt:
+      FieldValue.serverTimestamp(),
+  };
+
+  if (existingLog) {
+    await logRef.update(
+      data
+    );
+
+    console.log(
+      "✅ Existing birthday log updated."
+    );
+  } else {
+    await logRef.set({
+      ...data,
+
+      createdAt:
+        FieldValue.serverTimestamp(),
+    });
+
+    console.log(
+      "✅ New birthday log created."
+    );
+  }
 }
 
 // ==================================================

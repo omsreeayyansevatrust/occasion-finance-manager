@@ -33,7 +33,7 @@ const TIME_ZONE =
  * and public ID are separate concepts.
  */
 const BIRTHDAY_TEMPLATE =
-  "birthday_master";
+  "birthday_generic";
 
 // ==================================================
 // FIREBASE

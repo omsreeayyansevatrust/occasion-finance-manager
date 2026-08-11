@@ -14,15 +14,10 @@ const cloudinary = require("cloudinary").v2;
 // CONFIGURATION
 // ==================================================
 
-const TIME_ZONE =
-  "Asia/Kolkata";
+const TIME_ZONE = "Asia/Kolkata";
 
 /*
- * Cloudinary birthday template.
- *
- * Current working template:
- *
- * birthday_generic
+ * Current working Cloudinary birthday template.
  */
 const BIRTHDAY_TEMPLATE =
   "birthday_generic";
@@ -32,24 +27,16 @@ const BIRTHDAY_TEMPLATE =
  * WHATSAPP TEST MODE
  * =================================================
  *
- * Set:
- *
- * WHATSAPP_TEST_MODE=true
- *
- * ONLY when you want to test the WhatsApp
+ * This is ONLY for testing the already-approved
  * hello_world template.
  *
- * When false, the normal birthday agent runs.
+ * Normal birthday processing remains independent.
  */
 
 const WHATSAPP_TEST_MODE =
   String(
     process.env.WHATSAPP_TEST_MODE || ""
   ).toLowerCase() === "true";
-
-/*
- * Meta Graph API version.
- */
 
 const WHATSAPP_GRAPH_API_VERSION =
   process.env.WHATSAPP_GRAPH_API_VERSION ||
@@ -123,7 +110,7 @@ function initializeCloudinary() {
 }
 
 // ==================================================
-// WHATSAPP CONFIGURATION CHECK
+// WHATSAPP CONFIGURATION
 // ==================================================
 
 function verifyWhatsAppConfiguration() {
@@ -249,59 +236,33 @@ async function sendWhatsAppTestMessage() {
     },
   };
 
-  console.log("");
   console.log(
     "🌐 Sending request to Meta..."
   );
 
-  let response;
+  const response =
+    await fetch(
+      url,
+      {
+        method: "POST",
 
-  try {
-    response =
-      await fetch(
-        url,
-        {
-          method: "POST",
+        headers: {
+          Authorization:
+            `Bearer ${accessToken}`,
 
-          headers: {
-            Authorization:
-              `Bearer ${accessToken}`,
+          "Content-Type":
+            "application/json",
+        },
 
-            "Content-Type":
-              "application/json",
-          },
-
-          body:
-            JSON.stringify(
-              requestBody
-            ),
-        }
-      );
-  } catch (error) {
-    console.error(
-      "❌ Unable to connect to WhatsApp API."
+        body:
+          JSON.stringify(
+            requestBody
+          ),
+      }
     );
 
-    console.error(
-      error
-    );
-
-    throw error;
-  }
-
-  let result;
-
-  try {
-    result =
-      await response.json();
-  } catch (error) {
-    result = {
-      rawResponse:
-        await response.text(),
-    };
-  }
-
-  console.log("");
+  const result =
+    await response.json();
 
   console.log(
     `📡 Meta HTTP status: ${response.status}`
@@ -316,29 +277,13 @@ async function sendWhatsAppTestMessage() {
   );
 
   if (!response.ok) {
-    console.error("");
-
-    console.error(
-      "❌ WhatsApp API rejected the message."
-    );
-
     throw new Error(
       `WhatsApp API failed with HTTP ${response.status}.`
     );
   }
 
-  console.log("");
-
-  console.log(
-    "=========================================="
-  );
-
   console.log(
     "✅ WHATSAPP TEST MESSAGE SENT"
-  );
-
-  console.log(
-    "=========================================="
   );
 
   if (
@@ -426,7 +371,7 @@ function getPersonPhoto(
 }
 
 // ==================================================
-// GET CLOUDINARY PUBLIC ID FROM URL
+// CLOUDINARY PUBLIC ID
 // ==================================================
 
 function getPublicIdFromCloudinaryUrl(
@@ -492,10 +437,6 @@ function getPublicIdFromCloudinaryUrl(
           .join("/");
     }
 
-    /*
-     * Remove file extension.
-     */
-
     remaining =
       remaining.replace(
         /\.(jpg|jpeg|png|webp|gif)$/i,
@@ -505,7 +446,10 @@ function getPublicIdFromCloudinaryUrl(
     return remaining;
   } catch (error) {
     console.error(
-      "❌ Unable to parse Cloudinary URL:",
+      "❌ Unable to parse Cloudinary URL:"
+    );
+
+    console.error(
       error
     );
 
@@ -514,7 +458,7 @@ function getPublicIdFromCloudinaryUrl(
 }
 
 // ==================================================
-// VERIFY CLOUDINARY BIRTHDAY TEMPLATE
+// VERIFY BIRTHDAY TEMPLATE
 // ==================================================
 
 async function verifyBirthdayTemplate() {
@@ -840,6 +784,10 @@ async function saveBirthdayLog(
   photoUrl,
   birthdayImageUrl
 ) {
+  console.log(
+    "💾 Preparing birthday log..."
+  );
+
   const data = {
     personId:
       personDoc.id,
@@ -880,7 +828,15 @@ async function saveBirthdayLog(
       FieldValue.serverTimestamp(),
   };
 
+  console.log(
+    `💾 Log ID: ${logRef.id}`
+  );
+
   if (existingLog) {
+    console.log(
+      "💾 Updating existing birthday log..."
+    );
+
     await logRef.update(
       data
     );
@@ -889,6 +845,10 @@ async function saveBirthdayLog(
       "✅ Existing birthday log updated."
     );
   } else {
+    console.log(
+      "💾 Creating new birthday log..."
+    );
+
     await logRef.set({
       ...data,
 
@@ -903,7 +863,393 @@ async function saveBirthdayLog(
 }
 
 // ==================================================
-// PROCESS BIRTHDAYS
+// PROCESS ONE BIRTHDAY
+// ==================================================
+
+async function processBirthdayPerson(
+  db,
+  templateResource,
+  personDoc,
+  person,
+  year,
+  dob
+) {
+  const personName =
+    String(
+      person.name || ""
+    ).trim();
+
+  console.log("");
+  console.log(
+    "=========================================="
+  );
+
+  console.log(
+    "🎉 BIRTHDAY PROCESSING STARTED"
+  );
+
+  console.log(
+    `👤 Person: ${personName}`
+  );
+
+  console.log(
+    `🆔 Person ID: ${personDoc.id}`
+  );
+
+  console.log(
+    `📅 DOB: ${dob}`
+  );
+
+  console.log(
+    "=========================================="
+  );
+
+  // ------------------------------------------------
+  // LOG REFERENCE
+  // ------------------------------------------------
+
+  console.log(
+    "🔍 DEBUG 1: Creating birthday log reference..."
+  );
+
+  const logId =
+    `${personDoc.id}_${year}`;
+
+  const logRef =
+    db
+      .collection(
+        "birthday_logs"
+      )
+      .doc(logId);
+
+  console.log(
+    `🔍 DEBUG 2: Log ID = ${logId}`
+  );
+
+  // ------------------------------------------------
+  // EXISTING LOG
+  // ------------------------------------------------
+
+  console.log(
+    "🔍 DEBUG 3: Reading existing birthday log..."
+  );
+
+  let existingSnapshot;
+
+  try {
+    existingSnapshot =
+      await logRef.get();
+  } catch (error) {
+    console.error(
+      "❌ Failed to read birthday log."
+    );
+
+    console.error(
+      error
+    );
+
+    throw error;
+  }
+
+  console.log(
+    "🔍 DEBUG 4: Birthday log lookup completed."
+  );
+
+  const existingLog =
+    existingSnapshot.exists;
+
+  console.log(
+    `🔍 DEBUG 5: Existing log = ${existingLog}`
+  );
+
+  if (existingLog) {
+    const existingData =
+      existingSnapshot.data();
+
+    const imageStatus =
+      String(
+        existingData.imageStatus ||
+          ""
+      ).toLowerCase();
+
+    const whatsappStatus =
+      String(
+        existingData.whatsappStatus ||
+          ""
+      ).toLowerCase();
+
+    console.log(
+      `📋 Existing image status: ${
+        imageStatus ||
+        "unknown"
+      }`
+    );
+
+    console.log(
+      `📋 Existing WhatsApp status: ${
+        whatsappStatus ||
+        "unknown"
+      }`
+    );
+
+    /*
+     * IMPORTANT:
+     *
+     * For now we preserve the existing
+     * duplicate-image protection.
+     *
+     * WhatsApp integration will be connected
+     * in the next stage.
+     */
+
+    if (
+      imageStatus ===
+      "generated"
+    ) {
+      console.log(
+        "✅ Image already generated. Skipping this birthday."
+      );
+
+      return {
+        status:
+          "skipped",
+
+        reason:
+          "image_already_generated",
+      };
+    }
+
+    console.log(
+      "🔄 Existing image is pending/failed. Retrying."
+    );
+  }
+
+  // ------------------------------------------------
+  // PHOTO
+  // ------------------------------------------------
+
+  console.log(
+    "🔍 DEBUG 6: Reading person photo..."
+  );
+
+  const photoUrl =
+    getPersonPhoto(
+      person
+    );
+
+  if (!photoUrl) {
+    console.log(
+      "❌ Person photo missing."
+    );
+
+    return {
+      status:
+        "skipped",
+
+      reason:
+        "photo_missing",
+    };
+  }
+
+  console.log(
+    "🔍 DEBUG 7: Person photo URL found."
+  );
+
+  // ------------------------------------------------
+  // VERIFY PHOTO
+  // ------------------------------------------------
+
+  console.log(
+    "🔍 DEBUG 8: Verifying person photo in Cloudinary..."
+  );
+
+  let personPhotoResource;
+
+  try {
+    personPhotoResource =
+      await verifyPersonPhoto(
+        person
+      );
+  } catch (error) {
+    console.error(
+      "❌ Person photo verification failed."
+    );
+
+    console.error(
+      error
+    );
+
+    return {
+      status:
+        "skipped",
+
+      reason:
+        "photo_verification_failed",
+    };
+  }
+
+  console.log(
+    "🔍 DEBUG 9: Person photo verification completed."
+  );
+
+  // ------------------------------------------------
+  // MESSAGE
+  // ------------------------------------------------
+
+  console.log(
+    "🔍 DEBUG 10: Creating birthday message..."
+  );
+
+  const birthdayMessage =
+    createBirthdayMessage(
+      personName
+    );
+
+  console.log(
+    "🔍 DEBUG 11: Birthday message created."
+  );
+
+  // ------------------------------------------------
+  // IMAGE
+  // ------------------------------------------------
+
+  let birthdayImageUrl =
+    "";
+
+  console.log(
+    "🖼️ Generating birthday image..."
+  );
+
+  try {
+    birthdayImageUrl =
+      createBirthdayImageUrl(
+        templateResource,
+        personPhotoResource,
+        personName
+      );
+
+    console.log(
+      "✅ Birthday image URL generated."
+    );
+
+    console.log(
+      birthdayImageUrl
+    );
+  } catch (error) {
+    console.error(
+      "❌ Image generation failed."
+    );
+
+    console.error(
+      error
+    );
+  }
+
+  // ------------------------------------------------
+  // SAVE LOG
+  // ------------------------------------------------
+
+  console.log(
+    "🔍 DEBUG 12: Saving birthday log..."
+  );
+
+  try {
+    await saveBirthdayLog(
+      db,
+
+      logRef,
+
+      existingLog,
+
+      personDoc,
+
+      person,
+
+      year,
+
+      dob,
+
+      birthdayMessage,
+
+      photoUrl,
+
+      birthdayImageUrl
+    );
+  } catch (error) {
+    console.error(
+      "❌ Failed to save birthday log."
+    );
+
+    console.error(
+      error
+    );
+
+    return {
+      status:
+        "failed",
+
+      reason:
+        "log_save_failed",
+    };
+  }
+
+  console.log(
+    "🔍 DEBUG 13: Birthday log save completed."
+  );
+
+  // ------------------------------------------------
+  // RESULT
+  // ------------------------------------------------
+
+  console.log("");
+  console.log(
+    "=========================================="
+  );
+
+  console.log(
+    `👤 Person   : ${personName}`
+  );
+
+  console.log(
+    `📱 Mobile   : ${
+      person.mobile ||
+      "Missing"
+    }`
+  );
+
+  console.log(
+    "📸 Photo    : Available"
+  );
+
+  console.log(
+    `🖼️ Image    : ${
+      birthdayImageUrl
+        ? "Generated"
+        : "Failed"
+    }`
+  );
+
+  console.log(
+    "💬 WhatsApp : Pending"
+  );
+
+  console.log(
+    "=========================================="
+  );
+
+  return {
+    status:
+      "processed",
+
+    imageGenerated:
+      Boolean(
+        birthdayImageUrl
+      ),
+  };
+}
+
+// ==================================================
+// PROCESS ALL BIRTHDAYS
 // ==================================================
 
 async function processBirthdays() {
@@ -938,7 +1284,7 @@ async function processBirthdays() {
   initializeCloudinary();
 
   // ------------------------------------------------
-  // VERIFY TEMPLATE
+  // TEMPLATE
   // ------------------------------------------------
 
   const templateResource =
@@ -973,6 +1319,11 @@ async function processBirthdays() {
   // PEOPLE
   // ------------------------------------------------
 
+  console.log("");
+  console.log(
+    "🔍 Loading ALL people from Firestore..."
+  );
+
   const peopleSnapshot =
     await db
       .collection(
@@ -993,18 +1344,12 @@ async function processBirthdays() {
   let skipped =
     0;
 
-  // ------------------------------------------------
-  // PEOPLE LOOP
-  // ------------------------------------------------
+  let failed =
+    0;
 
-  /*
-   * IMPORTANT:
-   *
-   * There is NO person-name filter here.
-   *
-   * Every person in the people collection
-   * is checked.
-   */
+  // ------------------------------------------------
+  // ALL PEOPLE LOOP
+  // ------------------------------------------------
 
   for (
     const personDoc of
@@ -1149,219 +1494,63 @@ async function processBirthdays() {
       `🎂 ${personName}`
     );
 
-    // ------------------------------------------------
-    // LOG
-    // ------------------------------------------------
+    /*
+     * IMPORTANT:
+     *
+     * Each person is processed inside its own
+     * try/catch so one failure does not terminate
+     * the entire 54-person scan.
+     */
 
-    const logId =
-      `${personDoc.id}_${year}`;
+    try {
+      const result =
+        await processBirthdayPerson(
+          db,
 
-    const logRef =
-      db
-        .collection(
-          "birthday_logs"
-        )
-        .doc(logId);
+          templateResource,
 
-    const existingSnapshot =
-      await logRef.get();
+          personDoc,
 
-    const existingLog =
-      existingSnapshot.exists;
+          person,
 
-    if (existingLog) {
-      const existingData =
-        existingSnapshot.data();
+          year,
 
-      const imageStatus =
-        String(
-          existingData.imageStatus ||
-            ""
-        ).toLowerCase();
-
-      console.log(
-        `📋 Existing log found. Image status: ${
-          imageStatus ||
-          "unknown"
-        }`
-      );
-
-      /*
-       * If the image has already been generated,
-       * do not generate it again.
-       */
+          dob
+        );
 
       if (
-        imageStatus ===
-        "generated"
+        result.status ===
+        "processed"
       ) {
-        console.log(
-          "✅ Image already generated. Skipping."
-        );
-
+        processed++;
+      } else if (
+        result.status ===
+        "skipped"
+      ) {
         skipped++;
-
-        continue;
+      } else {
+        failed++;
       }
-
-      console.log(
-        "🔄 Existing image is pending/failed. Retrying."
-      );
-    }
-
-    // ------------------------------------------------
-    // PHOTO
-    // ------------------------------------------------
-
-    const photoUrl =
-      getPersonPhoto(
-        person
-      );
-
-    if (!photoUrl) {
-      console.log(
-        "❌ Person photo missing."
-      );
-
-      skipped++;
-
-      continue;
-    }
-
-    // ------------------------------------------------
-    // VERIFY PERSON PHOTO
-    // ------------------------------------------------
-
-    let personPhotoResource;
-
-    try {
-      personPhotoResource =
-        await verifyPersonPhoto(
-          person
-        );
     } catch (error) {
+      failed++;
+
+      console.error("");
       console.error(
-        "❌ Person photo verification failed."
+        "❌ ERROR PROCESSING BIRTHDAY"
+      );
+
+      console.error(
+        `👤 Person: ${personName}`
       );
 
       console.error(
         error
       );
 
-      skipped++;
-
-      continue;
-    }
-
-    // ------------------------------------------------
-    // MESSAGE
-    // ------------------------------------------------
-
-    const birthdayMessage =
-      createBirthdayMessage(
-        personName
-      );
-
-    // ------------------------------------------------
-    // IMAGE
-    // ------------------------------------------------
-
-    let birthdayImageUrl =
-      "";
-
-    try {
-      console.log(
-        "🖼️ Generating birthday image..."
-      );
-
-      birthdayImageUrl =
-        createBirthdayImageUrl(
-          templateResource,
-          personPhotoResource,
-          personName
-        );
-
-      console.log(
-        "✅ Birthday image URL generated."
-      );
-
-      console.log(
-        birthdayImageUrl
-      );
-    } catch (error) {
       console.error(
-        "❌ Image generation failed:"
-      );
-
-      console.error(
-        error
+        "➡️ Continuing with the next person..."
       );
     }
-
-    // ------------------------------------------------
-    // SAVE
-    // ------------------------------------------------
-
-    await saveBirthdayLog(
-      db,
-
-      logRef,
-
-      existingLog,
-
-      personDoc,
-
-      person,
-
-      year,
-
-      dob,
-
-      birthdayMessage,
-
-      photoUrl,
-
-      birthdayImageUrl
-    );
-
-    processed++;
-
-    console.log("");
-
-    console.log(
-      "=========================================="
-    );
-
-    console.log(
-      `👤 Person   : ${personName}`
-    );
-
-    console.log(
-      `📱 Mobile   : ${
-        person.mobile ||
-        "Missing"
-      }`
-    );
-
-    console.log(
-      "📸 Photo    : Available"
-    );
-
-    console.log(
-      `🖼️ Image    : ${
-        birthdayImageUrl
-          ? "Generated"
-          : "Failed"
-      }`
-    );
-
-    console.log(
-      "💬 WhatsApp : Pending"
-    );
-
-    console.log(
-      "=========================================="
-    );
   }
 
   // ------------------------------------------------
@@ -1381,9 +1570,15 @@ async function processBirthdays() {
     processed,
 
     skipped,
+
+    failed,
   };
 
   console.log("");
+  console.log(
+    "=========================================="
+  );
+
   console.log(
     "FINAL RESULT:"
   );
@@ -1394,6 +1589,10 @@ async function processBirthdays() {
       null,
       2
     )
+  );
+
+  console.log(
+    "=========================================="
   );
 
   return result;
@@ -1438,20 +1637,15 @@ async function main() {
     await sendWhatsAppTestMessage();
 
     console.log("");
-
     console.log(
       "🎉 WhatsApp connectivity test completed successfully."
-    );
-
-    console.log(
-      "📱 Check the recipient WhatsApp phone."
     );
 
     return;
   }
 
   // =================================================
-  // NORMAL BIRTHDAY PROCESSING
+  // NORMAL MODE
   // =================================================
 
   await processBirthdays();
@@ -1464,7 +1658,6 @@ async function main() {
 main()
   .then(() => {
     console.log("");
-
     console.log(
       "✅ AGENT COMPLETED SUCCESSFULLY."
     );
@@ -1473,7 +1666,6 @@ main()
   })
   .catch((error) => {
     console.error("");
-
     console.error(
       "❌ BIRTHDAY AGENT FAILED"
     );

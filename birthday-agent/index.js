@@ -14,17 +14,15 @@ const cloudinary = require("cloudinary").v2;
 // CONFIGURATION
 // ==================================================
 
-const PILOT_PERSON_NAME =
-  "Vinoth Kumar S";
-
 const TIME_ZONE =
   "Asia/Kolkata";
 
 /*
  * Cloudinary birthday template.
  *
- * Keep this as the template that is currently
- * working in your Cloudinary account.
+ * Current working template:
+ *
+ * birthday_generic
  */
 const BIRTHDAY_TEMPLATE =
   "birthday_generic";
@@ -34,25 +32,14 @@ const BIRTHDAY_TEMPLATE =
  * WHATSAPP TEST MODE
  * =================================================
  *
- * For the FIRST test:
+ * Set:
  *
  * WHATSAPP_TEST_MODE=true
  *
- * The agent will:
+ * ONLY when you want to test the WhatsApp
+ * hello_world template.
  *
- * 1. Initialize Firebase
- * 2. Initialize Cloudinary
- * 3. Verify WhatsApp configuration
- * 4. Send hello_world template
- * 5. Exit
- *
- * It will NOT process birthdays.
- *
- * After the WhatsApp test succeeds:
- *
- * WHATSAPP_TEST_MODE=false
- *
- * Then normal birthday processing can continue.
+ * When false, the normal birthday agent runs.
  */
 
 const WHATSAPP_TEST_MODE =
@@ -62,11 +49,8 @@ const WHATSAPP_TEST_MODE =
 
 /*
  * Meta Graph API version.
- *
- * Can be overridden using:
- *
- * WHATSAPP_GRAPH_API_VERSION
  */
+
 const WHATSAPP_GRAPH_API_VERSION =
   process.env.WHATSAPP_GRAPH_API_VERSION ||
   "v25.0";
@@ -230,11 +214,11 @@ async function sendWhatsAppTestMessage() {
   );
 
   console.log(
-    `📤 Template: hello_world`
+    "📤 Template: hello_world"
   );
 
   console.log(
-    `🌍 Language: en_US`
+    "🌍 Language: en_US"
   );
 
   console.log(
@@ -333,6 +317,7 @@ async function sendWhatsAppTestMessage() {
 
   if (!response.ok) {
     console.error("");
+
     console.error(
       "❌ WhatsApp API rejected the message."
     );
@@ -343,6 +328,7 @@ async function sendWhatsAppTestMessage() {
   }
 
   console.log("");
+
   console.log(
     "=========================================="
   );
@@ -357,7 +343,9 @@ async function sendWhatsAppTestMessage() {
 
   if (
     result &&
-    Array.isArray(result.messages) &&
+    Array.isArray(
+      result.messages
+    ) &&
     result.messages.length > 0
   ) {
     console.log(
@@ -479,6 +467,14 @@ function getPublicIdFromCloudinaryUrl(
     const parts =
       remaining.split("/");
 
+    /*
+     * Find Cloudinary version.
+     *
+     * Example:
+     *
+     * v1786346340
+     */
+
     const versionIndex =
       parts.findIndex(
         (part) =>
@@ -495,6 +491,10 @@ function getPublicIdFromCloudinaryUrl(
           )
           .join("/");
     }
+
+    /*
+     * Remove file extension.
+     */
 
     remaining =
       remaining.replace(
@@ -514,7 +514,7 @@ function getPublicIdFromCloudinaryUrl(
 }
 
 // ==================================================
-// VERIFY TEMPLATE
+// VERIFY CLOUDINARY BIRTHDAY TEMPLATE
 // ==================================================
 
 async function verifyBirthdayTemplate() {
@@ -997,6 +997,15 @@ async function processBirthdays() {
   // PEOPLE LOOP
   // ------------------------------------------------
 
+  /*
+   * IMPORTANT:
+   *
+   * There is NO person-name filter here.
+   *
+   * Every person in the people collection
+   * is checked.
+   */
+
   for (
     const personDoc of
       peopleSnapshot.docs
@@ -1009,25 +1018,16 @@ async function processBirthdays() {
         person.name || ""
       ).trim();
 
-    // ------------------------------------------------
-    // PILOT MODE
-    // ------------------------------------------------
-
-    if (
-      personName.toLowerCase() !==
-      PILOT_PERSON_NAME.toLowerCase()
-    ) {
-      continue;
-    }
-
     console.log("");
-
     console.log(
       "------------------------------------------"
     );
 
     console.log(
-      `👤 Checking: ${personName}`
+      `👤 Checking: ${
+        personName ||
+        "Unnamed person"
+      }`
     );
 
     // ------------------------------------------------
@@ -1065,7 +1065,10 @@ async function processBirthdays() {
       ).trim();
 
     console.log(
-      `📅 DOB: ${dob}`
+      `📅 DOB: ${
+        dob ||
+        "Missing"
+      }`
     );
 
     if (!dob) {
@@ -1116,17 +1119,28 @@ async function processBirthdays() {
       `🎂 Person birthday key: ${personBirthdayKey}`
     );
 
+    // ------------------------------------------------
+    // NOT TODAY
+    // ------------------------------------------------
+
     if (
       personBirthdayKey !==
       birthdayKey
     ) {
+      console.log(
+        "⏭️ Birthday is not today."
+      );
+
       continue;
     }
+
+    // ------------------------------------------------
+    // BIRTHDAY FOUND
+    // ------------------------------------------------
 
     birthdaysFound++;
 
     console.log("");
-
     console.log(
       "🎉🎉🎉 BIRTHDAY FOUND 🎉🎉🎉"
     );
@@ -1172,6 +1186,11 @@ async function processBirthdays() {
         }`
       );
 
+      /*
+       * If the image has already been generated,
+       * do not generate it again.
+       */
+
       if (
         imageStatus ===
         "generated"
@@ -1213,10 +1232,26 @@ async function processBirthdays() {
     // VERIFY PERSON PHOTO
     // ------------------------------------------------
 
-    const personPhotoResource =
-      await verifyPersonPhoto(
-        person
+    let personPhotoResource;
+
+    try {
+      personPhotoResource =
+        await verifyPersonPhoto(
+          person
+        );
+    } catch (error) {
+      console.error(
+        "❌ Person photo verification failed."
       );
+
+      console.error(
+        error
+      );
+
+      skipped++;
+
+      continue;
+    }
 
     // ------------------------------------------------
     // MESSAGE
@@ -1349,7 +1384,6 @@ async function processBirthdays() {
   };
 
   console.log("");
-
   console.log(
     "FINAL RESULT:"
   );
@@ -1383,19 +1417,13 @@ async function main() {
     "=========================================="
   );
 
-  /*
-   * =================================================
-   * WHATSAPP TEST MODE
-   * =================================================
-   *
-   * This intentionally runs BEFORE birthday
-   * processing.
-   *
-   * Therefore our first test cannot accidentally
-   * send birthday messages to people.
-   */
+  // =================================================
+  // WHATSAPP TEST MODE
+  // =================================================
 
-  if (WHATSAPP_TEST_MODE) {
+  if (
+    WHATSAPP_TEST_MODE
+  ) {
     console.log("");
     console.log(
       "🧪 WHATSAPP TEST MODE ENABLED"
@@ -1404,8 +1432,6 @@ async function main() {
     console.log(
       "⚠️ Birthday processing is disabled for this run."
     );
-
-    console.log("");
 
     verifyWhatsAppConfiguration();
 
@@ -1418,17 +1444,15 @@ async function main() {
     );
 
     console.log(
-      "📱 Check the recipient WhatsApp phone now."
+      "📱 Check the recipient WhatsApp phone."
     );
 
     return;
   }
 
-  /*
-   * =================================================
-   * NORMAL BIRTHDAY MODE
-   * =================================================
-   */
+  // =================================================
+  // NORMAL BIRTHDAY PROCESSING
+  // =================================================
 
   await processBirthdays();
 }
@@ -1440,6 +1464,7 @@ async function main() {
 main()
   .then(() => {
     console.log("");
+
     console.log(
       "✅ AGENT COMPLETED SUCCESSFULLY."
     );
@@ -1448,6 +1473,7 @@ main()
   })
   .catch((error) => {
     console.error("");
+
     console.error(
       "❌ BIRTHDAY AGENT FAILED"
     );

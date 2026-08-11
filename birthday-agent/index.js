@@ -17,25 +17,45 @@ const cloudinary = require("cloudinary").v2;
 const TIME_ZONE = "Asia/Kolkata";
 
 /*
- * Current working Cloudinary birthday template.
+ * Cloudinary birthday template.
  */
 const BIRTHDAY_TEMPLATE =
   "birthday_generic";
 
 /*
  * =================================================
- * WHATSAPP TEST MODE
+ * WHATSAPP TEST MODES
  * =================================================
  *
- * This is ONLY for testing the already-approved
- * hello_world template.
+ * WHATSAPP_TEST_MODE=true
  *
- * Normal birthday processing remains independent.
+ * Sends the already-tested hello_world template
+ * and stops.
+ *
+ *
+ * WHATSAPP_IMAGE_TEST_MODE=true
+ *
+ * Runs the normal birthday process and sends
+ * today's generated birthday image to:
+ *
+ * WHATSAPP_TEST_RECIPIENT
+ *
+ * IMPORTANT:
+ *
+ * During image test mode, the image is NOT sent
+ * to the birthday person's mobile number.
+ *
+ * It is sent only to your test number.
  */
 
 const WHATSAPP_TEST_MODE =
   String(
     process.env.WHATSAPP_TEST_MODE || ""
+  ).toLowerCase() === "true";
+
+const WHATSAPP_IMAGE_TEST_MODE =
+  String(
+    process.env.WHATSAPP_IMAGE_TEST_MODE || ""
   ).toLowerCase() === "true";
 
 const WHATSAPP_GRAPH_API_VERSION =
@@ -193,7 +213,7 @@ async function sendWhatsAppTestMessage() {
   );
 
   console.log(
-    "📱 WHATSAPP TEST"
+    "📱 WHATSAPP HELLO WORLD TEST"
   );
 
   console.log(
@@ -236,6 +256,7 @@ async function sendWhatsAppTestMessage() {
     },
   };
 
+  console.log("");
   console.log(
     "🌐 Sending request to Meta..."
   );
@@ -283,7 +304,169 @@ async function sendWhatsAppTestMessage() {
   }
 
   console.log(
-    "✅ WHATSAPP TEST MESSAGE SENT"
+    "✅ WHATSAPP HELLO WORLD SENT"
+  );
+
+  if (
+    result &&
+    Array.isArray(
+      result.messages
+    ) &&
+    result.messages.length > 0
+  ) {
+    console.log(
+      `🆔 WhatsApp Message ID: ${result.messages[0].id}`
+    );
+  }
+
+  return result;
+}
+
+// ==================================================
+// SEND DIRECT WHATSAPP IMAGE
+// ==================================================
+
+async function sendWhatsAppImage(
+  imageUrl,
+  recipient
+) {
+  const accessToken =
+    process.env.WHATSAPP_ACCESS_TOKEN;
+
+  const phoneNumberId =
+    process.env.WHATSAPP_PHONE_NUMBER_ID;
+
+  if (!accessToken) {
+    throw new Error(
+      "WHATSAPP_ACCESS_TOKEN is missing."
+    );
+  }
+
+  if (!phoneNumberId) {
+    throw new Error(
+      "WHATSAPP_PHONE_NUMBER_ID is missing."
+    );
+  }
+
+  if (!recipient) {
+    throw new Error(
+      "WhatsApp recipient is missing."
+    );
+  }
+
+  if (!imageUrl) {
+    throw new Error(
+      "Birthday image URL is missing."
+    );
+  }
+
+  console.log("");
+  console.log(
+    "=========================================="
+  );
+
+  console.log(
+    "📸 DIRECT WHATSAPP IMAGE"
+  );
+
+  console.log(
+    "=========================================="
+  );
+
+  console.log(
+    `📨 Recipient: ${recipient}`
+  );
+
+  console.log(
+    `🌐 Image URL: ${imageUrl}`
+  );
+
+  const url =
+    `https://graph.facebook.com/${WHATSAPP_GRAPH_API_VERSION}/${phoneNumberId}/messages`;
+
+  const requestBody = {
+    messaging_product:
+      "whatsapp",
+
+    recipient_type:
+      "individual",
+
+    to:
+      recipient,
+
+    type:
+      "image",
+
+    image: {
+      link:
+        imageUrl,
+    },
+  };
+
+  console.log("");
+  console.log(
+    "🌐 Sending birthday image to Meta..."
+  );
+
+  const response =
+    await fetch(
+      url,
+      {
+        method: "POST",
+
+        headers: {
+          Authorization:
+            `Bearer ${accessToken}`,
+
+          "Content-Type":
+            "application/json",
+        },
+
+        body:
+          JSON.stringify(
+            requestBody
+          ),
+      }
+    );
+
+  const result =
+    await response.json();
+
+  console.log("");
+  console.log(
+    `📡 Meta HTTP status: ${response.status}`
+  );
+
+  console.log(
+    JSON.stringify(
+      result,
+      null,
+      2
+    )
+  );
+
+  if (!response.ok) {
+    console.error("");
+    console.error(
+      "❌ WhatsApp image send failed."
+    );
+
+    throw new Error(
+      `WhatsApp image send failed with HTTP ${response.status}.`
+    );
+  }
+
+  console.log("");
+  console.log(
+    "=========================================="
+  );
+
+  console.log(
+    "✅ BIRTHDAY IMAGE SENT TO WHATSAPP"
+  );
+
+  console.log(
+    "=========================================="
   );
 
   if (
@@ -371,7 +554,7 @@ function getPersonPhoto(
 }
 
 // ==================================================
-// CLOUDINARY PUBLIC ID
+// GET CLOUDINARY PUBLIC ID
 // ==================================================
 
 function getPublicIdFromCloudinaryUrl(
@@ -412,14 +595,6 @@ function getPublicIdFromCloudinaryUrl(
     const parts =
       remaining.split("/");
 
-    /*
-     * Find Cloudinary version.
-     *
-     * Example:
-     *
-     * v1786346340
-     */
-
     const versionIndex =
       parts.findIndex(
         (part) =>
@@ -458,7 +633,7 @@ function getPublicIdFromCloudinaryUrl(
 }
 
 // ==================================================
-// VERIFY BIRTHDAY TEMPLATE
+// VERIFY CLOUDINARY BIRTHDAY TEMPLATE
 // ==================================================
 
 async function verifyBirthdayTemplate() {
@@ -782,7 +957,8 @@ async function saveBirthdayLog(
   dob,
   birthdayMessage,
   photoUrl,
-  birthdayImageUrl
+  birthdayImageUrl,
+  whatsappStatus
 ) {
   console.log(
     "💾 Preparing birthday log..."
@@ -822,6 +998,7 @@ async function saveBirthdayLog(
         : "failed",
 
     whatsappStatus:
+      whatsappStatus ||
       "pending",
 
     updatedAt:
@@ -905,12 +1082,8 @@ async function processBirthdayPerson(
   );
 
   // ------------------------------------------------
-  // LOG REFERENCE
+  // LOG
   // ------------------------------------------------
-
-  console.log(
-    "🔍 DEBUG 1: Creating birthday log reference..."
-  );
 
   const logId =
     `${personDoc.id}_${year}`;
@@ -923,15 +1096,7 @@ async function processBirthdayPerson(
       .doc(logId);
 
   console.log(
-    `🔍 DEBUG 2: Log ID = ${logId}`
-  );
-
-  // ------------------------------------------------
-  // EXISTING LOG
-  // ------------------------------------------------
-
-  console.log(
-    "🔍 DEBUG 3: Reading existing birthday log..."
+    `🔍 Birthday log ID: ${logId}`
   );
 
   let existingSnapshot;
@@ -951,86 +1116,185 @@ async function processBirthdayPerson(
     throw error;
   }
 
-  console.log(
-    "🔍 DEBUG 4: Birthday log lookup completed."
-  );
-
   const existingLog =
     existingSnapshot.exists;
 
   console.log(
-    `🔍 DEBUG 5: Existing log = ${existingLog}`
+    `🔍 Existing birthday log: ${existingLog}`
   );
 
+  let existingData =
+    {};
+
   if (existingLog) {
-    const existingData =
-      existingSnapshot.data();
-
-    const imageStatus =
-      String(
-        existingData.imageStatus ||
-          ""
-      ).toLowerCase();
-
-    const whatsappStatus =
-      String(
-        existingData.whatsappStatus ||
-          ""
-      ).toLowerCase();
+    existingData =
+      existingSnapshot.data() ||
+      {};
 
     console.log(
       `📋 Existing image status: ${
-        imageStatus ||
+        existingData.imageStatus ||
         "unknown"
       }`
     );
 
     console.log(
       `📋 Existing WhatsApp status: ${
-        whatsappStatus ||
+        existingData.whatsappStatus ||
         "unknown"
       }`
     );
+  }
 
-    /*
-     * IMPORTANT:
-     *
-     * For now we preserve the existing
-     * duplicate-image protection.
-     *
-     * WhatsApp integration will be connected
-     * in the next stage.
-     */
+  /*
+   * =================================================
+   * SPECIAL IMAGE TEST MODE
+   * =================================================
+   *
+   * If the image was already generated during
+   * an earlier run, reuse that image and send it
+   * to the test number.
+   *
+   * This is important because your current
+   * birthday log may already contain Akil's
+   * generated image.
+   */
 
-    if (
-      imageStatus ===
-      "generated"
-    ) {
+  if (
+    WHATSAPP_IMAGE_TEST_MODE &&
+    existingLog &&
+    existingData.birthdayImageUrl
+  ) {
+    console.log("");
+    console.log(
+      "🧪 EXISTING IMAGE FOUND FOR WHATSAPP TEST"
+    );
+
+    console.log(
+      "♻️ Reusing existing Cloudinary birthday image."
+    );
+
+    console.log(
+      `🌐 Image: ${existingData.birthdayImageUrl}`
+    );
+
+    verifyWhatsAppConfiguration();
+
+    try {
+      const whatsappResult =
+        await sendWhatsAppImage(
+          existingData.birthdayImageUrl,
+          process.env.WHATSAPP_TEST_RECIPIENT
+        );
+
       console.log(
-        "✅ Image already generated. Skipping this birthday."
+        "✅ Existing birthday image sent to test WhatsApp."
+      );
+
+      /*
+       * Update only the test status.
+       *
+       * We do not mark the actual birthday as
+       * production WhatsApp sent yet.
+       */
+
+      await logRef.update({
+        whatsappTestStatus:
+          "sent",
+
+        whatsappTestMessageId:
+          whatsappResult?.messages?.[0]?.id ||
+          "",
+
+        whatsappTestRecipient:
+          process.env.WHATSAPP_TEST_RECIPIENT,
+
+        whatsappTestAt:
+          FieldValue.serverTimestamp(),
+
+        updatedAt:
+          FieldValue.serverTimestamp(),
+      });
+
+      console.log(
+        "✅ WhatsApp test result saved."
       );
 
       return {
         status:
-          "skipped",
+          "processed",
+
+        imageGenerated:
+          true,
+
+        whatsappTestSent:
+          true,
+      };
+    } catch (error) {
+      console.error(
+        "❌ WhatsApp image test failed."
+      );
+
+      console.error(
+        error
+      );
+
+      await logRef.update({
+        whatsappTestStatus:
+          "failed",
+
+        whatsappTestError:
+          String(
+            error?.message ||
+              error
+          ),
+
+        updatedAt:
+          FieldValue.serverTimestamp(),
+      });
+
+      return {
+        status:
+          "failed",
 
         reason:
-          "image_already_generated",
+          "whatsapp_image_test_failed",
       };
     }
+  }
+
+  // ------------------------------------------------
+  // DUPLICATE IMAGE PROTECTION
+  // ------------------------------------------------
+
+  if (
+    existingLog &&
+    String(
+      existingData.imageStatus ||
+        ""
+    ).toLowerCase() ===
+      "generated"
+  ) {
+    console.log(
+      "✅ Image already generated."
+    );
 
     console.log(
-      "🔄 Existing image is pending/failed. Retrying."
+      "⏭️ Skipping duplicate image generation."
     );
+
+    return {
+      status:
+        "skipped",
+
+      reason:
+        "image_already_generated",
+    };
   }
 
   // ------------------------------------------------
   // PHOTO
   // ------------------------------------------------
-
-  console.log(
-    "🔍 DEBUG 6: Reading person photo..."
-  );
 
   const photoUrl =
     getPersonPhoto(
@@ -1051,17 +1315,9 @@ async function processBirthdayPerson(
     };
   }
 
-  console.log(
-    "🔍 DEBUG 7: Person photo URL found."
-  );
-
   // ------------------------------------------------
   // VERIFY PHOTO
   // ------------------------------------------------
-
-  console.log(
-    "🔍 DEBUG 8: Verifying person photo in Cloudinary..."
-  );
 
   let personPhotoResource;
 
@@ -1088,26 +1344,14 @@ async function processBirthdayPerson(
     };
   }
 
-  console.log(
-    "🔍 DEBUG 9: Person photo verification completed."
-  );
-
   // ------------------------------------------------
   // MESSAGE
   // ------------------------------------------------
-
-  console.log(
-    "🔍 DEBUG 10: Creating birthday message..."
-  );
 
   const birthdayMessage =
     createBirthdayMessage(
       personName
     );
-
-  console.log(
-    "🔍 DEBUG 11: Birthday message created."
-  );
 
   // ------------------------------------------------
   // IMAGE
@@ -1116,11 +1360,11 @@ async function processBirthdayPerson(
   let birthdayImageUrl =
     "";
 
-  console.log(
-    "🖼️ Generating birthday image..."
-  );
-
   try {
+    console.log(
+      "🖼️ Generating birthday image..."
+    );
+
     birthdayImageUrl =
       createBirthdayImageUrl(
         templateResource,
@@ -1146,56 +1390,105 @@ async function processBirthdayPerson(
   }
 
   // ------------------------------------------------
-  // SAVE LOG
+  // WHATSAPP IMAGE TEST
   // ------------------------------------------------
 
-  console.log(
-    "🔍 DEBUG 12: Saving birthday log..."
-  );
+  let whatsappStatus =
+    "pending";
 
-  try {
-    await saveBirthdayLog(
-      db,
+  let whatsappTestMessageId =
+    "";
 
-      logRef,
-
-      existingLog,
-
-      personDoc,
-
-      person,
-
-      year,
-
-      dob,
-
-      birthdayMessage,
-
-      photoUrl,
-
-      birthdayImageUrl
-    );
-  } catch (error) {
-    console.error(
-      "❌ Failed to save birthday log."
+  if (
+    WHATSAPP_IMAGE_TEST_MODE &&
+    birthdayImageUrl
+  ) {
+    console.log("");
+    console.log(
+      "🧪 WHATSAPP IMAGE TEST MODE"
     );
 
-    console.error(
-      error
+    console.log(
+      "⚠️ Image will be sent ONLY to your test number."
     );
 
-    return {
-      status:
-        "failed",
+    verifyWhatsAppConfiguration();
 
-      reason:
-        "log_save_failed",
-    };
+    try {
+      const whatsappResult =
+        await sendWhatsAppImage(
+          birthdayImageUrl,
+          process.env.WHATSAPP_TEST_RECIPIENT
+        );
+
+      whatsappStatus =
+        "test_sent";
+
+      whatsappTestMessageId =
+        whatsappResult?.messages?.[0]?.id ||
+        "";
+
+      console.log(
+        "✅ Birthday image delivered to test WhatsApp."
+      );
+    } catch (error) {
+      whatsappStatus =
+        "test_failed";
+
+      console.error(
+        "❌ WhatsApp image test failed."
+      );
+
+      console.error(
+        error
+      );
+    }
   }
 
-  console.log(
-    "🔍 DEBUG 13: Birthday log save completed."
+  // ------------------------------------------------
+  // SAVE
+  // ------------------------------------------------
+
+  await saveBirthdayLog(
+    db,
+
+    logRef,
+
+    existingLog,
+
+    personDoc,
+
+    person,
+
+    year,
+
+    dob,
+
+    birthdayMessage,
+
+    photoUrl,
+
+    birthdayImageUrl,
+
+    whatsappStatus
   );
+
+  // Save test message ID if available.
+
+  if (
+    whatsappTestMessageId
+  ) {
+    await logRef.update({
+      whatsappTestMessageId,
+
+      whatsappTestRecipient:
+        process.env.WHATSAPP_TEST_RECIPIENT ||
+        "",
+
+      whatsappTestAt:
+        FieldValue.serverTimestamp(),
+    });
+  }
 
   // ------------------------------------------------
   // RESULT
@@ -1230,7 +1523,7 @@ async function processBirthdayPerson(
   );
 
   console.log(
-    "💬 WhatsApp : Pending"
+    `💬 WhatsApp : ${whatsappStatus}`
   );
 
   console.log(
@@ -1245,6 +1538,8 @@ async function processBirthdayPerson(
       Boolean(
         birthdayImageUrl
       ),
+
+    whatsappStatus,
   };
 }
 
@@ -1494,14 +1789,6 @@ async function processBirthdays() {
       `🎂 ${personName}`
     );
 
-    /*
-     * IMPORTANT:
-     *
-     * Each person is processed inside its own
-     * try/catch so one failure does not terminate
-     * the entire 54-person scan.
-     */
-
     try {
       const result =
         await processBirthdayPerson(
@@ -1548,13 +1835,13 @@ async function processBirthdays() {
       );
 
       console.error(
-        "➡️ Continuing with the next person..."
+        "➡️ Continuing with next person..."
       );
     }
   }
 
   // ------------------------------------------------
-  // RESULT
+  // FINAL RESULT
   // ------------------------------------------------
 
   const result = {
@@ -1572,6 +1859,9 @@ async function processBirthdays() {
     skipped,
 
     failed,
+
+    whatsappImageTestMode:
+      WHATSAPP_IMAGE_TEST_MODE,
   };
 
   console.log("");
@@ -1599,7 +1889,7 @@ async function processBirthdays() {
 }
 
 // ==================================================
-// START
+// MAIN
 // ==================================================
 
 async function main() {
@@ -1617,7 +1907,7 @@ async function main() {
   );
 
   // =================================================
-  // WHATSAPP TEST MODE
+  // HELLO WORLD TEST MODE
   // =================================================
 
   if (
@@ -1625,11 +1915,11 @@ async function main() {
   ) {
     console.log("");
     console.log(
-      "🧪 WHATSAPP TEST MODE ENABLED"
+      "🧪 WHATSAPP HELLO WORLD TEST MODE"
     );
 
     console.log(
-      "⚠️ Birthday processing is disabled for this run."
+      "⚠️ Birthday processing is disabled."
     );
 
     verifyWhatsAppConfiguration();
@@ -1637,15 +1927,37 @@ async function main() {
     await sendWhatsAppTestMessage();
 
     console.log("");
+
     console.log(
-      "🎉 WhatsApp connectivity test completed successfully."
+      "🎉 WhatsApp hello_world test completed."
     );
 
     return;
   }
 
   // =================================================
-  // NORMAL MODE
+  // IMAGE TEST MODE
+  // =================================================
+
+  if (
+    WHATSAPP_IMAGE_TEST_MODE
+  ) {
+    console.log("");
+    console.log(
+      "🧪 WHATSAPP IMAGE TEST MODE ENABLED"
+    );
+
+    console.log(
+      "📸 Today's birthday image will be sent to your test number."
+    );
+
+    console.log(
+      "⚠️ It will NOT be sent to the birthday person's number."
+    );
+  }
+
+  // =================================================
+  // NORMAL BIRTHDAY PROCESSING
   // =================================================
 
   await processBirthdays();

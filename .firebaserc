@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "occasion-finance-manager"
-  }
+    "default": "occasion-finance-manager",
+    "tenant2": "occasion-finance-team2"
+  },
+  "targets": {},
+  "etags": {}
 }

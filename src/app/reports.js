@@ -45,6 +45,12 @@ const REPORT_OPTIONS = [
     description:
       "Occasion-wise contribution status for all people",
   },
+  {
+    label: "Receipt Report",
+    value: "receipt",
+    description:
+      "Receipt-wise money and in-kind collection details",
+  },
 ];
 
 /* =========================================================
@@ -132,6 +138,9 @@ export default function ReportsScreen() {
   const [contributions, setContributions] =
     useState([]);
 
+  const [receipts, setReceipts] =
+    useState([]);
+
   const [occasions, setOccasions] =
     useState([]);
 
@@ -150,6 +159,18 @@ export default function ReportsScreen() {
     setContributionStatusFilter,
   ] = useState("All");
 
+  const [receiptBillBookFilter, setReceiptBillBookFilter] =
+    useState("All");
+
+  const [receiptCollectorFilter, setReceiptCollectorFilter] =
+    useState("All");
+
+  const [showReceiptBillBookPicker, setShowReceiptBillBookPicker] =
+    useState(false);
+
+  const [showReceiptCollectorPicker, setShowReceiptCollectorPicker] =
+    useState(false);
+
   const [loading, setLoading] =
     useState(true);
 
@@ -163,12 +184,14 @@ export default function ReportsScreen() {
   useEffect(() => {
     let peopleLoaded = false;
     let contributionsLoaded = false;
+    let receiptsLoaded = false;
     let occasionsLoaded = false;
 
     const checkLoading = () => {
       if (
         peopleLoaded &&
         contributionsLoaded &&
+        receiptsLoaded &&
         occasionsLoaded
       ) {
         setLoading(false);
@@ -244,6 +267,34 @@ export default function ReportsScreen() {
       );
 
     /* -------------------------------------------------------
+       RECEIPTS
+       ------------------------------------------------------- */
+
+    const unsubscribeReceipts =
+      onSnapshot(
+        collection(db, "receipts"),
+        (snapshot) => {
+          setReceipts(
+            snapshot.docs.map((item) => ({
+              id: item.id,
+              ...item.data(),
+            }))
+          );
+          receiptsLoaded = true;
+          checkLoading();
+        },
+        (error) => {
+          console.log("Receipt report error:", error);
+          receiptsLoaded = true;
+          checkLoading();
+          Alert.alert(
+            "Unable to load receipts",
+            "Receipt data could not be loaded."
+          );
+        }
+      );
+
+    /* -------------------------------------------------------
        OCCASIONS
        ------------------------------------------------------- */
 
@@ -280,9 +331,51 @@ export default function ReportsScreen() {
     return () => {
       unsubscribePeople();
       unsubscribeContributions();
+      unsubscribeReceipts();
       unsubscribeOccasions();
     };
   }, []);
+
+  /* =======================================================
+     RECEIPT REPORT DATA
+     ======================================================= */
+
+  const receiptBillBookOptions = useMemo(() =>
+    [...new Set(
+      receipts.map((item) => item.billBookNumber).filter(Boolean).map(String)
+    )].sort((a, b) => a.localeCompare(b, undefined, { numeric: true })),
+    [receipts]
+  );
+
+  const receiptCollectorOptions = useMemo(() =>
+    [...new Set(
+      receipts.map((item) => item.collectorName || item.collector || item.collectorId).filter(Boolean).map(String)
+    )].sort((a, b) => a.localeCompare(b)),
+    [receipts]
+  );
+
+  const filteredReceiptReport = useMemo(() => {
+    return [...receipts]
+      .filter((item) => {
+        if (selectedOccasionId && item.occasionId !== selectedOccasionId) return false;
+        if (receiptBillBookFilter !== "All" && String(item.billBookNumber || "") !== receiptBillBookFilter) return false;
+        const collector = String(item.collectorName || item.collector || item.collectorId || "");
+        if (receiptCollectorFilter !== "All" && collector !== receiptCollectorFilter) return false;
+        return true;
+      })
+      .sort((a, b) => String(a.receiptNumber || "").localeCompare(String(b.receiptNumber || ""), undefined, { numeric: true }));
+  }, [receipts, selectedOccasionId, receiptBillBookFilter, receiptCollectorFilter]);
+
+  const receiptSummary = useMemo(() => {
+    const money = filteredReceiptReport.filter((item) => String(item.contributionType || "Money").toLowerCase() === "money");
+    const inKind = filteredReceiptReport.filter((item) => String(item.contributionType || "").toLowerCase() === "in-kind");
+    return {
+      total: filteredReceiptReport.length,
+      moneyCount: money.length,
+      inKindCount: inKind.length,
+      moneyAmount: money.reduce((sum, item) => sum + Number(item.amount || 0), 0),
+    };
+  }, [filteredReceiptReport]);
 
   /* =======================================================
      SELECTED REPORT
@@ -796,6 +889,50 @@ export default function ReportsScreen() {
     };
 
   /* =======================================================
+     RECEIPT REPORT EXPORT
+     ======================================================= */
+
+  const exportReceiptReport = async () => {
+    if (filteredReceiptReport.length === 0) {
+      Alert.alert("No Data", "There are no receipts available for the selected filters.");
+      return;
+    }
+    setExporting(true);
+    try {
+      const rows = filteredReceiptReport.map((item, index) => ({
+        "S.No": index + 1,
+        "Receipt No": item.receiptNumber || "",
+        "Bill Book No": item.billBookNumber || "",
+        Occasion: item.occasionName || getOccasionName(occasions.find((o) => o.id === item.occasionId)),
+        Collector: item.collectorName || item.collector || item.collectorId || "",
+        "Donor Name": item.donorName || "",
+        "Contribution Type": item.contributionType || "",
+        Amount: String(item.contributionType || "Money").toLowerCase() === "money" ? Number(item.amount || 0) : "",
+        "Payment Mode": item.paymentMode || "",
+        "Item / Contribution": item.item || item.contribution || "",
+        Quantity: item.quantity ?? "",
+        Unit: item.unit || "",
+        Date: item.date ? formatDate(item.date) : formatDate(item.createdAt),
+        "Receipt ID": item.id || "",
+      }));
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      worksheet["!cols"] = [
+        { wch: 8 }, { wch: 16 }, { wch: 16 }, { wch: 28 }, { wch: 24 }, { wch: 28 },
+        { wch: 18 }, { wch: 16 }, { wch: 18 }, { wch: 28 }, { wch: 12 },
+        { wch: 12 }, { wch: 24 }, { wch: 34 },
+      ];
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Receipt Report");
+      await saveWorkbook(workbook, `Receipt_Report_${new Date().toISOString().slice(0, 10)}.xlsx`, "Export Receipt Report");
+    } catch (error) {
+      console.log("Receipt report export error:", error);
+      Alert.alert("Export Failed", "Unable to generate the receipt report.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  /* =======================================================
      WORKBOOK SAVE
    ======================================================= */
 
@@ -1088,8 +1225,8 @@ export default function ReportsScreen() {
                       );
 
                       if (
-                        option.value !==
-                        "contribution"
+                        option.value !== "contribution" &&
+                        option.value !== "receipt"
                       ) {
                         setShowOccasionPicker(
                           false
@@ -1294,6 +1431,60 @@ export default function ReportsScreen() {
                   not affect this report.
                 </Text>
               </View>
+            </>
+          ) : null}
+
+          {/* =================================================
+              RECEIPT REPORT
+          ================================================= */}
+          {reportType === "receipt" ? (
+            <>
+              <Text style={[styles.label, { marginTop: 22 }]}>OCCASION</Text>
+              <TouchableOpacity style={styles.dropdown} onPress={() => setShowOccasionPicker(!showOccasionPicker)} activeOpacity={0.8}>
+                <View style={styles.dropdownText}>
+                  <Text style={styles.dropdownValue}>{selectedOccasion ? getOccasionName(selectedOccasion) : "All Occasions"}</Text>
+                  <Text style={styles.dropdownDescription}>Filter receipts by occasion</Text>
+                </View>
+                <Text style={styles.chevron}>{showOccasionPicker ? "▲" : "▼"}</Text>
+              </TouchableOpacity>
+              {showOccasionPicker ? (
+                <View style={styles.dropdownMenu}>
+                  <TouchableOpacity style={[styles.option, !selectedOccasionId && styles.optionActive]} onPress={() => { setSelectedOccasionId(""); setShowOccasionPicker(false); }}><Text style={[styles.optionLabel, !selectedOccasionId && styles.optionLabelActive]}>All Occasions</Text></TouchableOpacity>
+                  {sortedOccasions.map((occasion) => <TouchableOpacity key={occasion.id} style={[styles.option, occasion.id === selectedOccasionId && styles.optionActive]} onPress={() => { setSelectedOccasionId(occasion.id); setShowOccasionPicker(false); }}><Text style={[styles.optionLabel, occasion.id === selectedOccasionId && styles.optionLabelActive]}>{getOccasionName(occasion)}</Text></TouchableOpacity>)}
+                </View>
+              ) : null}
+
+              <View style={styles.receiptFilterGrid}>
+                <View style={styles.receiptFilterItem}>
+                  <Text style={styles.label}>BILL BOOK</Text>
+                  <TouchableOpacity style={styles.dropdown} onPress={() => setShowReceiptBillBookPicker(!showReceiptBillBookPicker)}><Text style={styles.dropdownValue}>{receiptBillBookFilter === "All" ? "All Bill Books" : receiptBillBookFilter}</Text><Text style={styles.chevron}>{showReceiptBillBookPicker ? "▲" : "▼"}</Text></TouchableOpacity>
+                  {showReceiptBillBookPicker ? <View style={styles.dropdownMenu}>{["All", ...receiptBillBookOptions].map((value) => <TouchableOpacity key={value} style={[styles.option, value === receiptBillBookFilter && styles.optionActive]} onPress={() => { setReceiptBillBookFilter(value); setShowReceiptBillBookPicker(false); }}><Text style={[styles.optionLabel, value === receiptBillBookFilter && styles.optionLabelActive]}>{value === "All" ? "All Bill Books" : value}</Text></TouchableOpacity>)}</View> : null}
+                </View>
+                <View style={styles.receiptFilterItem}>
+                  <Text style={styles.label}>COLLECTOR</Text>
+                  <TouchableOpacity style={styles.dropdown} onPress={() => setShowReceiptCollectorPicker(!showReceiptCollectorPicker)}><Text style={styles.dropdownValue}>{receiptCollectorFilter === "All" ? "All Collectors" : receiptCollectorFilter}</Text><Text style={styles.chevron}>{showReceiptCollectorPicker ? "▲" : "▼"}</Text></TouchableOpacity>
+                  {showReceiptCollectorPicker ? <View style={styles.dropdownMenu}>{["All", ...receiptCollectorOptions].map((value) => <TouchableOpacity key={value} style={[styles.option, value === receiptCollectorFilter && styles.optionActive]} onPress={() => { setReceiptCollectorFilter(value); setShowReceiptCollectorPicker(false); }}><Text style={[styles.optionLabel, value === receiptCollectorFilter && styles.optionLabelActive]}>{value === "All" ? "All Collectors" : value}</Text></TouchableOpacity>)}</View> : null}
+                </View>
+              </View>
+
+              <View style={styles.reportHeader}><View style={styles.reportHeaderText}><Text style={styles.sectionTitle}>Receipt-wise Details</Text><Text style={styles.sectionSubtitle}>Every issued receipt, including Money and In-Kind collections</Text></View></View>
+              <View style={styles.summaryGrid}>
+                <View style={[styles.summaryCard, styles.summaryBlue]}><Text style={styles.summaryLabel}>TOTAL RECEIPTS</Text><Text style={styles.summaryValue}>{receiptSummary.total}</Text></View>
+                <View style={[styles.summaryCard, styles.summaryGreen]}><Text style={styles.summaryLabel}>MONEY RECEIPTS</Text><Text style={styles.summaryValue}>{receiptSummary.moneyCount}</Text></View>
+                <View style={[styles.summaryCard, styles.summaryYellow]}><Text style={styles.summaryLabel}>MONEY COLLECTED</Text><Text style={styles.summaryAmount}>₹{formatAmount(receiptSummary.moneyAmount)}</Text></View>
+                <View style={[styles.summaryCard, styles.summaryRed]}><Text style={styles.summaryLabel}>IN-KIND RECEIPTS</Text><Text style={styles.summaryValue}>{receiptSummary.inKindCount}</Text></View>
+              </View>
+
+              <View style={styles.detailsCard}><ScrollView horizontal showsHorizontalScrollIndicator><View style={styles.receiptTable}>
+                <View style={styles.tableHeader}>
+                  <Text style={styles.receiptColNo}>#</Text><Text style={styles.receiptColReceipt}>RECEIPT NO</Text><Text style={styles.receiptColBook}>BILL BOOK</Text><Text style={styles.receiptColOccasion}>OCCASION</Text><Text style={styles.receiptColCollector}>COLLECTOR</Text><Text style={styles.receiptColDonor}>DONOR</Text><Text style={styles.receiptColType}>TYPE</Text><Text style={styles.receiptColAmount}>AMOUNT</Text><Text style={styles.receiptColMode}>PAYMENT MODE</Text><Text style={styles.receiptColItem}>ITEM / CONTRIBUTION</Text><Text style={styles.receiptColQty}>QTY</Text><Text style={styles.receiptColUnit}>UNIT</Text><Text style={styles.receiptColDate}>DATE</Text>
+                </View>
+                {filteredReceiptReport.length === 0 ? <View style={styles.emptyState}><Text style={styles.emptyTitle}>No receipts found</Text><Text style={styles.emptyText}>Try changing the selected filters.</Text></View> : filteredReceiptReport.map((item, index) => { const isMoney = String(item.contributionType || "Money").toLowerCase() === "money"; return <View key={item.id} style={styles.tableRow}>
+                  <Text style={styles.receiptColNo}>{index + 1}</Text><Text style={styles.receiptColReceipt}>{item.receiptNumber || "-"}</Text><Text style={styles.receiptColBook}>{item.billBookNumber || "-"}</Text><Text style={styles.receiptColOccasion}>{item.occasionName || getOccasionName(occasions.find((o) => o.id === item.occasionId))}</Text><Text style={styles.receiptColCollector}>{item.collectorName || item.collector || "-"}</Text><Text style={styles.receiptColDonor}>{item.donorName || "-"}</Text><Text style={styles.receiptColType}>{item.contributionType || "Money"}</Text><Text style={[styles.receiptColAmount, isMoney ? styles.amountGreen : styles.amountZero]}>{isMoney ? `₹${formatAmount(item.amount)}` : "-"}</Text><Text style={styles.receiptColMode}>{isMoney ? (item.paymentMode || "-") : "-"}</Text><Text style={styles.receiptColItem}>{item.item || item.contribution || "-"}</Text><Text style={styles.receiptColQty}>{item.quantity ?? "-"}</Text><Text style={styles.receiptColUnit}>{item.unit || "-"}</Text><Text style={styles.receiptColDate}>{item.date ? formatDate(item.date) : formatDate(item.createdAt)}</Text>
+                </View>; })}
+              </View></ScrollView></View>
+
+              <TouchableOpacity style={[styles.downloadButton, exporting && styles.downloadButtonDisabled]} onPress={exportReceiptReport} disabled={exporting} activeOpacity={0.8}>{exporting ? <ActivityIndicator size="small" color={COLORS.white} /> : <Text style={styles.downloadIcon}>↓</Text>}<Text style={styles.downloadText}>{exporting ? "Generating Excel..." : "Download Receipt Report"}</Text></TouchableOpacity>
             </>
           ) : null}
 
@@ -2905,6 +3096,23 @@ const styles = StyleSheet.create({
     textAlign:
       "center",
   },
+
+  receiptFilterGrid: { flexDirection: "row", gap: 14, marginTop: 18, flexWrap: "wrap" },
+  receiptFilterItem: { flex: 1, minWidth: 240 },
+  receiptTable: { minWidth: 1900 },
+  receiptColNo: { width: 45, fontFamily: FONTS.medium, fontSize: 10, color: COLORS.textMuted, paddingHorizontal: 8 },
+  receiptColReceipt: { width: 130, fontFamily: FONTS.medium, fontSize: 11, color: COLORS.text, paddingHorizontal: 8 },
+  receiptColBook: { width: 120, fontFamily: FONTS.medium, fontSize: 11, color: COLORS.text, paddingHorizontal: 8 },
+  receiptColOccasion: { width: 220, fontFamily: FONTS.regular, fontSize: 11, color: COLORS.textSecondary, paddingHorizontal: 8 },
+  receiptColCollector: { width: 180, fontFamily: FONTS.regular, fontSize: 11, color: COLORS.textSecondary, paddingHorizontal: 8 },
+  receiptColDonor: { width: 180, fontFamily: FONTS.regular, fontSize: 11, color: COLORS.textSecondary, paddingHorizontal: 8 },
+  receiptColType: { width: 130, fontFamily: FONTS.medium, fontSize: 11, color: COLORS.textSecondary, paddingHorizontal: 8 },
+  receiptColAmount: { width: 140, textAlign: "right", fontFamily: FONTS.bold, fontSize: 11, color: COLORS.text, paddingHorizontal: 8 },
+  receiptColMode: { width: 150, fontFamily: FONTS.regular, fontSize: 11, color: COLORS.textSecondary, paddingHorizontal: 8 },
+  receiptColItem: { width: 220, fontFamily: FONTS.regular, fontSize: 11, color: COLORS.textSecondary, paddingHorizontal: 8 },
+  receiptColQty: { width: 90, fontFamily: FONTS.regular, fontSize: 11, color: COLORS.textSecondary, paddingHorizontal: 8 },
+  receiptColUnit: { width: 100, fontFamily: FONTS.regular, fontSize: 11, color: COLORS.textSecondary, paddingHorizontal: 8 },
+  receiptColDate: { width: 190, fontFamily: FONTS.regular, fontSize: 11, color: COLORS.textSecondary, paddingHorizontal: 8 },
 
   /* =======================================================
      EXPORT

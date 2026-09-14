@@ -51,6 +51,11 @@ const MENU_ITEMS = [
     icon: "arrow-down-circle-outline",
   },
   {
+    label: "Receipts",
+    route: "/receipts",
+    icon: "receipt-outline",
+  },
+  {
     label: "Financial Details",
     route: "/financialdetails",
     icon: "analytics-outline",

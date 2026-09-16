@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -28,6 +28,7 @@ import { COLORS, FONTS } from "../constants/theme";
 import { db } from "../services/firebase";
 
 import * as ImagePicker from "expo-image-picker";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 const CLOUDINARY_CLOUD_NAME = "etejpids";
 const CLOUDINARY_UPLOAD_PRESET = "Occasionfinancemanager";
@@ -94,6 +95,11 @@ export default function ExpensesScreen() {
     useState("All");
   const [paymentFilter, setPaymentFilter] =
     useState("All");
+
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [showFromDatePicker, setShowFromDatePicker] = useState(false);
+  const [showToDatePicker, setShowToDatePicker] = useState(false);
 
   const [modalVisible, setModalVisible] =
     useState(false);
@@ -448,6 +454,11 @@ export default function ExpensesScreen() {
           );
         })
         .filter((expense) => {
+          if (dateFrom && String(expense.date || "") < dateFrom) return false;
+          if (dateTo && String(expense.date || "") > dateTo) return false;
+          return true;
+        })
+        .filter((expense) => {
           if (
             occasionFilter ===
             "All"
@@ -514,6 +525,8 @@ export default function ExpensesScreen() {
       occasionFilter,
       categoryFilter,
       paymentFilter,
+      dateFrom,
+      dateTo,
     ]);
 
   // ==================================================
@@ -978,6 +991,20 @@ export default function ExpensesScreen() {
           </View>
         </View>
 
+        {/* DATE RANGE FILTER */}
+
+        <DateRangeFilter
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          setDateFrom={setDateFrom}
+          setDateTo={setDateTo}
+          showFromDatePicker={showFromDatePicker}
+          setShowFromDatePicker={setShowFromDatePicker}
+          showToDatePicker={showToDatePicker}
+          setShowToDatePicker={setShowToDatePicker}
+          isMobile={isMobile}
+        />
+
         {/* OCCASION FILTER */}
 
         <View
@@ -1185,13 +1212,14 @@ export default function ExpensesScreen() {
               : "expenses"}
           </Text>
 
-          {(search ||
-            occasionFilter !==
-              "All" ||
-            categoryFilter !==
-              "All" ||
-            paymentFilter !==
-              "All") && (
+          {Boolean(
+            search ||
+              occasionFilter !== "All" ||
+              categoryFilter !== "All" ||
+              paymentFilter !== "All" ||
+              dateFrom ||
+              dateTo
+          ) && (
             <TouchableOpacity
               onPress={() => {
                 setSearch("");
@@ -1204,6 +1232,8 @@ export default function ExpensesScreen() {
                 setPaymentFilter(
                   "All"
                 );
+                setDateFrom("");
+                setDateTo("");
               }}
             >
               <Text
@@ -2216,6 +2246,160 @@ function FilterButton({
 }
 
 // ==================================================
+// DATE RANGE FILTER
+// ==================================================
+
+function parseDateValue(value) {
+  if (!value) return new Date();
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function toDateString(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function WebDateInput({ value, min, max, onChange }) {
+  return React.createElement("input", {
+    type: "date",
+    value: value || "",
+    min: min || undefined,
+    max: max || undefined,
+    onChange: (event) => onChange(event.target.value),
+    style: {
+      width: "100%",
+      height: 44,
+      boxSizing: "border-box",
+      borderWidth: 1,
+      borderStyle: "solid",
+      borderColor: COLORS.border,
+      borderRadius: 10,
+      backgroundColor: COLORS.surface,
+      color: COLORS.text,
+      padding: "0 12px",
+      fontFamily: FONTS.regular,
+      fontSize: 14,
+      outline: "none",
+      cursor: "pointer",
+    },
+  });
+}
+
+function DateRangeFilter({
+  dateFrom,
+  dateTo,
+  setDateFrom,
+  setDateTo,
+  showFromDatePicker,
+  setShowFromDatePicker,
+  showToDatePicker,
+  setShowToDatePicker,
+  isMobile,
+}) {
+  const handleFromChange = (date) => {
+    const value = toDateString(date);
+    setDateFrom(value);
+    if (dateTo && value > dateTo) setDateTo(value);
+    setShowFromDatePicker(false);
+  };
+
+  const handleToChange = (date) => {
+    const value = toDateString(date);
+    setDateTo(dateFrom && value < dateFrom ? dateFrom : value);
+    setShowToDatePicker(false);
+  };
+
+  return (
+    <View style={styles.filterSection}>
+      <Text style={styles.filterLabel}>DATE RANGE</Text>
+      <View
+        style={[
+          styles.dateFilterRow,
+          ...(isMobile ? [styles.dateFilterRowMobile] : []),
+        ]}
+      >
+        <View style={styles.dateFilterField}>
+          <Text style={styles.dateFilterCaption}>FROM DATE</Text>
+          {Platform.OS === "web" ? (
+            <WebDateInput
+              value={dateFrom}
+              max={dateTo || ""}
+              onChange={setDateFrom}
+            />
+          ) : (
+            <>
+              <TouchableOpacity style={styles.datePickerButton} onPress={() => setShowFromDatePicker(true)}>
+                <Text style={styles.datePickerIcon}>📅</Text>
+                <Text style={[
+                  styles.datePickerText,
+                  ...(dateFrom ? [] : [styles.datePickerPlaceholder]),
+                ]}>
+                  {dateFrom || "Select start date"}
+                </Text>
+              </TouchableOpacity>
+              {Boolean(showFromDatePicker) && (
+                <DateTimePicker
+                  value={parseDateValue(dateFrom)}
+                  mode="date"
+                  display="default"
+                  maximumDate={dateTo ? parseDateValue(dateTo) : undefined}
+                  onChange={(event, date) => date ? handleFromChange(date) : setShowFromDatePicker(false)}
+                />
+              )}
+            </>
+          )}
+        </View>
+
+        <View style={styles.dateRangeSeparator}>
+          <Text style={styles.dateRangeSeparatorText}>TO</Text>
+        </View>
+
+        <View style={styles.dateFilterField}>
+          <Text style={styles.dateFilterCaption}>TO DATE</Text>
+          {Platform.OS === "web" ? (
+            <WebDateInput
+              value={dateTo}
+              min={dateFrom || ""}
+              onChange={setDateTo}
+            />
+          ) : (
+            <>
+              <TouchableOpacity style={styles.datePickerButton} onPress={() => setShowToDatePicker(true)}>
+                <Text style={styles.datePickerIcon}>📅</Text>
+                <Text style={[
+                  styles.datePickerText,
+                  ...(dateTo ? [] : [styles.datePickerPlaceholder]),
+                ]}>
+                  {dateTo || "Select end date"}
+                </Text>
+              </TouchableOpacity>
+              {Boolean(showToDatePicker) && (
+                <DateTimePicker
+                  value={parseDateValue(dateTo || dateFrom)}
+                  mode="date"
+                  display="default"
+                  minimumDate={dateFrom ? parseDateValue(dateFrom) : undefined}
+                  onChange={(event, date) => date ? handleToChange(date) : setShowToDatePicker(false)}
+                />
+              )}
+            </>
+          )}
+        </View>
+
+        {Boolean(dateFrom || dateTo) && (
+          <TouchableOpacity style={styles.clearDateButton} onPress={() => { setDateFrom(""); setDateTo(""); }}>
+            <Text style={styles.clearDateButtonText}>Clear</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
+  );
+}
+
+// ==================================================
 // EXPENSE CARD
 // ==================================================
 
@@ -2647,7 +2831,6 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
     fontSize: 15,
     color: COLORS.text,
-    outlineStyle: "none",
   },
 
   filterSection: {
@@ -2671,6 +2854,101 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
+  },
+
+  dateFilterRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: 10,
+    flexWrap: "wrap",
+  },
+
+  dateFilterRowMobile: {
+    flexDirection: "column",
+    alignItems: "stretch",
+    gap: 10,
+  },
+
+  dateFilterField: {
+    minWidth: 210,
+    flex: 1,
+  },
+
+  dateFilterCaption: {
+    fontFamily: FONTS.medium,
+    fontSize: 10,
+    letterSpacing: 0.6,
+    color: COLORS.textMuted,
+    marginBottom: 6,
+  },
+
+  datePickerButton: {
+    minHeight: 44,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 10,
+    backgroundColor: COLORS.surface,
+    paddingHorizontal: 12,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  datePickerIcon: { fontSize: 16, marginRight: 8 },
+
+  datePickerText: {
+    fontFamily: FONTS.medium,
+    fontSize: 14,
+    color: COLORS.text,
+  },
+
+  datePickerPlaceholder: {
+    color: COLORS.textMuted,
+    fontFamily: FONTS.regular,
+  },
+
+  webDateInput: {
+    width: "100%",
+    height: 44,
+    boxSizing: "border-box",
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 10,
+    backgroundColor: COLORS.surface,
+    color: COLORS.text,
+    paddingVertical: 0,
+    paddingHorizontal: 12,
+    fontFamily: FONTS.regular,
+    fontSize: 14,
+  },
+
+  dateRangeSeparator: {
+    height: 44,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 2,
+  },
+
+  dateRangeSeparatorText: {
+    fontFamily: FONTS.medium,
+    fontSize: 10,
+    color: COLORS.textMuted,
+  },
+
+  clearDateButton: {
+    height: 44,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.surface,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  clearDateButtonText: {
+    fontFamily: FONTS.medium,
+    fontSize: 13,
+    color: COLORS.primary,
   },
 
   filterButton: {
@@ -3018,7 +3296,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: COLORS.text,
     backgroundColor: COLORS.surface,
-    outlineStyle: "none",
   },
 
   selectedBox: {
@@ -3209,7 +3486,6 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
     fontSize: 19,
     color: COLORS.text,
-    outlineStyle: "none",
   },
 
   paymentGrid: {

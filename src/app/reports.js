@@ -7,6 +7,7 @@ import {
     ScrollView,
     StyleSheet,
     Text,
+    TextInput,
     TouchableOpacity,
     View,
 } from "react-native";
@@ -50,6 +51,12 @@ const REPORT_OPTIONS = [
     value: "receipt",
     description:
       "Receipt-wise money and in-kind collection details",
+  },
+  {
+    label: "Expense Report",
+    value: "expense",
+    description:
+      "Complete expense-wise report with date, description and amount",
   },
 ];
 
@@ -141,6 +148,18 @@ export default function ReportsScreen() {
   const [receipts, setReceipts] =
     useState([]);
 
+  const [expenses, setExpenses] =
+    useState([]);
+
+  const [expenseFromDate, setExpenseFromDate] =
+    useState("");
+
+  const [expenseToDate, setExpenseToDate] =
+    useState("");
+
+  const [showExpenseOccasionPicker, setShowExpenseOccasionPicker] =
+    useState(false);
+
   const [occasions, setOccasions] =
     useState([]);
 
@@ -185,6 +204,7 @@ export default function ReportsScreen() {
     let peopleLoaded = false;
     let contributionsLoaded = false;
     let receiptsLoaded = false;
+    let expensesLoaded = false;
     let occasionsLoaded = false;
 
     const checkLoading = () => {
@@ -192,6 +212,7 @@ export default function ReportsScreen() {
         peopleLoaded &&
         contributionsLoaded &&
         receiptsLoaded &&
+        expensesLoaded &&
         occasionsLoaded
       ) {
         setLoading(false);
@@ -295,6 +316,34 @@ export default function ReportsScreen() {
       );
 
     /* -------------------------------------------------------
+       EXPENSES
+       ------------------------------------------------------- */
+
+    const unsubscribeExpenses =
+      onSnapshot(
+        collection(db, "expenses"),
+        (snapshot) => {
+          setExpenses(
+            snapshot.docs.map((item) => ({
+              id: item.id,
+              ...item.data(),
+            }))
+          );
+          expensesLoaded = true;
+          checkLoading();
+        },
+        (error) => {
+          console.log("Expense report error:", error);
+          expensesLoaded = true;
+          checkLoading();
+          Alert.alert(
+            "Unable to load expenses",
+            "Expense data could not be loaded."
+          );
+        }
+      );
+
+    /* -------------------------------------------------------
        OCCASIONS
        ------------------------------------------------------- */
 
@@ -332,6 +381,7 @@ export default function ReportsScreen() {
       unsubscribePeople();
       unsubscribeContributions();
       unsubscribeReceipts();
+      unsubscribeExpenses();
       unsubscribeOccasions();
     };
   }, []);
@@ -376,6 +426,81 @@ export default function ReportsScreen() {
       moneyAmount: money.reduce((sum, item) => sum + Number(item.amount || 0), 0),
     };
   }, [filteredReceiptReport]);
+
+  /* =======================================================
+     EXPENSE REPORT DATA
+
+     IMPORTANT:
+     Every expense remains a separate row.
+     Same-date expenses are NOT consolidated here.
+     The consolidated date-wise expense summary remains
+     available in Financial Details only.
+     ======================================================= */
+
+  const filteredExpenseReport = useMemo(() => {
+    const start = expenseFromDate || "";
+    const end = expenseToDate || "";
+
+    const getExpenseDateKey = (item) => {
+      const value = item?.date || item?.createdAt;
+      if (!value) return "";
+
+      try {
+        if (typeof value === "object" && typeof value.toDate === "function") {
+          const d = value.toDate();
+          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        }
+
+        if (value instanceof Date) {
+          return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
+        }
+
+        const raw = String(value);
+        const match = raw.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+        if (match) {
+          return `${match[1]}-${String(match[2]).padStart(2, "0")}-${String(match[3]).padStart(2, "0")}`;
+        }
+
+        const parsed = new Date(value);
+        if (!Number.isNaN(parsed.getTime())) {
+          return `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, "0")}-${String(parsed.getDate()).padStart(2, "0")}`;
+        }
+      } catch {}
+
+      return "";
+    };
+
+    return [...expenses]
+      .filter((item) => {
+        if (selectedOccasionId && String(item.occasionId || "") !== String(selectedOccasionId)) {
+          return false;
+        }
+
+        const dateKey = getExpenseDateKey(item);
+        if (start && (!dateKey || dateKey < start)) return false;
+        if (end && (!dateKey || dateKey > end)) return false;
+
+        return true;
+      })
+      .sort((a, b) => {
+        const aDate = getExpenseDateKey(a);
+        const bDate = getExpenseDateKey(b);
+        if (aDate !== bDate) return bDate.localeCompare(aDate);
+        return String(b.createdAt || b.id || "").localeCompare(String(a.createdAt || a.id || ""));
+      });
+  }, [expenses, selectedOccasionId, expenseFromDate, expenseToDate]);
+
+  const expenseReportTotal = useMemo(
+    () => filteredExpenseReport.reduce((sum, item) => sum + Number(item.amount || 0), 0),
+    [filteredExpenseReport]
+  );
+
+  const clearExpenseFilters = () => {
+    setExpenseFromDate("");
+    setExpenseToDate("");
+    setSelectedOccasionId("");
+    setShowExpenseOccasionPicker(false);
+  };
 
   /* =======================================================
      SELECTED REPORT
@@ -927,6 +1052,62 @@ export default function ReportsScreen() {
     } catch (error) {
       console.log("Receipt report export error:", error);
       Alert.alert("Export Failed", "Unable to generate the receipt report.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  /* =======================================================
+     EXPENSE REPORT EXPORT
+
+     EXACT COLUMNS REQUESTED:
+     Date | Description | Amount
+
+     Every expense is exported separately.
+     ======================================================= */
+
+  const exportExpenseReport = async () => {
+    if (filteredExpenseReport.length === 0) {
+      Alert.alert(
+        "No Data",
+        "There are no expenses available for the selected filters."
+      );
+      return;
+    }
+
+    setExporting(true);
+
+    try {
+      const rows = filteredExpenseReport.map((item) => ({
+        Date: item.date ? formatDate(item.date) : formatDate(item.createdAt),
+        Description: item.description || "",
+        Amount: Number(item.amount || 0),
+      }));
+
+      const totalRow = {
+        Date: "",
+        Description: "TOTAL EXPENSES",
+        Amount: Number(expenseReportTotal || 0),
+      };
+
+      const worksheet = XLSX.utils.json_to_sheet([...rows, totalRow]);
+      worksheet["!cols"] = [
+        { wch: 24 },
+        { wch: 50 },
+        { wch: 18 },
+      ];
+
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Expense Report");
+
+      await saveWorkbook(
+        workbook,
+        `Expense_Report_${new Date().toISOString().slice(0, 10)}.xlsx`,
+        "Export Expense Report"
+      );
+    } catch (error) {
+      console.log("Expense report export error:", error);
+      Alert.alert("Export Failed", "Unable to generate the expense report.");
     } finally {
       setExporting(false);
     }
@@ -1485,6 +1666,162 @@ export default function ReportsScreen() {
               </View></ScrollView></View>
 
               <TouchableOpacity style={[styles.downloadButton, exporting && styles.downloadButtonDisabled]} onPress={exportReceiptReport} disabled={exporting} activeOpacity={0.8}>{exporting ? <ActivityIndicator size="small" color={COLORS.white} /> : <Text style={styles.downloadIcon}>↓</Text>}<Text style={styles.downloadText}>{exporting ? "Generating Excel..." : "Download Receipt Report"}</Text></TouchableOpacity>
+            </>
+          ) : null}
+
+          {/* =================================================
+              EXPENSE REPORT
+          ================================================= */}
+          {reportType === "expense" ? (
+            <>
+              <View style={styles.expenseReportTopRow}>
+                <View style={styles.expenseFilterBlock}>
+                  <Text style={styles.label}>FROM DATE</Text>
+                  <TextInput
+                    value={expenseFromDate}
+                    onChangeText={setExpenseFromDate}
+                    placeholder="YYYY-MM-DD"
+                    placeholderTextColor={COLORS.textMuted}
+                    style={styles.expenseDateInput}
+                    autoCapitalize="none"
+                  />
+                </View>
+
+                <View style={styles.expenseFilterBlock}>
+                  <Text style={styles.label}>TO DATE</Text>
+                  <TextInput
+                    value={expenseToDate}
+                    onChangeText={setExpenseToDate}
+                    placeholder="YYYY-MM-DD"
+                    placeholderTextColor={COLORS.textMuted}
+                    style={styles.expenseDateInput}
+                    autoCapitalize="none"
+                  />
+                </View>
+
+                <View style={styles.expenseFilterBlock}>
+                  <Text style={styles.label}>OCCASION</Text>
+                  <TouchableOpacity
+                    style={styles.dropdown}
+                    onPress={() => setShowExpenseOccasionPicker(!showExpenseOccasionPicker)}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.dropdownText}>
+                      <Text style={styles.dropdownValue}>
+                        {selectedOccasion ? getOccasionName(selectedOccasion) : "All Occasions"}
+                      </Text>
+                      <Text style={styles.dropdownDescription}>Filter expenses by occasion</Text>
+                    </View>
+                    <Text style={styles.chevron}>{showExpenseOccasionPicker ? "▲" : "▼"}</Text>
+                  </TouchableOpacity>
+                  {showExpenseOccasionPicker ? (
+                    <View style={styles.dropdownMenu}>
+                      <TouchableOpacity
+                        style={[styles.option, !selectedOccasionId && styles.optionActive]}
+                        onPress={() => { setSelectedOccasionId(""); setShowExpenseOccasionPicker(false); }}
+                      >
+                        <Text style={[styles.optionLabel, !selectedOccasionId && styles.optionLabelActive]}>All Occasions</Text>
+                      </TouchableOpacity>
+                      {sortedOccasions.map((occasion) => (
+                        <TouchableOpacity
+                          key={occasion.id}
+                          style={[styles.option, occasion.id === selectedOccasionId && styles.optionActive]}
+                          onPress={() => { setSelectedOccasionId(occasion.id); setShowExpenseOccasionPicker(false); }}
+                        >
+                          <Text style={[styles.optionLabel, occasion.id === selectedOccasionId && styles.optionLabelActive]}>
+                            {getOccasionName(occasion)}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  ) : null}
+                </View>
+
+                <TouchableOpacity style={styles.clearExpenseButton} onPress={clearExpenseFilters}>
+                  <Text style={styles.clearExpenseButtonText}>Clear Filters</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.reportHeader}>
+                <View style={styles.reportHeaderText}>
+                  <Text style={styles.sectionTitle}>Expense-wise Details</Text>
+                  <Text style={styles.sectionSubtitle}>Every individual expense is shown separately. Same-date expenses are not merged.</Text>
+                </View>
+              </View>
+
+              <View style={styles.expenseSummaryCard}>
+                <View>
+                  <Text style={styles.summaryLabel}>TOTAL EXPENSES</Text>
+                  <Text style={styles.summaryAmount}>₹{formatAmount(expenseReportTotal)}</Text>
+                </View>
+                <View style={styles.expenseCountBox}>
+                  <Text style={styles.summaryLabel}>EXPENSE ENTRIES</Text>
+                  <Text style={styles.summaryValue}>{filteredExpenseReport.length}</Text>
+                </View>
+              </View>
+
+              <View style={styles.detailsCard}>
+                <ScrollView horizontal showsHorizontalScrollIndicator>
+                  <View style={styles.expenseTable}>
+                    <View style={styles.tableHeader}>
+                      <Text style={styles.expenseColDate}>DATE</Text>
+                      <Text style={styles.expenseColDescription}>DESCRIPTION</Text>
+                      <Text style={styles.expenseColAmount}>AMOUNT</Text>
+                    </View>
+
+                    {filteredExpenseReport.length === 0 ? (
+                      <View style={styles.emptyState}>
+                        <Text style={styles.emptyTitle}>No expenses found</Text>
+                        <Text style={styles.emptyText}>Try changing the date or occasion filters.</Text>
+                      </View>
+                    ) : (
+                      <>
+                        {filteredExpenseReport.map((item, index) => (
+                          <View key={item.id || `expense-${index}`} style={styles.tableRow}>
+                            <Text style={styles.expenseColDate}>
+                              {item.date ? formatDate(item.date) : formatDate(item.createdAt)}
+                            </Text>
+                            <Text style={styles.expenseColDescription}>
+                              {item.description || "-"}
+                            </Text>
+                            <Text style={styles.expenseColAmount}>
+                              ₹{formatAmount(item.amount)}
+                            </Text>
+                          </View>
+                        ))}
+                        <View style={styles.expenseTotalRow}>
+                          <Text style={styles.expenseColDate}></Text>
+                          <Text style={[styles.expenseColDescription, styles.expenseTotalLabel]}>TOTAL EXPENSES</Text>
+                          <Text style={[styles.expenseColAmount, styles.expenseTotalAmount]}>₹{formatAmount(expenseReportTotal)}</Text>
+                        </View>
+                      </>
+                    )}
+                  </View>
+                </ScrollView>
+              </View>
+
+              <TouchableOpacity
+                style={[styles.downloadButton, exporting && styles.downloadButtonDisabled]}
+                onPress={exportExpenseReport}
+                disabled={exporting}
+                activeOpacity={0.8}
+              >
+                {exporting ? (
+                  <ActivityIndicator size="small" color={COLORS.white} />
+                ) : (
+                  <Text style={styles.downloadIcon}>↓</Text>
+                )}
+                <Text style={styles.downloadText}>
+                  {exporting ? "Generating Excel..." : "Download Expense Report"}
+                </Text>
+              </TouchableOpacity>
+
+              <View style={styles.infoCard}>
+                <Text style={styles.infoTitle}>Expense Report</Text>
+                <Text style={styles.infoText}>
+                  This report shows each expense transaction individually with only Date, Description and Amount. UPI/Cash, payment mode and category are intentionally excluded.
+                </Text>
+              </View>
             </>
           ) : null}
 
@@ -3151,6 +3488,119 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color:
       COLORS.white,
+  },
+
+  /* =======================================================
+     EXPENSE REPORT
+     ======================================================= */
+
+  expenseReportTopRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: 12,
+    marginTop: 22,
+    marginBottom: 20,
+    flexWrap: "wrap",
+  },
+
+  expenseFilterBlock: {
+    minWidth: 190,
+    flex: 1,
+    position: "relative",
+  },
+
+  expenseDateInput: {
+    height: 46,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: RADIUS.input || 10,
+    backgroundColor: COLORS.surface,
+    paddingHorizontal: 14,
+    fontFamily: FONTS.regular,
+    fontSize: 14,
+    color: COLORS.text,
+  },
+
+  clearExpenseButton: {
+    height: 46,
+    paddingHorizontal: 18,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.surface,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  clearExpenseButtonText: {
+    fontFamily: FONTS.bold,
+    fontSize: 12,
+    color: COLORS.textSecondary,
+  },
+
+  expenseSummaryCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 18,
+    marginBottom: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.surface,
+  },
+
+  expenseCountBox: {
+    alignItems: "flex-end",
+  },
+
+  expenseTable: {
+    minWidth: 720,
+    width: "100%",
+  },
+
+  expenseColDate: {
+    width: 180,
+    paddingHorizontal: 12,
+    fontFamily: FONTS.regular,
+    fontSize: 13,
+    color: COLORS.textSecondary,
+  },
+
+  expenseColDescription: {
+    width: 390,
+    paddingHorizontal: 12,
+    fontFamily: FONTS.regular,
+    fontSize: 13,
+    color: COLORS.text,
+  },
+
+  expenseColAmount: {
+    width: 150,
+    paddingHorizontal: 12,
+    textAlign: "right",
+    fontFamily: FONTS.bold,
+    fontSize: 13,
+    color: COLORS.danger || COLORS.text,
+  },
+
+  expenseTotalRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    minHeight: 52,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    backgroundColor: COLORS.background,
+  },
+
+  expenseTotalLabel: {
+    fontFamily: FONTS.bold,
+    color: COLORS.text,
+  },
+
+  expenseTotalAmount: {
+    fontFamily: FONTS.bold,
+    color: COLORS.danger || COLORS.text,
   },
 
   /* =======================================================

@@ -134,6 +134,25 @@ export default function FinancialDetails() {
   const otherContributions = useMemo(() => filteredContributions.reduce((sum, r) => sum + Number(r.amount || 0), 0), [filteredContributions]);
   const totalRevenue = receiptRevenue + otherContributions;
   const totalExpenses = useMemo(() => filteredExpenses.reduce((sum, r) => sum + Number(r.amount || 0), 0), [filteredExpenses]);
+
+  // Consolidated expense summary by date.
+  // Multiple expense entries on the same date are combined into one row.
+  const expenseDateReport = useMemo(() => {
+    const map = new Map();
+
+    filteredExpenses.forEach((expense) => {
+      const date = normaliseDateText(expense.date);
+      if (!date) return;
+
+      const current = map.get(date) || 0;
+      map.set(date, current + Number(expense.amount || 0));
+    });
+
+    return Array.from(map.entries())
+      .map(([date, amount]) => ({ date, amount }))
+      .sort((a, b) => b.date.localeCompare(a.date));
+  }, [filteredExpenses]);
+
   const netBalance = totalRevenue - totalExpenses;
 
   const transactions = useMemo(() => {
@@ -286,12 +305,33 @@ export default function FinancialDetails() {
           {occasionReport.length === 0 ? <EmptyState /> : occasionReport.map((r) => <TableRow key={r.id} cells={[r.name, `₹${formatAmount(r.revenue)}`, `₹${formatAmount(r.expense)}`, `₹${formatAmount(r.balance)}`, r.receipts, r.inKind]} widths={[2.2, 1.2, 1.2, 1.2, 0.9, 0.9]} positiveIndex={3} />)}
         </Section>
 
-        <View style={[styles.twoColumns, isMobile && styles.twoColumnsMobile]}>
-          <Section title="Bill Book-wise Collection" subtitle="Money, receipt count and in-kind entries for the selected period">
+        <View style={[styles.threeColumns, isMobile && styles.threeColumnsMobile]}>
+          <Section title="Expense Summary" style={styles.threeColumnPanel} subtitle="Expenses consolidated date-wise for the selected period">
+            <TableHeader labels={["DATE", "AMOUNT"]} widths={[2, 1]} />
+            {expenseDateReport.length === 0 ? (
+              <EmptyState text="No expenses found for the selected filters." />
+            ) : (
+              <>
+                {expenseDateReport.map((r) => (
+                  <TableRow
+                    key={r.date}
+                    cells={[formatDate(r.date), `₹${formatAmount(r.amount)}`]}
+                    widths={[2, 1]}
+                  />
+                ))}
+                <View style={styles.expenseTotalRow}>
+                  <Text style={styles.expenseTotalLabel}>TOTAL</Text>
+                  <Text style={styles.expenseTotalAmount}>₹{formatAmount(totalExpenses)}</Text>
+                </View>
+              </>
+            )}
+          </Section>
+
+          <Section title="Bill Book-wise Collection" style={styles.threeColumnPanel} subtitle="Money, receipt count and in-kind entries for the selected period">
             <TableHeader labels={["BILL BOOK", "COLLECTOR", "RECEIPTS", "MONEY", "IN-KIND"]} widths={[1.5, 1.5, 0.8, 1.1, 0.8]} />
             {billBookReport.length === 0 ? <EmptyState /> : billBookReport.map((r) => <TableRow key={r.key} cells={[r.billBookNumber, r.collector, r.receipts, `₹${formatAmount(r.money)}`, r.inKind]} widths={[1.5, 1.5, 0.8, 1.1, 0.8]} />)}
           </Section>
-          <Section title="Collector-wise Collection" subtitle="Collector performance across bill books and receipts">
+          <Section title="Collector-wise Collection" style={styles.threeColumnPanel} subtitle="Collector performance across bill books and receipts">
             <TableHeader labels={["COLLECTOR", "BOOKS", "RECEIPTS", "MONEY", "IN-KIND"]} widths={[1.7, 0.8, 0.9, 1.2, 0.8]} />
             {collectorReport.length === 0 ? <EmptyState /> : collectorReport.map((r) => <TableRow key={r.key} cells={[r.collector, r.books, r.receipts, `₹${formatAmount(r.money)}`, r.inKind]} widths={[1.7, 0.8, 0.9, 1.2, 0.8]} />)}
           </Section>
@@ -382,7 +422,7 @@ function QuickButton({ label, active, onPress }) { return <TouchableOpacity onPr
 function FilterButton({ label, value, onPress }) { return <View style={styles.filterItem}><Text style={styles.filterLabel}>{label}</Text><TouchableOpacity style={styles.filterButton} onPress={onPress}><Text style={styles.filterValue} numberOfLines={1}>{value}</Text><Text style={styles.filterChevron}>▾</Text></TouchableOpacity></View>; }
 function SummaryCard({ label, value, description, color, lightColor, icon }) { return <View style={styles.summaryCard}><View style={styles.summaryTop}><Text style={[styles.summaryLabel, { color }]}>{label}</Text><View style={[styles.summaryIcon, { backgroundColor: lightColor }]}><Text style={[styles.summaryIconText, { color }]}>{icon}</Text></View></View><Text style={[styles.summaryValue, { color }]}>{value}</Text><Text style={styles.summaryDescription}>{description}</Text></View>; }
 function MiniStat({ label, value }) { return <View style={styles.miniStat}><Text style={styles.miniStatLabel}>{label}</Text><Text style={styles.miniStatValue}>{value}</Text></View>; }
-function Section({ title, subtitle, children }) { return <View style={styles.panel}><View style={styles.panelHeader}><View><Text style={styles.panelTitle}>{title}</Text><Text style={styles.panelSubtitle}>{subtitle}</Text></View><View style={styles.readOnlyBadge}><Text style={styles.readOnlyText}>LIVE / READ ONLY</Text></View></View>{children}</View>; }
+function Section({ title, subtitle, children, style }) { return <View style={[styles.panel, style]}><View style={styles.panelHeader}><View><Text style={styles.panelTitle}>{title}</Text><Text style={styles.panelSubtitle}>{subtitle}</Text></View><View style={styles.readOnlyBadge}><Text style={styles.readOnlyText}>LIVE / READ ONLY</Text></View></View>{children}</View>; }
 function TableHeader({ labels, widths }) { return <View style={styles.tableHeader}>{labels.map((label, i) => <Text key={label} style={[styles.tableHeaderText, { flex: widths[i] }]} numberOfLines={1}>{label}</Text>)}</View>; }
 function TableRow({ cells, widths, positiveIndex }) { return <View style={styles.tableRow}>{cells.map((cell, i) => <Text key={`${i}-${String(cell)}`} style={[styles.tableCell, { flex: widths[i], color: i === positiveIndex ? (Number(String(cell).replace(/[^0-9.-]/g, "")) >= 0 ? COLORS.success : COLORS.danger) : COLORS.text }]} numberOfLines={2}>{String(cell)}</Text>)}</View>; }
 function FilterModal({ visible, title, onClose, children }) { return <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}><Pressable style={styles.modalOverlay} onPress={onClose}><Pressable style={styles.modalCard} onPress={(e) => e.stopPropagation()}><View style={styles.modalHeader}><Text style={styles.modalTitle}>{title}</Text><TouchableOpacity onPress={onClose}><Text style={styles.modalClose}>×</Text></TouchableOpacity></View><ScrollView style={styles.modalList}>{children}</ScrollView></Pressable></Pressable></Modal>; }
@@ -458,12 +498,18 @@ const styles = StyleSheet.create({
   panelSubtitle: { fontFamily: FONTS.regular, fontSize: 11, lineHeight: 16, color: COLORS.textMuted, marginTop: 4, maxWidth: 720 },
   readOnlyBadge: { borderWidth: 1, borderColor: COLORS.border, borderRadius: 7, paddingHorizontal: 8, paddingVertical: 5 },
   readOnlyText: { fontFamily: FONTS.bold, fontSize: 10, letterSpacing: 0.5, color: COLORS.textMuted },
+  threeColumns: { flexDirection: "row", gap: 14, alignItems: "flex-start" },
+  threeColumnsMobile: { flexDirection: "column" },
+  threeColumnPanel: { flex: 1, minWidth: 0 },
   twoColumns: { flexDirection: "row", gap: 14 },
   twoColumnsMobile: { flexDirection: "column" },
   tableHeader: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: COLORS.border, paddingBottom: 8, gap: 8 },
   tableHeaderText: { fontFamily: FONTS.bold, fontSize: 10, letterSpacing: 0.5, color: COLORS.textMuted },
   tableRow: { flexDirection: "row", gap: 8, paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: "#EEF2F7", alignItems: "center" },
   tableCell: { fontFamily: FONTS.medium, fontSize: 12, lineHeight: 17 },
+  expenseTotalRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: COLORS.border },
+  expenseTotalLabel: { fontFamily: FONTS.bold, fontSize: 12, color: COLORS.text },
+  expenseTotalAmount: { fontFamily: FONTS.bold, fontSize: 16, color: COLORS.danger },
   emptyState: { alignItems: "center", justifyContent: "center", paddingVertical: 28 },
   emptyTitle: { fontFamily: FONTS.bold, fontSize: 14, color: COLORS.text },
   emptyText: { fontFamily: FONTS.regular, fontSize: 12, color: COLORS.textMuted, marginTop: 4, textAlign: "center" },

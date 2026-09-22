@@ -239,6 +239,58 @@ export default function FinancialDetails() {
       .sort((a, b) => b.date.localeCompare(a.date));
   }, [filteredExpenses]);
 
+  // Consolidated expense summary by description.
+  // Same descriptions are combined case-insensitively and with surrounding
+  // spaces ignored, while the first recorded description is displayed.
+  const expenseDescriptionReport = useMemo(() => {
+    const map = new Map();
+
+    filteredExpenses.forEach((expense) => {
+      const rawDescription =
+        expense.description || expense.category || "Unspecified Expense";
+      const description = String(rawDescription).trim() || "Unspecified Expense";
+      const key = description.toLowerCase();
+
+      const current = map.get(key);
+
+      if (current) {
+        current.transactions += 1;
+        current.amount += Number(expense.amount || 0);
+      } else {
+        map.set(key, {
+          key,
+          description,
+          transactions: 1,
+          amount: Number(expense.amount || 0),
+        });
+      }
+    });
+
+    return Array.from(map.values()).sort(
+      (a, b) =>
+        b.amount - a.amount ||
+        a.description.localeCompare(b.description),
+    );
+  }, [filteredExpenses]);
+
+  const expenseDescriptionTotal = useMemo(
+    () =>
+      expenseDescriptionReport.reduce(
+        (sum, item) => sum + Number(item.amount || 0),
+        0,
+      ),
+    [expenseDescriptionReport],
+  );
+
+  const expenseDescriptionTransactionTotal = useMemo(
+    () =>
+      expenseDescriptionReport.reduce(
+        (sum, item) => sum + Number(item.transactions || 0),
+        0,
+      ),
+    [expenseDescriptionReport],
+  );
+
   const netBalance = totalRevenue - totalExpenses;
 
   const transactions = useMemo(() => {
@@ -846,6 +898,50 @@ export default function FinancialDetails() {
             )}
           </Section>
         </View>
+
+        <Section
+          title="Description-wise Expense Summary"
+          subtitle="All expenses consolidated by description for the selected period and filters"
+        >
+          <TableHeader
+            labels={["DESCRIPTION", "TRANSACTIONS", "TOTAL AMOUNT"]}
+            widths={[2.4, 1.0, 1.2]}
+          />
+
+          {expenseDescriptionReport.length === 0 ? (
+            <EmptyState text="No expenses found for the selected filters." />
+          ) : (
+            <>
+              {expenseDescriptionReport.map((r) => (
+                <TableRow
+                  key={r.key}
+                  cells={[
+                    r.description,
+                    r.transactions,
+                    `₹${formatAmount(r.amount)}`,
+                  ]}
+                  widths={[2.4, 1.0, 1.2]}
+                />
+              ))}
+
+              <View style={styles.expenseDescriptionTotalRow}>
+                <View style={styles.expenseDescriptionTotalLeft}>
+                  <Text style={styles.expenseDescriptionTotalLabel}>
+                    TOTAL
+                  </Text>
+                  <Text style={styles.expenseDescriptionTotalCount}>
+                    {expenseDescriptionTransactionTotal} transaction
+                    {expenseDescriptionTransactionTotal === 1 ? "" : "s"}
+                  </Text>
+                </View>
+
+                <Text style={styles.expenseDescriptionTotalAmount}>
+                  ₹{formatAmount(expenseDescriptionTotal)}
+                </Text>
+              </View>
+            </>
+          )}
+        </Section>
 
         <Section
           title="In-Kind Contributions"
@@ -1686,6 +1782,35 @@ const styles = StyleSheet.create({
   expenseTotalAmount: {
     fontFamily: FONTS.bold,
     fontSize: 16,
+    color: COLORS.danger,
+  },
+  expenseDescriptionTotalRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+  },
+  expenseDescriptionTotalLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  expenseDescriptionTotalLabel: {
+    fontFamily: FONTS.bold,
+    fontSize: 12,
+    color: COLORS.text,
+  },
+  expenseDescriptionTotalCount: {
+    fontFamily: FONTS.medium,
+    fontSize: 11,
+    color: COLORS.textMuted,
+  },
+  expenseDescriptionTotalAmount: {
+    fontFamily: FONTS.bold,
+    fontSize: 17,
     color: COLORS.danger,
   },
   emptyState: {
